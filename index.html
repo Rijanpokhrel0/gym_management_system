@@ -1,0 +1,453 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <meta name="description" content="FitPulse - Multi-Role Gym Management System with Trainer Selection, Shift Scheduling, and Admin Verification">
+  <title>FitPulse | Multi-Role Gym Management & Trainer Scheduling</title>
+
+  <!-- Google Fonts: Inter & Plus Jakarta Sans -->
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&family=Plus+Jakarta+Sans:wght@500;600;700;800&display=swap" rel="stylesheet">
+
+  <!-- Font Awesome Icons -->
+  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.1/css/all.min.css">
+
+  <!-- Main Stylesheet -->
+  <link rel="stylesheet" href="style.css">
+</head>
+<body>
+
+  <div class="app-layout">
+    <!-- Sidebar Navigation -->
+    <aside class="sidebar" id="sidebar">
+      <div class="sidebar-brand">
+        <div class="brand-logo">
+          <i class="fa-solid fa-dumbbell"></i>
+        </div>
+        <div class="brand-info">
+          <h2>FitPulse</h2>
+          <span id="role-badge-display">Admin Portal</span>
+        </div>
+      </div>
+
+      <!-- Navigation links dynamically adapted based on active user role -->
+      <nav class="sidebar-nav">
+        <ul id="sidebar-menu-list">
+          <!-- Populated by script.js based on role (Admin, User, Trainer) -->
+        </ul>
+      </nav>
+
+      <!-- Active User Profile Box -->
+      <div class="sidebar-user" id="sidebar-user-box">
+        <div class="user-avatar" id="current-user-avatar">RP</div>
+        <div class="user-details">
+          <strong id="current-user-name">Rijan Pokhrel</strong>
+          <span id="current-user-role-label">System Administrator</span>
+        </div>
+        <button class="btn-icon-logout" id="btn-logout" title="Switch Account / Logout">
+          <i class="fa-solid fa-right-from-bracket"></i>
+        </button>
+      </div>
+    </aside>
+
+    <!-- Main Content Area -->
+    <div class="main-wrapper">
+      <!-- Topbar Header -->
+      <header class="topbar">
+        <div class="topbar-left">
+          <button class="menu-toggle" id="menu-toggle" aria-label="Toggle Navigation">
+            <i class="fa-solid fa-bars"></i>
+          </button>
+          <div class="search-bar">
+            <i class="fa-solid fa-magnifying-glass search-icon"></i>
+            <input type="text" id="global-search" placeholder="Search trainers, members, or shifts... (Press /)">
+          </div>
+        </div>
+
+        <div class="topbar-right">
+          <!-- Role Switcher Pill -->
+          <div class="role-switcher-pill">
+            <span class="role-label">Active Role:</span>
+            <select id="role-selector" class="role-select">
+              <option value="admin">System Admin</option>
+              <option value="user">Member / User</option>
+              <option value="trainer">Trainer Portal</option>
+            </select>
+          </div>
+
+          <button class="btn btn-outline btn-sm" id="btn-open-auth-modal">
+            <i class="fa-solid fa-user-lock"></i> Register / Login
+          </button>
+        </div>
+      </header>
+
+      <!-- Main Content Container -->
+      <main class="content-container">
+
+        <!-- ====================================================================
+             1. ADMIN DASHBOARD & TRAINER VERIFICATION PANEL
+             ==================================================================== -->
+        <section id="tab-admin-verification" class="tab-content active">
+          <div class="page-header">
+            <div>
+              <h1 class="page-title">Admin Verification & Management</h1>
+              <p class="page-subtitle">Review trainer applications, verify credentials, and grant active status.</p>
+            </div>
+            <div class="header-actions">
+              <span class="badge badge-amber" id="pending-verification-count-badge">2 Pending Approvals</span>
+            </div>
+          </div>
+
+          <!-- Pending Trainer Verification Table -->
+          <div class="panel">
+            <div class="panel-header">
+              <div class="panel-title-group">
+                <h3><i class="fa-solid fa-user-clock text-amber"></i> Pending Trainer Registration Requests</h3>
+              </div>
+              <span class="text-muted text-sm">Action required prior to public listing</span>
+            </div>
+            <div class="panel-body p-0">
+              <div class="table-responsive">
+                <table class="data-table">
+                  <thead>
+                    <tr>
+                      <th>Trainer Name</th>
+                      <th>Specialization</th>
+                      <th>Experience</th>
+                      <th>Preferred Shifts</th>
+                      <th>Status</th>
+                      <th>Registration Date</th>
+                      <th class="text-right">Admin Action</th>
+                    </tr>
+                  </thead>
+                  <tbody id="pending-trainers-tbody">
+                    <!-- Populated dynamically by script.js -->
+                  </tbody>
+                </table>
+              </div>
+            </div>
+          </div>
+
+          <!-- Verified & Active Trainers Management Table -->
+          <div class="panel">
+            <div class="panel-header">
+              <h3><i class="fa-solid fa-user-check text-emerald"></i> Approved & Active Trainers</h3>
+              <span class="text-muted text-sm">Trainers available for user selection</span>
+            </div>
+            <div class="panel-body p-0">
+              <div class="table-responsive">
+                <table class="data-table">
+                  <thead>
+                    <tr>
+                      <th>Trainer</th>
+                      <th>Specialization</th>
+                      <th>Assigned Members</th>
+                      <th>Active Shifts</th>
+                      <th>Approval Status</th>
+                      <th class="text-right">Manage</th>
+                    </tr>
+                  </thead>
+                  <tbody id="approved-trainers-tbody">
+                    <!-- Populated dynamically by script.js -->
+                  </tbody>
+                </table>
+              </div>
+            </div>
+          </div>
+        </section>
+
+        <!-- ====================================================================
+             2. USER / MEMBER SECTION: VIEW TRAINERS & SELECT SHIFTS
+             ==================================================================== -->
+        <section id="tab-user-trainers" class="tab-content">
+          <div class="page-header">
+            <div>
+              <h1 class="page-title">Find & Select Your Personal Trainer</h1>
+              <p class="page-subtitle">Browse admin-verified fitness trainers and select your preferred shift time.</p>
+            </div>
+          </div>
+
+          <!-- Current Booking Status Banner -->
+          <div class="panel user-booking-banner" id="user-booking-status-card">
+            <!-- Dynamic banner showing currently selected trainer and shift -->
+          </div>
+
+          <!-- Verified Trainers Catalog Grid -->
+          <div class="section-subtitle-heading" style="margin-bottom: 16px;">
+            <h3>Verified Certified Trainers</h3>
+          </div>
+          <div class="trainers-grid" id="trainers-catalog-grid">
+            <!-- Dynamic Verified Trainer Cards -->
+          </div>
+        </section>
+
+        <!-- ====================================================================
+             3. TRAINER PORTAL SECTION: SHIFT SCHEDULE & CLIENT ROSTER
+             ==================================================================== -->
+        <section id="tab-trainer-portal" class="tab-content">
+          <div class="page-header">
+            <div>
+              <h1 class="page-title">Trainer Dashboard & Shift Manager</h1>
+              <p class="page-subtitle">View your admin verification status, assigned member clients, and daily shifts.</p>
+            </div>
+          </div>
+
+          <!-- Verification Status Banner -->
+          <div id="trainer-status-banner"></div>
+
+          <!-- Trainer Shift & Client Grid -->
+          <div class="dashboard-grid">
+            <!-- Shifts Overview -->
+            <div class="panel">
+              <div class="panel-header">
+                <h3><i class="fa-regular fa-clock"></i> My Assigned Shifts & Availability</h3>
+              </div>
+              <div class="panel-body">
+                <div id="trainer-shift-list">
+                  <!-- Dynamic content -->
+                </div>
+              </div>
+            </div>
+
+            <!-- Client Roster -->
+            <div class="panel">
+              <div class="panel-header">
+                <h3><i class="fa-solid fa-users"></i> My Assigned Clients / Members</h3>
+              </div>
+              <div class="panel-body">
+                <div id="trainer-clients-list">
+                  <!-- Dynamic content -->
+                </div>
+              </div>
+            </div>
+          </div>
+        </section>
+
+        <!-- ====================================================================
+             4. SYSTEM OVERVIEW & METRIC ANALYTICS (ADMIN)
+             ==================================================================== -->
+        <section id="tab-admin-overview" class="tab-content">
+          <div class="page-header">
+            <div>
+              <h1 class="page-title">System Metrics & Overview</h1>
+              <p class="page-subtitle">Real-time statistics across all users, trainers, and booked shifts.</p>
+            </div>
+          </div>
+
+          <div class="metrics-grid">
+            <div class="metric-card">
+              <div class="metric-header">
+                <div class="metric-icon icon-blue"><i class="fa-solid fa-users"></i></div>
+                <span class="trend trend-up">Active</span>
+              </div>
+              <div class="metric-body">
+                <h3 id="stat-total-users">14</h3>
+                <p>Registered Members</p>
+              </div>
+            </div>
+
+            <div class="metric-card">
+              <div class="metric-header">
+                <div class="metric-icon icon-emerald"><i class="fa-solid fa-user-shield"></i></div>
+                <span class="trend trend-up">Verified</span>
+              </div>
+              <div class="metric-body">
+                <h3 id="stat-approved-trainers">4</h3>
+                <p>Verified Trainers</p>
+              </div>
+            </div>
+
+            <div class="metric-card">
+              <div class="metric-header">
+                <div class="metric-icon icon-purple"><i class="fa-solid fa-user-clock"></i></div>
+                <span class="trend trend-neutral">Action Needed</span>
+              </div>
+              <div class="metric-body">
+                <h3 id="stat-pending-trainers">2</h3>
+                <p>Pending Approvals</p>
+              </div>
+            </div>
+
+            <div class="metric-card">
+              <div class="metric-header">
+                <div class="metric-icon icon-indigo"><i class="fa-solid fa-calendar-check"></i></div>
+                <span class="trend trend-up">Active Shifts</span>
+              </div>
+              <div class="metric-body">
+                <h3 id="stat-booked-shifts">8</h3>
+                <p>Booked Shifts</p>
+              </div>
+            </div>
+          </div>
+        </section>
+
+      </main>
+    </div>
+  </div>
+
+  <!-- ====================================================================
+       MODAL: AUTHENTICATION (REGISTER / LOGIN MULTI-ROLE)
+       ==================================================================== -->
+  <div class="modal-overlay" id="modal-auth">
+    <div class="modal">
+      <div class="modal-header">
+        <h3 id="auth-modal-title">System Registration & Login</h3>
+        <button class="modal-close" data-close="modal-auth">&times;</button>
+      </div>
+
+      <!-- Auth Mode Tabs (Login / Member Register / Trainer Register) -->
+      <div class="auth-tabs">
+        <button class="auth-tab-btn active" data-auth-mode="login">Account Login</button>
+        <button class="auth-tab-btn" data-auth-mode="user-register">User Register</button>
+        <button class="auth-tab-btn" data-auth-mode="trainer-register">Trainer Register</button>
+      </div>
+
+      <!-- Form 1: Account Login -->
+      <form id="form-login" class="auth-form-step active">
+        <div class="modal-body">
+          <div class="form-group">
+            <label for="login-email">Email Address <span class="text-rose">*</span></label>
+            <input type="email" id="login-email" class="form-control" placeholder="e.g. admin@fitpulse.com" required>
+          </div>
+          <div class="form-group">
+            <label for="login-password">Password <span class="text-rose">*</span></label>
+            <input type="password" id="login-password" class="form-control" placeholder="••••••••" required>
+          </div>
+          <div class="form-group">
+            <label for="login-role">Select Login Portal</label>
+            <select id="login-role" class="form-select">
+              <option value="admin">Admin Portal</option>
+              <option value="user">Member / User Portal</option>
+              <option value="trainer">Trainer Portal</option>
+            </select>
+          </div>
+        </div>
+        <div class="modal-footer">
+          <button type="button" class="btn btn-outline" data-close="modal-auth">Cancel</button>
+          <button type="submit" class="btn btn-primary">Log In</button>
+        </div>
+      </form>
+
+      <!-- Form 2: User / Member Registration -->
+      <form id="form-user-register" class="auth-form-step">
+        <div class="modal-body">
+          <div class="form-group">
+            <label for="user-reg-name">Full Name <span class="text-rose">*</span></label>
+            <input type="text" id="user-reg-name" class="form-control" placeholder="e.g. Rijan Pokhrel" required>
+          </div>
+          <div class="form-group">
+            <label for="user-reg-email">Email Address <span class="text-rose">*</span></label>
+            <input type="email" id="user-reg-email" class="form-control" placeholder="e.g. user@example.com" required>
+          </div>
+          <div class="form-group">
+            <label for="user-reg-password">Password <span class="text-rose">*</span></label>
+            <input type="password" id="user-reg-password" class="form-control" placeholder="••••••••" required>
+          </div>
+          <div class="form-group">
+            <label for="user-reg-goal">Fitness Goal</label>
+            <select id="user-reg-goal" class="form-select">
+              <option value="Weight Loss & Cardio">Weight Loss & Cardio</option>
+              <option value="Muscle Hypertrophy">Muscle Hypertrophy & Bodybuilding</option>
+              <option value="Flexibility & Yoga">Flexibility & Core Balance</option>
+            </select>
+          </div>
+        </div>
+        <div class="modal-footer">
+          <button type="button" class="btn btn-outline" data-close="modal-auth">Cancel</button>
+          <button type="submit" class="btn btn-primary">Register User</button>
+        </div>
+      </form>
+
+      <!-- Form 3: Trainer Registration (Requires Admin Verification) -->
+      <form id="form-trainer-register" class="auth-form-step">
+        <div class="modal-body">
+          <div class="alert-box alert-info">
+            <i class="fa-solid fa-circle-info"></i>
+            <span>Note: Trainer accounts require <strong>Admin Verification & Approval</strong> before they become active in the system.</span>
+          </div>
+
+          <div class="form-group">
+            <label for="trainer-reg-name">Full Name <span class="text-rose">*</span></label>
+            <input type="text" id="trainer-reg-name" class="form-control" placeholder="e.g. Alex Morgan" required>
+          </div>
+
+          <div class="form-group">
+            <label for="trainer-reg-email">Email Address <span class="text-rose">*</span></label>
+            <input type="email" id="trainer-reg-email" class="form-control" placeholder="e.g. alex.trainer@fitpulse.com" required>
+          </div>
+
+          <div class="form-row">
+            <div class="form-group col-6">
+              <label for="trainer-reg-spec">Specialization <span class="text-rose">*</span></label>
+              <input type="text" id="trainer-reg-spec" class="form-control" placeholder="e.g. HIIT & Powerlifting" required>
+            </div>
+            <div class="form-group col-6">
+              <label for="trainer-reg-exp">Years of Experience</label>
+              <input type="number" id="trainer-reg-exp" class="form-control" value="3" min="1" max="25">
+            </div>
+          </div>
+
+          <div class="form-group">
+            <label for="trainer-reg-shift">Preferred Working Shift <span class="text-rose">*</span></label>
+            <select id="trainer-reg-shift" class="form-select" required>
+              <option value="Morning Shift (06:00 AM - 10:00 AM)">Morning Shift (06:00 AM - 10:00 AM)</option>
+              <option value="Afternoon Shift (12:00 PM - 04:00 PM)">Afternoon Shift (12:00 PM - 04:00 PM)</option>
+              <option value="Evening Shift (05:00 PM - 09:00 PM)">Evening Shift (05:00 PM - 09:00 PM)</option>
+            </select>
+          </div>
+        </div>
+        <div class="modal-footer">
+          <button type="button" class="btn btn-outline" data-close="modal-auth">Cancel</button>
+          <button type="submit" class="btn btn-primary">Submit Application</button>
+        </div>
+      </form>
+    </div>
+  </div>
+
+  <!-- ====================================================================
+       MODAL: USER BOOK TRAINER & SHIFT
+       ==================================================================== -->
+  <div class="modal-overlay" id="modal-book-trainer">
+    <div class="modal">
+      <div class="modal-header">
+        <h3>Book Trainer & Select Shift</h3>
+        <button class="modal-close" data-close="modal-book-trainer">&times;</button>
+      </div>
+      <form id="form-book-trainer">
+        <div class="modal-body">
+          <input type="hidden" id="book-trainer-id">
+          
+          <div class="trainer-summary-box" id="book-trainer-summary-box">
+            <!-- Dynamic summary of selected trainer -->
+          </div>
+
+          <div class="form-group" style="margin-top: 16px;">
+            <label for="select-trainer-shift">Choose Shift Time <span class="text-rose">*</span></label>
+            <select id="select-trainer-shift" class="form-select" required>
+              <!-- Options populated dynamically based on trainer shift availability -->
+            </select>
+          </div>
+
+          <div class="form-group">
+            <label for="book-notes">Special Requests / Training Goals</label>
+            <textarea id="book-notes" class="form-control" rows="3" placeholder="e.g. Focus on mobility and muscle strength..."></textarea>
+          </div>
+        </div>
+
+        <div class="modal-footer">
+          <button type="button" class="btn btn-outline" data-close="modal-book-trainer">Cancel</button>
+          <button type="submit" class="btn btn-primary"><i class="fa-solid fa-check"></i> Confirm Selection</button>
+        </div>
+      </form>
+    </div>
+  </div>
+
+  <!-- Toast Notification Container -->
+  <div id="toast-container" class="toast-container"></div>
+
+  <!-- Application Script -->
+  <script src="script.js"></script>
+</body>
+</html>
