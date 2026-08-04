@@ -14,12 +14,138 @@
   <!-- Font Awesome Icons -->
   <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.1/css/all.min.css">
 
+  <!-- Favicon (avoids /favicon.ico 404) -->
+  <link rel="icon" type="image/svg+xml" href="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24'%3E%3Crect width='24' height='24' rx='6' fill='%234f46e5'/%3E%3Cpath d='M6.5 6.5v11M17.5 6.5v11M4 9v6M20 9v6' stroke='white' stroke-width='1.8' stroke-linecap='round'/%3E%3C/svg%3E">
+
   <!-- Main Stylesheet -->
-  <link rel="stylesheet" href="style.css">
+  <link rel="stylesheet" href="style.css?v=5">
 </head>
 <body>
 
-  <div class="app-layout">
+  <!-- ====================================================================
+       AUTH SCREEN: LOGIN / REGISTRATION (landing view; app is gated behind it)
+       ==================================================================== -->
+  <div class="auth-screen" id="auth-screen">
+    <div class="auth-screen-bg"></div>
+    <div class="auth-card-wrap">
+      <div class="auth-card">
+        <div class="auth-card-brand">
+          <div class="auth-logo"><i class="fa-solid fa-dumbbell"></i></div>
+          <h1>FitPulse</h1>
+          <p class="auth-tagline">Gym Management &amp; Trainer Scheduling</p>
+        </div>
+
+        <div class="alert-box alert-danger" id="backend-error-box" style="display:none;margin:0 28px 16px;">
+          <i class="fa-solid fa-triangle-exclamation"></i>
+          <span><strong>Cannot reach the backend.</strong> This app needs XAMPP&rsquo;s <strong>Apache</strong> and <strong>MySQL</strong> running &mdash; a static live server (e.g. VS Code Live Server) cannot run PHP. Open <strong>http://localhost/gym/</strong> instead.</span>
+        </div>
+
+        <div class="auth-tabs">
+          <button class="auth-tab-btn active" data-auth-mode="login">Sign In</button>
+          <button class="auth-tab-btn" data-auth-mode="user-register">User Register</button>
+          <button class="auth-tab-btn" data-auth-mode="trainer-register">Trainer Register</button>
+        </div>
+
+        <div class="auth-card-body">
+          <!-- Form 1: Account Login -->
+          <form id="form-login" class="auth-form-step active" novalidate>
+            <div class="form-group">
+              <label for="login-email">Email Address <span class="text-rose">*</span></label>
+              <input type="email" id="login-email" class="form-control" placeholder="e.g. admin@fitpulse.com" required>
+            </div>
+            <div class="form-group">
+              <label for="login-password">Password <span class="text-rose">*</span></label>
+              <input type="password" id="login-password" class="form-control" placeholder="Enter your password" required>
+            </div>
+            <div class="form-group">
+              <label for="login-role">Select Login Portal</label>
+              <select id="login-role" class="form-select">
+                <option value="admin">Admin Portal</option>
+                <option value="user">Member / User Portal</option>
+                <option value="trainer">Trainer Portal</option>
+              </select>
+            </div>
+            <button type="submit" class="btn btn-primary btn-block">Log In</button>
+            <div class="demo-hint">
+              <i class="fa-solid fa-circle-info"></i>
+              <span><strong>Demo accounts:</strong> admin@fitpulse.com / admin123 &middot; aarav.sharma@example.com / user123 &middot; alex.trainer@fitpulse.com / trainer123</span>
+            </div>
+          </form>
+
+          <!-- Form 2: User / Member Registration -->
+          <form id="form-user-register" class="auth-form-step" novalidate>
+            <div class="form-group">
+              <label for="user-reg-name">Full Name <span class="text-rose">*</span></label>
+              <input type="text" id="user-reg-name" class="form-control" placeholder="e.g. Rijan Pokhrel" required>
+            </div>
+            <div class="form-group">
+              <label for="user-reg-email">Email Address <span class="text-rose">*</span></label>
+              <input type="email" id="user-reg-email" class="form-control" placeholder="e.g. user@example.com" required>
+            </div>
+            <div class="form-group">
+              <label for="user-reg-password">Password <span class="text-rose">*</span></label>
+              <input type="password" id="user-reg-password" class="form-control" placeholder="Min. 6 characters" required>
+            </div>
+            <div class="form-group">
+              <label for="user-reg-goal">Fitness Goal</label>
+              <select id="user-reg-goal" class="form-select">
+                <option value="Weight Loss & Cardio">Weight Loss &amp; Cardio</option>
+                <option value="Muscle Hypertrophy">Muscle Hypertrophy &amp; Bodybuilding</option>
+                <option value="Flexibility & Yoga">Flexibility &amp; Core Balance</option>
+              </select>
+            </div>
+            <button type="submit" class="btn btn-primary btn-block">Register User</button>
+          </form>
+
+          <!-- Form 3: Trainer Registration (Requires Admin Verification) -->
+          <form id="form-trainer-register" class="auth-form-step" novalidate>
+            <div class="alert-box alert-info">
+              <i class="fa-solid fa-circle-info"></i>
+              <span>Trainer accounts require <strong>Admin Verification &amp; Approval</strong> before they appear in the public catalog.</span>
+            </div>
+
+            <div class="form-group">
+              <label for="trainer-reg-name">Full Name <span class="text-rose">*</span></label>
+              <input type="text" id="trainer-reg-name" class="form-control" placeholder="e.g. Alex Morgan" required>
+            </div>
+
+            <div class="form-group">
+              <label for="trainer-reg-email">Email Address <span class="text-rose">*</span></label>
+              <input type="email" id="trainer-reg-email" class="form-control" placeholder="e.g. alex.trainer@fitpulse.com" required>
+            </div>
+
+            <div class="form-group">
+              <label for="trainer-reg-password">Password <span class="text-rose">*</span></label>
+              <input type="password" id="trainer-reg-password" class="form-control" placeholder="Create a login password" required>
+            </div>
+
+            <div class="form-row">
+              <div class="form-group col-6">
+                <label for="trainer-reg-spec">Specialization <span class="text-rose">*</span></label>
+                <input type="text" id="trainer-reg-spec" class="form-control" placeholder="e.g. HIIT &amp; Powerlifting" required>
+              </div>
+              <div class="form-group col-6">
+                <label for="trainer-reg-exp">Years of Experience</label>
+                <input type="number" id="trainer-reg-exp" class="form-control" value="3" min="1" max="25">
+              </div>
+            </div>
+
+            <div class="form-group">
+              <label for="trainer-reg-shift">Preferred Working Shift <span class="text-rose">*</span></label>
+              <select id="trainer-reg-shift" class="form-select" required>
+                <option value="Morning Shift (06:00 AM - 10:00 AM)">Morning Shift (06:00 AM - 10:00 AM)</option>
+                <option value="Afternoon Shift (12:00 PM - 04:00 PM)">Afternoon Shift (12:00 PM - 04:00 PM)</option>
+                <option value="Evening Shift (05:00 PM - 09:00 PM)">Evening Shift (05:00 PM - 09:00 PM)</option>
+              </select>
+            </div>
+            <button type="submit" class="btn btn-primary btn-block">Submit Application</button>
+          </form>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <div class="app-layout" id="app-layout">
     <!-- Sidebar Navigation -->
     <aside class="sidebar" id="sidebar">
       <div class="sidebar-brand">
@@ -77,9 +203,6 @@
             </select>
           </div>
 
-          <button class="btn btn-outline btn-sm" id="btn-open-auth-modal">
-            <i class="fa-solid fa-user-lock"></i> Register / Login
-          </button>
         </div>
       </header>
 
@@ -184,6 +307,28 @@
         </section>
 
         <!-- ====================================================================
+             2B. USER / MEMBER SECTION: MY BOOKED SHIFTS
+             ==================================================================== -->
+        <section id="tab-user-bookings" class="tab-content">
+          <div class="page-header">
+            <div>
+              <h1 class="page-title">My Bookings & Shift History</h1>
+              <p class="page-subtitle">Review the verified trainers you have selected and your reserved shift slots.</p>
+            </div>
+          </div>
+
+          <div class="panel">
+            <div class="panel-header">
+              <h3><i class="fa-solid fa-calendar-check text-indigo"></i> Booked Shift History</h3>
+              <span class="text-muted text-sm">Confirmations stored locally on this device</span>
+            </div>
+            <div class="panel-body" id="user-bookings-list">
+              <!-- Dynamic booking history for the signed-in member -->
+            </div>
+          </div>
+        </section>
+
+        <!-- ====================================================================
              3. TRAINER PORTAL SECTION: SHIFT SCHEDULE & CLIENT ROSTER
              ==================================================================== -->
         <section id="tab-trainer-portal" class="tab-content">
@@ -208,7 +353,7 @@
                 <div id="trainer-shift-list">
                   <!-- Dynamic content -->
                 </div>
-              </div>
+              </div> 
             </div>
 
             <!-- Client Roster -->
@@ -283,126 +428,140 @@
           </div>
         </section>
 
+        <!-- ====================================================================
+             5. ADMIN SECTION: MEMBERS DIRECTORY (CRUD)
+             ==================================================================== -->
+        <section id="tab-admin-members" class="tab-content">
+          <div class="page-header">
+            <div>
+              <h1 class="page-title">Member Directory</h1>
+              <p class="page-subtitle">Manage gym memberships, plans, and membership status.</p>
+            </div>
+            <div class="header-actions">
+              <button class="btn btn-primary" id="btn-add-member">
+                <i class="fa-solid fa-user-plus"></i> Add Member
+              </button>
+            </div>
+          </div>
+
+          <div class="panel">
+            <div class="panel-header">
+              <div class="panel-title-group">
+                <h3><i class="fa-solid fa-users text-indigo"></i> All Members</h3>
+              </div>
+              <div class="filter-bar">
+                <input type="text" id="member-search-input" class="form-control filter-input" placeholder="Search name, email, phone...">
+                <select id="member-status-filter" class="form-select filter-select">
+                  <option value="all">All Status</option>
+                  <option value="Active">Active</option>
+                  <option value="Expiring">Expiring</option>
+                  <option value="Inactive">Inactive</option>
+                </select>
+                <select id="member-plan-filter" class="form-select filter-select">
+                  <option value="all">All Plans</option>
+                  <option value="Premium VIP">Premium VIP</option>
+                  <option value="Standard Fitness">Standard Fitness</option>
+                  <option value="Basic Access">Basic Access</option>
+                </select>
+              </div>
+            </div>
+            <div class="panel-body p-0">
+              <div class="table-responsive">
+                <table class="data-table">
+                  <thead>
+                    <tr>
+                      <th>Member</th>
+                      <th>Contact</th>
+                      <th>Plan</th>
+                      <th>Status</th>
+                      <th>Joined</th>
+                      <th>Expires</th>
+                      <th class="text-right">Actions</th>
+                    </tr>
+                  </thead>
+                  <tbody id="members-table-tbody">
+                    <!-- Populated dynamically -->
+                  </tbody>
+                </table>
+              </div>
+            </div>
+          </div>
+        </section>
+
+        <!-- ====================================================================
+             6. ADMIN SECTION: CLASS SCHEDULE (CRUD)
+             ==================================================================== -->
+        <section id="tab-admin-classes" class="tab-content">
+          <div class="page-header">
+            <div>
+              <h1 class="page-title">Class Schedule</h1>
+              <p class="page-subtitle">Create and manage the weekly group fitness class timetable.</p>
+            </div>
+            <div class="header-actions">
+              <button class="btn btn-primary" id="btn-add-class">
+                <i class="fa-solid fa-calendar-plus"></i> Schedule Class
+              </button>
+            </div>
+          </div>
+
+          <div class="panel">
+            <div class="panel-header">
+              <h3><i class="fa-solid fa-dumbbell text-indigo"></i> Weekly Classes</h3>
+              <span class="text-muted text-sm">Booked slots update in real time</span>
+            </div>
+            <div class="panel-body">
+              <div class="classes-cards-grid" id="classes-cards-grid">
+                <!-- Populated dynamically -->
+              </div>
+            </div>
+          </div>
+        </section>
+
+        <!-- ====================================================================
+             7. ADMIN SECTION: PAYMENTS & INVOICES
+             ==================================================================== -->
+        <section id="tab-admin-payments" class="tab-content">
+          <div class="page-header">
+            <div>
+              <h1 class="page-title">Payments & Invoices</h1>
+              <p class="page-subtitle">Record membership payments and track invoice status.</p>
+            </div>
+            <div class="header-actions">
+              <button class="btn btn-primary" id="btn-add-payment">
+                <i class="fa-solid fa-file-invoice-dollar"></i> Record Payment
+              </button>
+            </div>
+          </div>
+
+          <div class="panel">
+            <div class="panel-header">
+              <h3><i class="fa-solid fa-money-check-dollar text-indigo"></i> Payment History</h3>
+              <input type="text" id="payment-search-input" class="form-control filter-input" placeholder="Search invoice, member, or plan...">
+            </div>
+            <div class="panel-body p-0">
+              <div class="table-responsive">
+                <table class="data-table">
+                  <thead>
+                    <tr>
+                      <th>Invoice</th>
+                      <th>Member</th>
+                      <th>Plan</th>
+                      <th>Amount</th>
+                      <th>Method</th>
+                      <th>Date</th>
+                      <th>Status</th>
+                    </tr>
+                  </thead>
+                  <tbody id="payments-table-tbody">
+                    <!-- Populated dynamically -->
+                  </tbody>
+                </table>
+              </div>
+            </div>
+          </div>
+        </section>
+
       </main>
-    </div>
-  </div>
-
-  <!-- ====================================================================
-       MODAL: AUTHENTICATION (REGISTER / LOGIN MULTI-ROLE)
-       ==================================================================== -->
-  <div class="modal-overlay" id="modal-auth">
-    <div class="modal">
-      <div class="modal-header">
-        <h3 id="auth-modal-title">System Registration & Login</h3>
-        <button class="modal-close" data-close="modal-auth">&times;</button>
-      </div>
-
-      <!-- Auth Mode Tabs (Login / Member Register / Trainer Register) -->
-      <div class="auth-tabs">
-        <button class="auth-tab-btn active" data-auth-mode="login">Account Login</button>
-        <button class="auth-tab-btn" data-auth-mode="user-register">User Register</button>
-        <button class="auth-tab-btn" data-auth-mode="trainer-register">Trainer Register</button>
-      </div>
-
-      <!-- Form 1: Account Login -->
-      <form id="form-login" class="auth-form-step active">
-        <div class="modal-body">
-          <div class="form-group">
-            <label for="login-email">Email Address <span class="text-rose">*</span></label>
-            <input type="email" id="login-email" class="form-control" placeholder="e.g. admin@fitpulse.com" required>
-          </div>
-          <div class="form-group">
-            <label for="login-password">Password <span class="text-rose">*</span></label>
-            <input type="password" id="login-password" class="form-control" placeholder="••••••••" required>
-          </div>
-          <div class="form-group">
-            <label for="login-role">Select Login Portal</label>
-            <select id="login-role" class="form-select">
-              <option value="admin">Admin Portal</option>
-              <option value="user">Member / User Portal</option>
-              <option value="trainer">Trainer Portal</option>
-            </select>
-          </div>
-        </div>
-        <div class="modal-footer">
-          <button type="button" class="btn btn-outline" data-close="modal-auth">Cancel</button>
-          <button type="submit" class="btn btn-primary">Log In</button>
-        </div>
-      </form>
-
-      <!-- Form 2: User / Member Registration -->
-      <form id="form-user-register" class="auth-form-step">
-        <div class="modal-body">
-          <div class="form-group">
-            <label for="user-reg-name">Full Name <span class="text-rose">*</span></label>
-            <input type="text" id="user-reg-name" class="form-control" placeholder="e.g. Rijan Pokhrel" required>
-          </div>
-          <div class="form-group">
-            <label for="user-reg-email">Email Address <span class="text-rose">*</span></label>
-            <input type="email" id="user-reg-email" class="form-control" placeholder="e.g. user@example.com" required>
-          </div>
-          <div class="form-group">
-            <label for="user-reg-password">Password <span class="text-rose">*</span></label>
-            <input type="password" id="user-reg-password" class="form-control" placeholder="••••••••" required>
-          </div>
-          <div class="form-group">
-            <label for="user-reg-goal">Fitness Goal</label>
-            <select id="user-reg-goal" class="form-select">
-              <option value="Weight Loss & Cardio">Weight Loss & Cardio</option>
-              <option value="Muscle Hypertrophy">Muscle Hypertrophy & Bodybuilding</option>
-              <option value="Flexibility & Yoga">Flexibility & Core Balance</option>
-            </select>
-          </div>
-        </div>
-        <div class="modal-footer">
-          <button type="button" class="btn btn-outline" data-close="modal-auth">Cancel</button>
-          <button type="submit" class="btn btn-primary">Register User</button>
-        </div>
-      </form>
-
-      <!-- Form 3: Trainer Registration (Requires Admin Verification) -->
-      <form id="form-trainer-register" class="auth-form-step">
-        <div class="modal-body">
-          <div class="alert-box alert-info">
-            <i class="fa-solid fa-circle-info"></i>
-            <span>Note: Trainer accounts require <strong>Admin Verification & Approval</strong> before they become active in the system.</span>
-          </div>
-
-          <div class="form-group">
-            <label for="trainer-reg-name">Full Name <span class="text-rose">*</span></label>
-            <input type="text" id="trainer-reg-name" class="form-control" placeholder="e.g. Alex Morgan" required>
-          </div>
-
-          <div class="form-group">
-            <label for="trainer-reg-email">Email Address <span class="text-rose">*</span></label>
-            <input type="email" id="trainer-reg-email" class="form-control" placeholder="e.g. alex.trainer@fitpulse.com" required>
-          </div>
-
-          <div class="form-row">
-            <div class="form-group col-6">
-              <label for="trainer-reg-spec">Specialization <span class="text-rose">*</span></label>
-              <input type="text" id="trainer-reg-spec" class="form-control" placeholder="e.g. HIIT & Powerlifting" required>
-            </div>
-            <div class="form-group col-6">
-              <label for="trainer-reg-exp">Years of Experience</label>
-              <input type="number" id="trainer-reg-exp" class="form-control" value="3" min="1" max="25">
-            </div>
-          </div>
-
-          <div class="form-group">
-            <label for="trainer-reg-shift">Preferred Working Shift <span class="text-rose">*</span></label>
-            <select id="trainer-reg-shift" class="form-select" required>
-              <option value="Morning Shift (06:00 AM - 10:00 AM)">Morning Shift (06:00 AM - 10:00 AM)</option>
-              <option value="Afternoon Shift (12:00 PM - 04:00 PM)">Afternoon Shift (12:00 PM - 04:00 PM)</option>
-              <option value="Evening Shift (05:00 PM - 09:00 PM)">Evening Shift (05:00 PM - 09:00 PM)</option>
-            </select>
-          </div>
-        </div>
-        <div class="modal-footer">
-          <button type="button" class="btn btn-outline" data-close="modal-auth">Cancel</button>
-          <button type="submit" class="btn btn-primary">Submit Application</button>
-        </div>
-      </form>
     </div>
   </div>
 
@@ -444,10 +603,199 @@
     </div>
   </div>
 
+  <!-- ====================================================================
+       MODAL: ADD / EDIT MEMBER (ADMIN)
+       ==================================================================== -->
+  <div class="modal-overlay" id="modal-member">
+    <div class="modal">
+      <div class="modal-header">
+        <h3 id="modal-member-title">Add New Member</h3>
+        <button class="modal-close" data-close="modal-member">&times;</button>
+      </div>
+      <form id="form-member">
+        <div class="modal-body">
+          <input type="hidden" id="member-id">
+
+          <div class="form-group">
+            <label for="input-member-name">Full Name <span class="text-rose">*</span></label>
+            <input type="text" id="input-member-name" class="form-control" placeholder="e.g. Aarav Sharma" required>
+          </div>
+
+          <div class="form-row">
+            <div class="form-group col-6">
+              <label for="input-member-email">Email Address</label>
+              <input type="email" id="input-member-email" class="form-control" placeholder="member@example.com">
+            </div>
+            <div class="form-group col-6">
+              <label for="input-member-phone">Phone Number</label>
+              <input type="text" id="input-member-phone" class="form-control" placeholder="+977 98XXXXXXXX">
+            </div>
+          </div>
+
+          <div class="form-row">
+            <div class="form-group col-6">
+              <label for="input-member-plan">Membership Plan</label>
+              <select id="input-member-plan" class="form-select">
+                <option value="Premium VIP">Premium VIP</option>
+                <option value="Standard Fitness">Standard Fitness</option>
+                <option value="Basic Access">Basic Access</option>
+              </select>
+            </div>
+            <div class="form-group col-6">
+              <label for="input-member-status">Membership Status</label>
+              <select id="input-member-status" class="form-select">
+                <option value="Active">Active</option>
+                <option value="Expiring">Expiring</option>
+                <option value="Inactive">Inactive</option>
+              </select>
+            </div>
+          </div>
+
+          <div class="form-row">
+            <div class="form-group col-6">
+              <label for="input-member-joindate">Join Date</label>
+              <input type="date" id="input-member-joindate" class="form-control">
+            </div>
+            <div class="form-group col-6">
+              <label for="input-member-expirydate">Expiry Date</label>
+              <input type="date" id="input-member-expirydate" class="form-control">
+            </div>
+          </div>
+        </div>
+        <div class="modal-footer">
+          <button type="button" class="btn btn-outline" data-close="modal-member">Cancel</button>
+          <button type="submit" class="btn btn-primary">Save Member</button>
+        </div>
+      </form>
+    </div>
+  </div>
+
+  <!-- ====================================================================
+       MODAL: SCHEDULE CLASS (ADMIN)
+       ==================================================================== -->
+  <div class="modal-overlay" id="modal-class">
+    <div class="modal">
+      <div class="modal-header">
+        <h3>Schedule New Class</h3>
+        <button class="modal-close" data-close="modal-class">&times;</button>
+      </div>
+      <form id="form-class">
+        <div class="modal-body">
+          <div class="form-group">
+            <label for="input-class-name">Class Title <span class="text-rose">*</span></label>
+            <input type="text" id="input-class-name" class="form-control" placeholder="e.g. HIIT Fat Burner" required>
+          </div>
+
+          <div class="form-row">
+            <div class="form-group col-6">
+              <label for="input-class-trainer">Trainer Name</label>
+              <input type="text" id="input-class-trainer" class="form-control" placeholder="e.g. Alex Morgan">
+            </div>
+            <div class="form-group col-6">
+              <label for="input-class-category">Category</label>
+              <select id="input-class-category" class="form-select">
+                <option value="Cardio">Cardio</option>
+                <option value="Strength">Strength</option>
+                <option value="Flexibility">Flexibility</option>
+                <option value="Dance">Dance</option>
+                <option value="CrossFit">CrossFit</option>
+                <option value="Spin">Spin</option>
+              </select>
+            </div>
+          </div>
+
+          <div class="form-row">
+            <div class="form-group col-6">
+              <label for="input-class-day">Day</label>
+              <select id="input-class-day" class="form-select">
+                <option value="Monday">Monday</option>
+                <option value="Tuesday">Tuesday</option>
+                <option value="Wednesday">Wednesday</option>
+                <option value="Thursday">Thursday</option>
+                <option value="Friday">Friday</option>
+                <option value="Saturday">Saturday</option>
+                <option value="Sunday">Sunday</option>
+              </select>
+            </div>
+            <div class="form-group col-6">
+              <label for="input-class-time">Time Slot</label>
+              <input type="text" id="input-class-time" class="form-control" placeholder="e.g. 06:30 AM - 07:30 AM">
+            </div>
+          </div>
+
+          <div class="form-group">
+            <label for="input-class-capacity">Capacity</label>
+            <input type="number" id="input-class-capacity" class="form-control" value="20" min="1" max="100">
+          </div>
+        </div>
+        <div class="modal-footer">
+          <button type="button" class="btn btn-outline" data-close="modal-class">Cancel</button>
+          <button type="submit" class="btn btn-primary">Schedule Class</button>
+        </div>
+      </form>
+    </div>
+  </div>
+
+  <!-- ====================================================================
+       MODAL: RECORD PAYMENT (ADMIN)
+       ==================================================================== -->
+  <div class="modal-overlay" id="modal-payment">
+    <div class="modal">
+      <div class="modal-header">
+        <h3>Record Payment</h3>
+        <button class="modal-close" data-close="modal-payment">&times;</button>
+      </div>
+      <form id="form-payment">
+        <div class="modal-body">
+          <div class="form-group">
+            <label for="input-pay-member">Member <span class="text-rose">*</span></label>
+            <select id="input-pay-member" class="form-select" required>
+              <!-- Populated dynamically from the members directory -->
+            </select>
+          </div>
+
+          <div class="form-group">
+            <label for="input-pay-plan">Plan / Description</label>
+            <input type="text" id="input-pay-plan" class="form-control" placeholder="e.g. Standard Fitness Renewal">
+          </div>
+
+          <div class="form-row">
+            <div class="form-group col-6">
+              <label for="input-pay-amount">Amount (NPR) <span class="text-rose">*</span></label>
+              <input type="number" id="input-pay-amount" class="form-control" placeholder="0.00" min="0" step="0.01" required>
+            </div>
+            <div class="form-group col-6">
+              <label for="input-pay-method">Payment Method</label>
+              <select id="input-pay-method" class="form-select">
+                <option value="Cash">Cash</option>
+                <option value="eSewa Wallet">eSewa Wallet</option>
+                <option value="Khalti">Khalti</option>
+                <option value="Credit Card">Credit Card</option>
+                <option value="Bank Transfer">Bank Transfer</option>
+              </select>
+            </div>
+          </div>
+
+          <div class="form-group">
+            <label for="input-pay-status">Status</label>
+            <select id="input-pay-status" class="form-select">
+              <option value="Paid">Paid</option>
+              <option value="Pending">Pending</option>
+            </select>
+          </div>
+        </div>
+        <div class="modal-footer">
+          <button type="button" class="btn btn-outline" data-close="modal-payment">Cancel</button>
+          <button type="submit" class="btn btn-primary">Record Payment</button>
+        </div>
+      </form>
+    </div>
+  </div>
+
   <!-- Toast Notification Container -->
   <div id="toast-container" class="toast-container"></div>
 
   <!-- Application Script -->
-  <script src="script.js"></script>
+  <script src="script.js?v=5"></script>
 </body>
 </html>

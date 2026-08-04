@@ -1,652 +1,176 @@
 /**
  * ==========================================================================
- * FITPULSE GYM MANAGEMENT SYSTEM - FRONTEND INTERACTION & LOGIC
+ * FITPULSE GYM MANAGEMENT SYSTEM - FRONTEND LOGIC (PHP + MySQL Backend)
  * Author: Rijan Pokhrel
- * Description: High-performance, clean vanilla JavaScript logic for gym management
+ * Description:
+ *   - All data is read/written through the PHP REST API (api/ folder).
+ *   - Auth uses PHP sessions (httpOnly cookies) on the MySQL users table.
+ *   - Role-based UI: Admin (verification / members / classes / payments /
+ *     overview), Member (trainer catalog + bookings), Trainer (portal).
  * ==========================================================================
  */
 
 document.addEventListener('DOMContentLoaded', () => {
   // ------------------------------------------------------------------------
-  // 1. APPLICATION INITIAL STATE & SEED DATA
+  // 0. PROTOCOL GUARD
+  // The PHP API only works over HTTP(S). If the file is opened directly from
+  // disk (file://), show a clear message instead of a broken login screen.
   // ------------------------------------------------------------------------
-  const state = {
-    members: [
-      { id: 1, name: 'Aarav Sharma', email: 'aarav.sharma@example.com', phone: '+977 9841234567', plan: 'Premium VIP', status: 'Active', joinDate: '2026-01-15', expiryDate: '2027-01-15' },
-      { id: 2, name: 'Sita Gurung', email: 'sita.g@example.com', phone: '+977 9801987654', plan: 'Standard Fitness', status: 'Active', joinDate: '2026-03-10', expiryDate: '2026-09-10' },
-      { id: 3, name: 'Bikash Thapa', email: 'bikash.t@example.com', phone: '+977 9812345678', plan: 'Basic Access', status: 'Expiring', joinDate: '2025-08-01', expiryDate: '2026-08-01' },
-      { id: 4, name: 'Pooja Karki', email: 'pooja.karki@example.com', phone: '+977 9851122334', plan: 'Standard Fitness', status: 'Active', joinDate: '2026-05-20', expiryDate: '2026-11-20' },
-      { id: 5, name: 'Rohan Adhikari', email: 'rohan.a@example.com', phone: '+977 9860998877', plan: 'Premium VIP', status: 'Inactive', joinDate: '2025-02-10', expiryDate: '2026-02-10' }
-    ],
-
-    classes: [
-      { id: 101, title: 'Morning Power Yoga', trainer: 'Sujata Rai', day: 'Monday', time: '06:30 AM - 07:30 AM', booked: 14, capacity: 20, category: 'Flexibility' },
-      { id: 102, title: 'HIIT Fat Burner', trainer: 'Alex Morgan', day: 'Monday', time: '05:00 PM - 06:00 PM', booked: 18, capacity: 20, category: 'Cardio' },
-      { id: 103, title: 'Heavy Powerlifting', trainer: 'Rijan Pokhrel', day: 'Tuesday', time: '07:00 AM - 08:30 AM', booked: 10, capacity: 15, category: 'Strength' },
-      { id: 104, title: 'Zumba Cardio Dance', trainer: 'Elena Rostova', day: 'Wednesday', time: '06:00 PM - 07:00 PM', booked: 22, capacity: 25, category: 'Dance' },
-      { id: 105, title: 'CrossFit Endurance', trainer: 'Mark Davis', day: 'Thursday', time: '07:00 AM - 08:00 AM', booked: 16, capacity: 20, category: 'CrossFit' },
-      { id: 106, title: 'Core & Spin Cycling', trainer: 'Sujata Rai', day: 'Friday', time: '05:30 PM - 06:30 PM', booked: 15, capacity: 18, category: 'Spin' }
-    ],
-
-    payments: [
-      { id: 'INV-1092', member: 'Aarav Sharma', plan: 'Premium VIP Plan (1 Year)', amount: 900.00, method: 'Credit Card', date: '2026-07-28', status: 'Paid' },
-      { id: 'INV-1091', member: 'Sita Gurung', plan: 'Standard Fitness Renewal', amount: 50.00, method: 'eSewa Wallet', date: '2026-07-25', status: 'Paid' },
-      { id: 'INV-1090', member: 'Bikash Thapa', plan: 'Basic Access Monthly', amount: 30.00, method: 'Cash', date: '2026-07-20', status: 'Pending' },
-      { id: 'INV-1089', member: 'Pooja Karki', plan: 'Standard Fitness Renewal', amount: 50.00, method: 'Bank Transfer', date: '2026-07-15', status: 'Paid' }
-    ],
-
-    currentClassDayFilter: 'all'
-  };
+  if (window.location.protocol !== 'http:' && window.location.protocol !== 'https:') {
+    const screen = document.getElementById('auth-screen');
+    if (screen) {
+      screen.innerHTML = `
+        <div class="auth-card" style="max-width:520px;padding:28px;text-align:center">
+          <div class="auth-logo"><i class="fa-solid fa-triangle-exclamation"></i></div>
+          <h2 style="margin:12px 0 10px">Cannot connect to the backend</h2>
+          <p style="color:var(--text-muted);margin-bottom:18px;line-height:1.6">
+            This page must be opened through a web server.<br>
+            Start <strong>Apache</strong> and <strong>MySQL</strong> in XAMPP,
+            then open <strong>http://localhost/gym/</strong> in your browser.
+          </p>
+          <a class="btn btn-primary" href="http://localhost/gym/" style="text-decoration:none;display:inline-flex">
+            Open FitPulse
+          </a>
+        </div>`;
+    }
+    return;
+  }
 
   // ------------------------------------------------------------------------
-  // 2. DOM ELEMENT REFERENCES
+  // 1. CONFIGURATION
   // ------------------------------------------------------------------------
-  const elements = {
+  const API_BASE = window.location.pathname.replace(/index\.html$/i, '').replace(/\/+$/, '') + '/api';
+  const ROLE_LABELS = { admin: 'System Admin', user: 'Member / User', trainer: 'Trainer' };
+  const SHIFT_OPTIONS = [
+    'Morning Shift (06:00 AM - 10:00 AM)',
+    'Afternoon Shift (12:00 PM - 04:00 PM)',
+    'Evening Shift (05:00 PM - 09:00 PM)'
+  ];
+
+  // ------------------------------------------------------------------------
+  // 2. UI STATE
+  // ------------------------------------------------------------------------
+  let session = null;        // { id, name, email, role, goal, created_at }
+  let trainer = null;        // trainer profile when signed in as trainer
+  let activeRole = 'admin';  // role currently previewed in the UI
+  let activeTab = 'admin-verification';
+  let catalogQuery = '';
+  let memberQuery = '';
+  let memberStatus = 'all';
+  let memberPlan = 'all';
+  let paymentQuery = '';
+
+  // Lightweight cache of the latest server responses (powers modals).
+  const cache = { trainers: [], members: [], classes: [], payments: [], bookings: [] };
+
+  // ------------------------------------------------------------------------
+  // 3. API HELPER
+  // ------------------------------------------------------------------------
+  async function api(url, options = {}) {
+    const res = await fetch(`${API_BASE}/${url}`, {
+      method: options.method || 'GET',
+      headers: { 'Content-Type': 'application/json' },
+      body: options.body ? JSON.stringify(options.body) : undefined,
+      credentials: 'same-origin'
+    });
+    let data = null;
+    const text = await res.text();
+    try { data = text ? JSON.parse(text) : null; } catch (e) { data = null; }
+    if (!res.ok || !data || typeof data.ok !== 'boolean') {
+      const err = new Error(
+        data && data.message
+          ? data.message
+          : res.ok
+            ? 'Backend not responding. Serve this app through XAMPP Apache (http://localhost/gym/) — static live servers cannot run PHP.'
+            : `Request failed (${res.status})`
+      );
+      err.status = res.status;
+      throw err;
+    }
+    return data;
+  }
+
+  // ------------------------------------------------------------------------
+  // 4. DOM ELEMENT REFERENCES
+  // ------------------------------------------------------------------------
+  const el = {
     sidebar: document.getElementById('sidebar'),
     menuToggle: document.getElementById('menu-toggle'),
-    navItems: document.querySelectorAll('.nav-item'),
-    tabContents: document.querySelectorAll('.tab-content'),
+    sidebarMenu: document.getElementById('sidebar-menu-list'),
+    currentUserAvatar: document.getElementById('current-user-avatar'),
+    currentUserName: document.getElementById('current-user-name'),
+    currentUserRole: document.getElementById('current-user-role-label'),
+    roleBadge: document.getElementById('role-badge-display'),
+    btnLogout: document.getElementById('btn-logout'),
+    roleSelector: document.getElementById('role-selector'),
     globalSearch: document.getElementById('global-search'),
+    toastContainer: document.getElementById('toast-container'),
 
-    // Modals & Buttons
-    modalMember: document.getElementById('modal-member'),
-    modalClass: document.getElementById('modal-class'),
-    modalPayment: document.getElementById('modal-payment'),
-    
-    btnAddMember: document.getElementById('btn-add-member'),
-    btnQuickAddMember: document.getElementById('btn-quick-add-member'),
-    btnAddClass: document.getElementById('btn-add-class'),
-    btnQuickSchedule: document.getElementById('btn-quick-schedule'),
-    btnRecordPayment: document.getElementById('btn-record-payment'),
-    
-    // Forms
-    formMember: document.getElementById('form-member'),
-    formClass: document.getElementById('form-class'),
-    formPayment: document.getElementById('form-payment'),
+    pendingCountBadge: document.getElementById('pending-verification-count-badge'),
+    pendingTbody: document.getElementById('pending-trainers-tbody'),
+    approvedTbody: document.getElementById('approved-trainers-tbody'),
 
-    // Tables & Lists Containers
-    recentMembersTbody: document.getElementById('recent-members-tbody'),
-    todayClassesContainer: document.getElementById('today-classes-container'),
+    trainersGrid: document.getElementById('trainers-catalog-grid'),
+    bookingBanner: document.getElementById('user-booking-status-card'),
+    userBookingsList: document.getElementById('user-bookings-list'),
+
+    trainerStatusBanner: document.getElementById('trainer-status-banner'),
+    trainerShiftList: document.getElementById('trainer-shift-list'),
+    trainerClientsList: document.getElementById('trainer-clients-list'),
+
+    statUsers: document.getElementById('stat-total-users'),
+    statApproved: document.getElementById('stat-approved-trainers'),
+    statPending: document.getElementById('stat-pending-trainers'),
+    statBookings: document.getElementById('stat-booked-shifts'),
+
     membersTableTbody: document.getElementById('members-table-tbody'),
-    classesCardsGrid: document.getElementById('classes-cards-grid'),
-    paymentsTableTbody: document.getElementById('payments-table-tbody'),
-    selectPayMember: document.getElementById('input-pay-member'),
-
-    // Filtering Controls
     memberSearchInput: document.getElementById('member-search-input'),
     memberStatusFilter: document.getElementById('member-status-filter'),
     memberPlanFilter: document.getElementById('member-plan-filter'),
-    memberCountShowing: document.getElementById('member-count-showing'),
+    btnAddMember: document.getElementById('btn-add-member'),
+
+    classesCardsGrid: document.getElementById('classes-cards-grid'),
+    btnAddClass: document.getElementById('btn-add-class'),
+
+    paymentsTableTbody: document.getElementById('payments-table-tbody'),
     paymentSearchInput: document.getElementById('payment-search-input'),
-    dayFilterBar: document.getElementById('day-filter-bar'),
+    btnAddPayment: document.getElementById('btn-add-payment'),
+    inputPayMember: document.getElementById('input-pay-member'),
 
-    // Toast Container
-    toastContainer: document.getElementById('toast-container')
+    modalBook: document.getElementById('modal-book-trainer'),
+    modalMember: document.getElementById('modal-member'),
+    modalClass: document.getElementById('modal-class'),
+    modalPayment: document.getElementById('modal-payment'),
+
+    bookTrainerId: document.getElementById('book-trainer-id'),
+    bookSummary: document.getElementById('book-trainer-summary-box'),
+    bookShiftSelect: document.getElementById('select-trainer-shift'),
+    bookNotes: document.getElementById('book-notes'),
+
+    formLogin: document.getElementById('form-login'),
+    formUserRegister: document.getElementById('form-user-register'),
+    formTrainerRegister: document.getElementById('form-trainer-register'),
+    formBookTrainer: document.getElementById('form-book-trainer'),
+    formMember: document.getElementById('form-member'),
+    formClass: document.getElementById('form-class'),
+    formPayment: document.getElementById('form-payment')
   };
 
-  // Expose toast function globally for inline handlers if needed
-  window.fitPulseApp = {
-    showToast
-  };
-
   // ------------------------------------------------------------------------
-  // 3. INITIALIZATION & RENDER PIPELINE
+  // 5. HELPER UTILITIES
   // ------------------------------------------------------------------------
-  function initApp() {
-    setupNavigation();
-    setupModals();
-    setupFilters();
-    renderAllViews();
-    setupKeyboardShortcuts();
-  }
-
-  function renderAllViews() {
-    renderDashboardOverview();
-    renderMembersTable();
-    renderClassesGrid();
-    renderPaymentsTable();
-    populatePaymentMemberSelect();
-    updateStatCounts();
-  }
-
-  // ------------------------------------------------------------------------
-  // 4. NAVIGATION & TAB SWITCHING
-  // ------------------------------------------------------------------------
-  function setupNavigation() {
-    // Mobile Sidebar Toggle
-    if (elements.menuToggle) {
-      elements.menuToggle.addEventListener('click', () => {
-        elements.sidebar.classList.toggle('show');
-      });
-    }
-
-    // Sidebar Tab Navigation
-    elements.navItems.forEach(item => {
-      item.addEventListener('click', (e) => {
-        e.preventDefault();
-        const tabTarget = item.getAttribute('data-tab');
-        switchTab(tabTarget);
-        if (window.innerWidth <= 768) {
-          elements.sidebar.classList.remove('show');
-        }
-      });
-    });
-
-    // Handle inline page tab links (e.g., "View All")
-    document.querySelectorAll('.switch-tab-link').forEach(link => {
-      link.addEventListener('click', (e) => {
-        e.preventDefault();
-        const target = link.getAttribute('data-target');
-        switchTab(target);
-      });
-    });
-  }
-
-  function switchTab(tabName) {
-    elements.navItems.forEach(nav => nav.classList.remove('active'));
-    elements.tabContents.forEach(content => content.classList.remove('active'));
-
-    const activeNav = document.querySelector(`.nav-item[data-tab="${tabName}"]`);
-    const activeTabContent = document.getElementById(`tab-${tabName}`);
-
-    if (activeNav) activeNav.classList.add('active');
-    if (activeTabContent) activeTabContent.classList.add('active');
-  }
-
-  // ------------------------------------------------------------------------
-  // 5. DASHBOARD RENDER LOGIC
-  // ------------------------------------------------------------------------
-  function renderDashboardOverview() {
-    // Render Recent Members in Dashboard
-    if (!elements.recentMembersTbody) return;
-
-    const recent = state.members.slice(0, 4);
-    elements.recentMembersTbody.innerHTML = recent.map(member => `
-      <tr>
-        <td>
-          <div class="member-cell">
-            <div class="avatar-chip">${getInitials(member.name)}</div>
-            <div>
-              <strong>${escapeHtml(member.name)}</strong>
-              <div class="text-muted text-sm">${escapeHtml(member.email)}</div>
-            </div>
-          </div>
-        </td>
-        <td><span class="badge badge-indigo">${escapeHtml(member.plan)}</span></td>
-        <td>${getStatusBadgeHtml(member.status)}</td>
-        <td>${member.joinDate}</td>
-        <td>
-          <button class="action-icon-btn" title="View Profile" onclick="window.fitPulseApp.showToast('Viewing profile for ${escapeHtml(member.name)}', 'info')">
-            <i class="fa-solid fa-eye"></i>
-          </button>
-        </td>
-      </tr>
-    `).join('');
-
-    // Render Today's Classes List
-    if (!elements.todayClassesContainer) return;
-
-    elements.todayClassesContainer.innerHTML = state.classes.slice(0, 3).map(cls => `
-      <div class="class-card" style="margin-bottom: 12px; padding: 14px 16px;">
-        <div class="class-card-header" style="margin-bottom: 6px;">
-          <span class="class-category">${escapeHtml(cls.category)}</span>
-          <span class="text-muted text-sm"><i class="fa-regular fa-clock"></i> ${cls.time}</span>
-        </div>
-        <strong style="font-size: 1rem; display: block; margin-bottom: 4px;">${escapeHtml(cls.title)}</strong>
-        <div class="class-info-item">
-          <i class="fa-solid fa-user-ninja"></i> Trainer: ${escapeHtml(cls.trainer)}
-        </div>
-      </div>
-    `).join('');
-  }
-
-  // ------------------------------------------------------------------------
-  // 6. MEMBERS DIRECTORY RENDER & FILTER LOGIC
-  // ------------------------------------------------------------------------
-  function renderMembersTable() {
-    if (!elements.membersTableTbody) return;
-
-    const query = elements.memberSearchInput ? elements.memberSearchInput.value.toLowerCase().trim() : '';
-    const statusFilter = elements.memberStatusFilter ? elements.memberStatusFilter.value : 'all';
-    const planFilter = elements.memberPlanFilter ? elements.memberPlanFilter.value : 'all';
-
-    const filtered = state.members.filter(m => {
-      const matchesSearch = m.name.toLowerCase().includes(query) || 
-                            m.email.toLowerCase().includes(query) || 
-                            m.phone.includes(query);
-      const matchesStatus = statusFilter === 'all' || m.status === statusFilter;
-      const matchesPlan = planFilter === 'all' || m.plan === planFilter;
-
-      return matchesSearch && matchesStatus && matchesPlan;
-    });
-
-    if (elements.memberCountShowing) {
-      elements.memberCountShowing.textContent = filtered.length;
-    }
-
-    if (filtered.length === 0) {
-      elements.membersTableTbody.innerHTML = `
-        <tr>
-          <td colspan="7" class="text-center" style="padding: 40px; text-align: center; color: var(--text-muted);">
-            <i class="fa-solid fa-user-slash" style="font-size: 2rem; margin-bottom: 10px; display: block;"></i>
-            No members matching your search filters.
-          </td>
-        </tr>
-      `;
-      return;
-    }
-
-    elements.membersTableTbody.innerHTML = filtered.map(m => `
-      <tr>
-        <td>
-          <div class="member-cell">
-            <div class="avatar-chip">${getInitials(m.name)}</div>
-            <div>
-              <strong>${escapeHtml(m.name)}</strong>
-              <div class="text-muted text-sm">ID: #MP-${1000 + m.id}</div>
-            </div>
-          </div>
-        </td>
-        <td>
-          <div>${escapeHtml(m.email)}</div>
-          <div class="text-muted text-sm">${escapeHtml(m.phone)}</div>
-        </td>
-        <td><span class="badge badge-indigo">${escapeHtml(m.plan)}</span></td>
-        <td>${getStatusBadgeHtml(m.status)}</td>
-        <td>${m.joinDate}</td>
-        <td>${m.expiryDate}</td>
-        <td class="text-right">
-          <div class="action-buttons">
-            <button class="action-icon-btn" title="Edit Member" onclick="window.editMember(${m.id})">
-              <i class="fa-solid fa-pen-to-square"></i>
-            </button>
-            <button class="action-icon-btn delete-btn" title="Delete Member" onclick="window.deleteMember(${m.id})">
-              <i class="fa-solid fa-trash"></i>
-            </button>
-          </div>
-        </td>
-      </tr>
-    `).join('');
-  }
-
-  // ------------------------------------------------------------------------
-  // 7. CLASSES GRID RENDER & FILTER
-  // ------------------------------------------------------------------------
-  function renderClassesGrid() {
-    if (!elements.classesCardsGrid) return;
-
-    const dayFilter = state.currentClassDayFilter;
-    const filtered = dayFilter === 'all' ? state.classes : state.classes.filter(c => c.day === dayFilter);
-
-    if (filtered.length === 0) {
-      elements.classesCardsGrid.innerHTML = `
-        <div style="grid-column: 1 / -1; padding: 40px; text-align: center; color: var(--text-muted); background: white; border-radius: var(--radius-lg); border: 1px solid var(--border-color);">
-          <i class="fa-solid fa-calendar-xmark" style="font-size: 2rem; margin-bottom: 10px; display: block;"></i>
-          No fitness classes scheduled for ${dayFilter}.
-        </div>
-      `;
-      return;
-    }
-
-    elements.classesCardsGrid.innerHTML = filtered.map(c => `
-      <div class="class-card">
-        <div class="class-card-header">
-          <span class="class-category">${escapeHtml(c.category)}</span>
-          <span class="badge badge-indigo">${escapeHtml(c.day)}</span>
-        </div>
-        <h3 class="class-card-title">${escapeHtml(c.title)}</h3>
-        
-        <div class="class-info-item">
-          <i class="fa-regular fa-clock"></i> ${escapeHtml(c.time)}
-        </div>
-        <div class="class-info-item">
-          <i class="fa-solid fa-user-ninja"></i> Trainer: <strong>${escapeHtml(c.trainer)}</strong>
-        </div>
-
-        <div class="class-capacity-bar">
-          <span class="text-muted text-sm"><i class="fa-solid fa-users"></i> ${c.booked} / ${c.capacity} Booked</span>
-          <button class="btn btn-outline btn-sm" onclick="window.fitPulseApp.showToast('Booked spot for ${escapeHtml(c.title)}!', 'success')">
-            Book Spot
-          </button>
-        </div>
-      </div>
-    `).join('');
-  }
-
-  // ------------------------------------------------------------------------
-  // 8. PAYMENTS TABLE RENDER
-  // ------------------------------------------------------------------------
-  function renderPaymentsTable() {
-    if (!elements.paymentsTableTbody) return;
-
-    const query = elements.paymentSearchInput ? elements.paymentSearchInput.value.toLowerCase().trim() : '';
-
-    const filtered = state.payments.filter(p => 
-      p.member.toLowerCase().includes(query) || 
-      p.id.toLowerCase().includes(query) ||
-      p.plan.toLowerCase().includes(query)
-    );
-
-    elements.paymentsTableTbody.innerHTML = filtered.map(p => `
-      <tr>
-        <td><strong>${escapeHtml(p.id)}</strong></td>
-        <td>${escapeHtml(p.member)}</td>
-        <td>${escapeHtml(p.plan)}</td>
-        <td><strong>$${p.amount.toFixed(2)}</strong></td>
-        <td>${escapeHtml(p.method)}</td>
-        <td>${p.date}</td>
-        <td>${getPaymentStatusBadge(p.status)}</td>
-        <td class="text-right">
-          <button class="action-icon-btn" title="Download Receipt" onclick="window.fitPulseApp.showToast('Downloading Receipt #${p.id}...', 'info')">
-            <i class="fa-solid fa-file-arrow-down"></i>
-          </button>
-        </td>
-      </tr>
-    `).join('');
-  }
-
-  function populatePaymentMemberSelect() {
-    if (!elements.selectPayMember) return;
-    elements.selectPayMember.innerHTML = state.members.map(m => `
-      <option value="${escapeHtml(m.name)}">${escapeHtml(m.name)} (${m.plan})</option>
-    `).join('');
-  }
-
-  // ------------------------------------------------------------------------
-  // 9. MODAL & FORM HANDLERS
-  // ------------------------------------------------------------------------
-  function setupModals() {
-    // Open Add Member Modal
-    const openMemberModal = () => {
-      elements.formMember.reset();
-      document.getElementById('member-id').value = '';
-      document.getElementById('modal-member-title').textContent = 'Add New Member';
-      showModal('modal-member');
-    };
-
-    if (elements.btnAddMember) elements.btnAddMember.addEventListener('click', openMemberModal);
-    if (elements.btnQuickAddMember) elements.btnQuickAddMember.addEventListener('click', openMemberModal);
-
-    // Open Schedule Class Modal
-    const openClassModal = () => {
-      elements.formClass.reset();
-      showModal('modal-class');
-    };
-
-    if (elements.btnAddClass) elements.btnAddClass.addEventListener('click', openClassModal);
-    if (elements.btnQuickSchedule) elements.btnQuickSchedule.addEventListener('click', openClassModal);
-
-    // Open Record Payment Modal
-    if (elements.btnRecordPayment) {
-      elements.btnRecordPayment.addEventListener('click', () => {
-        elements.formPayment.reset();
-        showModal('modal-payment');
-      });
-    }
-
-    // Modal Close Buttons
-    document.querySelectorAll('[data-close]').forEach(btn => {
-      btn.addEventListener('click', () => {
-        const modalId = btn.getAttribute('data-close');
-        hideModal(modalId);
-      });
-    });
-
-    // Close Modal when clicking backdrop
-    document.querySelectorAll('.modal-overlay').forEach(overlay => {
-      overlay.addEventListener('click', (e) => {
-        if (e.target === overlay) {
-          hideModal(overlay.id);
-        }
-      });
-    });
-
-    // Form Submissions
-    if (elements.formMember) {
-      elements.formMember.addEventListener('submit', (e) => {
-        e.preventDefault();
-        saveMember();
-      });
-    }
-
-    if (elements.formClass) {
-      elements.formClass.addEventListener('submit', (e) => {
-        e.preventDefault();
-        saveClass();
-      });
-    }
-
-    if (elements.formPayment) {
-      elements.formPayment.addEventListener('submit', (e) => {
-        e.preventDefault();
-        savePayment();
-      });
-    }
-  }
-
-  function showModal(modalId) {
-    const modal = document.getElementById(modalId);
-    if (modal) modal.classList.add('active');
-  }
-
-  function hideModal(modalId) {
-    const modal = document.getElementById(modalId);
-    if (modal) modal.classList.remove('active');
-  }
-
-  // Member CRUD logic
-  function saveMember() {
-    const idVal = document.getElementById('member-id').value;
-    const name = document.getElementById('input-member-name').value.trim();
-    const email = document.getElementById('input-member-email').value.trim();
-    const phone = document.getElementById('input-member-phone').value.trim();
-    const plan = document.getElementById('input-member-plan').value;
-    const status = document.getElementById('input-member-status').value;
-    const joinDateInput = document.getElementById('input-member-joindate').value;
-
-    const todayStr = new Date().toISOString().split('T')[0];
-    const joinDate = joinDateInput || todayStr;
-
-    if (idVal) {
-      // Edit existing member
-      const member = state.members.find(m => m.id === parseInt(idVal));
-      if (member) {
-        member.name = name;
-        member.email = email;
-        member.phone = phone;
-        member.plan = plan;
-        member.status = status;
-        showToast(`Updated member profile for ${name}`, 'success');
-      }
-    } else {
-      // Create new member
-      const newMember = {
-        id: Date.now(),
-        name,
-        email,
-        phone,
-        plan,
-        status,
-        joinDate,
-        expiryDate: '2027-07-30'
-      };
-      state.members.unshift(newMember);
-      showToast(`New member ${name} added successfully!`, 'success');
-    }
-
-    hideModal('modal-member');
-    renderAllViews();
-  }
-
-  window.editMember = function(id) {
-    const member = state.members.find(m => m.id === id);
-    if (!member) return;
-
-    document.getElementById('member-id').value = member.id;
-    document.getElementById('input-member-name').value = member.name;
-    document.getElementById('input-member-email').value = member.email;
-    document.getElementById('input-member-phone').value = member.phone;
-    document.getElementById('input-member-plan').value = member.plan;
-    document.getElementById('input-member-status').value = member.status;
-    document.getElementById('modal-member-title').textContent = 'Edit Member Profile';
-
-    showModal('modal-member');
-  };
-
-  window.deleteMember = function(id) {
-    const index = state.members.findIndex(m => m.id === id);
-    if (index !== -1) {
-      const name = state.members[index].name;
-      if (confirm(`Are you sure you want to delete member ${name}?`)) {
-        state.members.splice(index, 1);
-        showToast(`Member ${name} removed`, 'info');
-        renderAllViews();
-      }
-    }
-  };
-
-  // Class Save logic
-  function saveClass() {
-    const title = document.getElementById('input-class-name').value.trim();
-    const trainer = document.getElementById('input-class-trainer').value.trim();
-    const day = document.getElementById('input-class-day').value;
-    const time = document.getElementById('input-class-time').value.trim();
-    const capacity = parseInt(document.getElementById('input-class-capacity').value) || 20;
-
-    const newClass = {
-      id: Date.now(),
-      title,
-      trainer,
-      day,
-      time,
-      booked: 0,
-      capacity,
-      category: 'Fitness'
-    };
-
-    state.classes.unshift(newClass);
-    hideModal('modal-class');
-    showToast(`Scheduled class: ${title}`, 'success');
-    renderClassesGrid();
-  }
-
-  // Payment Save logic
-  function savePayment() {
-    const member = document.getElementById('input-pay-member').value;
-    const amount = parseFloat(document.getElementById('input-pay-amount').value) || 0;
-    const method = document.getElementById('input-pay-method').value;
-    const desc = document.getElementById('input-pay-desc').value.trim() || 'Membership Fee Payment';
-
-    const newPayment = {
-      id: `INV-${Math.floor(1000 + Math.random() * 9000)}`,
-      member,
-      plan: desc,
-      amount,
-      method,
-      date: new Date().toISOString().split('T')[0],
-      status: 'Paid'
-    };
-
-    state.payments.unshift(newPayment);
-    hideModal('modal-payment');
-    showToast(`Recorded payment of $${amount.toFixed(2)} for ${member}`, 'success');
-    renderPaymentsTable();
-  }
-
-  // ------------------------------------------------------------------------
-  // 10. FILTER CONTROLS LISTENERS
-  // ------------------------------------------------------------------------
-  function setupFilters() {
-    if (elements.memberSearchInput) elements.memberSearchInput.addEventListener('input', renderMembersTable);
-    if (elements.memberStatusFilter) elements.memberStatusFilter.addEventListener('change', renderMembersTable);
-    if (elements.memberPlanFilter) elements.memberPlanFilter.addEventListener('change', renderMembersTable);
-    if (elements.paymentSearchInput) elements.paymentSearchInput.addEventListener('input', renderPaymentsTable);
-
-    // Global Topbar Search
-    if (elements.globalSearch) {
-      elements.globalSearch.addEventListener('input', (e) => {
-        const val = e.target.value.toLowerCase().trim();
-        if (val) {
-          switchTab('members');
-          if (elements.memberSearchInput) {
-            elements.memberSearchInput.value = val;
-            renderMembersTable();
-          }
-        }
-      });
-    }
-
-    // Day Chips Filter
-    if (elements.dayFilterBar) {
-      elements.dayFilterBar.querySelectorAll('.day-chip').forEach(chip => {
-        chip.addEventListener('click', () => {
-          elements.dayFilterBar.querySelectorAll('.day-chip').forEach(c => c.classList.remove('active'));
-          chip.classList.add('active');
-          state.currentClassDayFilter = chip.getAttribute('data-day');
-          renderClassesGrid();
-        });
-      });
-    }
-  }
-
-  // ------------------------------------------------------------------------
-  // 11. HELPER UTILITIES & TOASTS
-  // ------------------------------------------------------------------------
-  function updateStatCounts() {
-    const badgeTotal = document.getElementById('badge-total-members');
-    const statActive = document.getElementById('stat-active-members');
-    
-    if (badgeTotal) badgeTotal.textContent = state.members.length;
-    if (statActive) statActive.textContent = state.members.filter(m => m.status === 'Active').length;
+  function todayStr() {
+    return new Date().toISOString().split('T')[0];
   }
 
   function getInitials(name) {
-    if (!name) return 'GP';
+    if (!name) return 'GU';
     return name.split(' ').map(n => n[0]).join('').substring(0, 2).toUpperCase();
   }
 
-  function getStatusBadgeHtml(status) {
-    if (status === 'Active') return '<span class="badge badge-emerald"><i class="fa-solid fa-circle" style="font-size: 6px; margin-right: 4px;"></i> Active</span>';
-    if (status === 'Expiring') return '<span class="badge badge-amber"><i class="fa-solid fa-clock" style="font-size: 8px; margin-right: 4px;"></i> Expiring Soon</span>';
-    return '<span class="badge badge-rose">Inactive</span>';
-  }
-
-  function getPaymentStatusBadge(status) {
-    if (status === 'Paid') return '<span class="badge badge-emerald">Paid</span>';
-    return '<span class="badge badge-amber">Pending</span>';
-  }
-
-  function showToast(message, type = 'info') {
-    if (!elements.toastContainer) return;
-
-    const toast = document.createElement('div');
-    toast.className = `toast toast-${type}`;
-    toast.innerHTML = `
-      <i class="fa-solid ${type === 'success' ? 'fa-circle-check' : 'fa-circle-info'}"></i>
-      <span>${escapeHtml(message)}</span>
-    `;
-
-    elements.toastContainer.appendChild(toast);
-
-    setTimeout(() => {
-      toast.style.opacity = '0';
-      toast.style.transform = 'translateX(50px)';
-      setTimeout(() => toast.remove(), 300);
-    }, 3500);
-  }
-
-  function setupKeyboardShortcuts() {
-    document.addEventListener('keydown', (e) => {
-      if (e.key === '/' && document.activeElement.tagName !== 'INPUT' && document.activeElement.tagName !== 'TEXTAREA') {
-        e.preventDefault();
-        if (elements.globalSearch) elements.globalSearch.focus();
-      }
-    });
-  }
-
   function escapeHtml(str) {
-    if (!str) return '';
-    return str.replace(/[&<>"']/g, match => ({
+    if (str === null || str === undefined) return '';
+    return String(str).replace(/[&<>"']/g, match => ({
       '&': '&amp;',
       '<': '&lt;',
       '>': '&gt;',
@@ -655,6 +179,1036 @@ document.addEventListener('DOMContentLoaded', () => {
     }[match]));
   }
 
-  // Initialize Application
-  initApp();
+  function showModal(modalId) {
+    const m = document.getElementById(modalId);
+    if (m) m.classList.add('active');
+  }
+
+  function hideModal(modalId) {
+    const m = document.getElementById(modalId);
+    if (m) m.classList.remove('active');
+  }
+
+  function showToast(message, type = 'info') {
+    if (!el.toastContainer) return;
+    const toast = document.createElement('div');
+    toast.className = `toast toast-${type}`;
+    const icon = type === 'success' ? 'fa-circle-check' : type === 'error' ? 'fa-circle-xmark' : 'fa-circle-info';
+    toast.innerHTML = `<i class="fa-solid ${icon}"></i><span>${escapeHtml(message)}</span>`;
+    el.toastContainer.appendChild(toast);
+    setTimeout(() => {
+      toast.style.opacity = '0';
+      toast.style.transform = 'translateX(50px)';
+      setTimeout(() => toast.remove(), 300);
+    }, 3500);
+  }
+
+  function emptyRow(icon, text, cols) {
+    return `<tr><td colspan="${cols}" class="text-center" style="padding:40px;text-align:center;color:var(--text-muted);">
+      <i class="fa-solid ${icon}" style="font-size:2rem;margin-bottom:10px;display:block;"></i>${escapeHtml(text)}
+    </td></tr>`;
+  }
+
+  function emptyState(icon, text) {
+    return `<div class="empty-state"><i class="fa-solid ${icon}"></i><p>${escapeHtml(text)}</p></div>`;
+  }
+
+  function isAdmin() {
+    return !!(session && session.role === 'admin');
+  }
+
+  function isUser() {
+    return !!(session && session.role === 'user');
+  }
+
+  function isTrainer() {
+    return !!(session && session.role === 'trainer');
+  }
+
+  // ------------------------------------------------------------------------
+  // 6. NAVIGATION: SIDEBAR MENU, ROLE SELECTOR, TAB SWITCHING
+  // ------------------------------------------------------------------------
+  const ROLE_NAV = {
+    admin: [
+      { tab: 'admin-verification', icon: 'fa-user-clock', label: 'Trainer Verification' },
+      { tab: 'admin-members', icon: 'fa-users', label: 'Members Directory' },
+      { tab: 'admin-classes', icon: 'fa-dumbbell', label: 'Class Schedule' },
+      { tab: 'admin-payments', icon: 'fa-money-check-dollar', label: 'Payments' },
+      { tab: 'admin-overview', icon: 'fa-chart-line', label: 'System Overview' }
+    ],
+    user: [
+      { tab: 'user-trainers', icon: 'fa-dumbbell', label: 'Find Trainers' },
+      { tab: 'user-bookings', icon: 'fa-calendar-check', label: 'My Bookings' }
+    ],
+    trainer: [
+      { tab: 'trainer-portal', icon: 'fa-user-ninja', label: 'My Trainer Portal' }
+    ]
+  };
+
+  function defaultTabForRole(role) {
+    if (role === 'user') return 'user-trainers';
+    if (role === 'trainer') return 'trainer-portal';
+    return 'admin-verification';
+  }
+
+  function buildSidebarMenu(role) {
+    const items = ROLE_NAV[role] || ROLE_NAV.admin;
+    el.sidebarMenu.innerHTML = items.map(item => `
+      <li>
+        <a href="#" class="nav-item ${item.tab === activeTab ? 'active' : ''}" data-tab="${item.tab}">
+          <i class="fa-solid ${item.icon}"></i>
+          <span>${item.label}</span>
+        </a>
+      </li>
+    `).join('');
+
+    el.sidebarMenu.querySelectorAll('.nav-item').forEach(item => {
+      item.addEventListener('click', (e) => {
+        e.preventDefault();
+        switchTab(item.getAttribute('data-tab'));
+        if (window.innerWidth <= 768) el.sidebar.classList.remove('show');
+      });
+    });
+  }
+
+  function switchTab(tabId) {
+    activeTab = tabId;
+    document.querySelectorAll('.tab-content').forEach(t => t.classList.remove('active'));
+    const target = document.getElementById(`tab-${tabId}`);
+    if (target) target.classList.add('active');
+    el.sidebarMenu.querySelectorAll('.nav-item').forEach(n => {
+      n.classList.toggle('active', n.getAttribute('data-tab') === tabId);
+    });
+  }
+
+  // ------------------------------------------------------------------------
+  // 7. SESSION UI
+  // ------------------------------------------------------------------------
+  function updateSessionUI() {
+    if (session) {
+      el.currentUserName.textContent = session.name;
+      el.currentUserRole.textContent = ROLE_LABELS[session.role];
+      el.roleBadge.textContent = `${ROLE_LABELS[session.role]} Portal`;
+      el.currentUserAvatar.innerHTML = '';
+      el.currentUserAvatar.textContent = getInitials(session.name);
+      el.btnLogout.style.display = 'inline-flex';
+    } else {
+      el.currentUserName.textContent = 'Guest';
+      el.currentUserRole.textContent = 'Not signed in';
+      el.roleBadge.textContent = 'Sign in to continue';
+      el.currentUserAvatar.innerHTML = '';
+      el.currentUserAvatar.textContent = 'GU';
+      el.btnLogout.style.display = 'none';
+    }
+    el.roleSelector.value = activeRole;
+    buildSidebarMenu(activeRole);
+  }
+
+  // Show the app (hide the login screen) or go back to the login screen.
+  function enterApp() {
+    document.body.classList.add('authed');
+    if (el.globalSearch) el.globalSearch.value = '';
+  }
+
+  function exitApp() {
+    document.body.classList.remove('authed');
+  }
+
+  // ------------------------------------------------------------------------
+  // 8. AUTH FLOWS
+  // ------------------------------------------------------------------------
+  function applySession(data) {
+    session = data.user || null;
+    trainer = data.trainer || null;
+    activeRole = session ? session.role : 'admin';
+    updateSessionUI();
+    enterApp();
+    switchTab(defaultTabForRole(activeRole));
+  }
+
+  function setAuthBtn(form, loading) {
+    const btn = form && form.querySelector('.btn-primary');
+    if (!btn) return;
+    if (loading) {
+      btn.dataset.orig = btn.innerHTML;
+      btn.disabled = true;
+      btn.innerHTML = '<i class="fa-solid fa-spinner fa-spin"></i> Please wait...';
+    } else {
+      btn.disabled = false;
+      if (btn.dataset.orig) btn.innerHTML = btn.dataset.orig;
+    }
+  }
+
+  async function submitLogin(e) {
+    e.preventDefault();
+    const email = document.getElementById('login-email').value.trim();
+    const password = document.getElementById('login-password').value;
+    const portal = document.getElementById('login-role').value;
+    if (!email || !password) {
+      showToast('Please enter your email and password.', 'error');
+      document.getElementById(email ? 'login-password' : 'login-email').focus();
+      return;
+    }
+    setAuthBtn(el.formLogin, true);
+    try {
+      const data = await api('auth/login.php', { method: 'POST', body: { email, password, portal } });
+      applySession(data);
+      await renderAll();
+      showToast(`Welcome, ${session.name.split(' ')[0]}! Signed in as ${ROLE_LABELS[session.role]}.`, 'success');
+    } catch (err) {
+      showToast(err.message || 'Login failed. Please try again.', 'error');
+    } finally {
+      setAuthBtn(el.formLogin, false);
+    }
+  }
+
+  async function submitUserRegister(e) {
+    e.preventDefault();
+    const body = {
+      type: 'user',
+      name: document.getElementById('user-reg-name').value.trim(),
+      email: document.getElementById('user-reg-email').value.trim(),
+      password: document.getElementById('user-reg-password').value,
+      goal: document.getElementById('user-reg-goal').value
+    };
+    if (!body.name || !body.email || !body.password) {
+      showToast('Please fill in your name, email and password.', 'error');
+      return;
+    }
+    if (body.password.length < 6) {
+      showToast('Password must be at least 6 characters long.', 'error');
+      return;
+    }
+    setAuthBtn(el.formUserRegister, true);
+    try {
+      const data = await api('auth/register.php', { method: 'POST', body });
+      showToast(data.message, 'success');
+      switchAuthTab('login');
+      document.getElementById('login-email').value = body.email;
+      document.getElementById('login-password').value = '';
+    } catch (err) {
+      showToast(err.message, 'error');
+    } finally {
+      setAuthBtn(el.formUserRegister, false);
+    }
+  }
+
+  async function submitTrainerRegister(e) {
+    e.preventDefault();
+    const body = {
+      type: 'trainer',
+      name: document.getElementById('trainer-reg-name').value.trim(),
+      email: document.getElementById('trainer-reg-email').value.trim(),
+      password: document.getElementById('trainer-reg-password').value,
+      specialization: document.getElementById('trainer-reg-spec').value.trim(),
+      experience: parseInt(document.getElementById('trainer-reg-exp').value, 10) || 0,
+      shift: document.getElementById('trainer-reg-shift').value
+    };
+    if (!body.name || !body.email || !body.password || !body.specialization || !body.shift) {
+      showToast('Please fill in all required fields.', 'error');
+      return;
+    }
+    if (body.password.length < 6) {
+      showToast('Password must be at least 6 characters long.', 'error');
+      return;
+    }
+    setAuthBtn(el.formTrainerRegister, true);
+    try {
+      const data = await api('auth/register.php', { method: 'POST', body });
+      showToast(data.message, 'success');
+      switchAuthTab('login');
+      document.getElementById('login-email').value = body.email;
+      document.getElementById('login-password').value = '';
+    } catch (err) {
+      showToast(err.message, 'error');
+    } finally {
+      setAuthBtn(el.formTrainerRegister, false);
+    }
+  }
+
+  async function logout() {
+    try { await api('auth/logout.php', { method: 'POST' }); } catch (e) { /* ignore */ }
+    session = null;
+    trainer = null;
+    activeRole = 'admin';
+    catalogQuery = '';
+    memberQuery = '';
+    paymentQuery = '';
+    if (el.globalSearch) el.globalSearch.value = '';
+    updateSessionUI();
+    exitApp();
+    switchAuthTab('login');
+    showToast('Signed out successfully.', 'info');
+  }
+
+  function switchAuthTab(mode) {
+    const forms = {
+      login: el.formLogin,
+      'user-register': el.formUserRegister,
+      'trainer-register': el.formTrainerRegister
+    };
+    document.querySelectorAll('.auth-tab-btn').forEach(b => {
+      b.classList.toggle('active', b.getAttribute('data-auth-mode') === mode);
+    });
+    Object.entries(forms).forEach(([key, form]) => {
+      if (form) form.classList.toggle('active', key === mode);
+    });
+  }
+
+  async function loadSession() {
+    try {
+      const data = await api('auth/me.php');
+      session = data.user || null;
+      trainer = data.trainer || null;
+    } catch (err) {
+      session = null;
+      trainer = null;
+      showToast(err.message || 'Cannot reach the backend.', 'error');
+      const box = document.getElementById('backend-error-box');
+      if (box) box.style.display = 'flex';
+    }
+    activeRole = session ? session.role : 'admin';
+    updateSessionUI();
+    if (session) {
+      enterApp();
+      switchTab(defaultTabForRole(activeRole));
+    } else {
+      exitApp();
+    }
+  }
+
+  // ------------------------------------------------------------------------
+  // 9. ADMIN VIEWS: TRAINER VERIFICATION
+  // ------------------------------------------------------------------------
+  async function renderAdminTrainers() {
+    if (!el.pendingTbody && !el.approvedTbody) return;
+
+    if (!isAdmin()) {
+      const msg = 'Sign in as an admin to review trainer applications.';
+      if (el.pendingTbody) el.pendingTbody.innerHTML = emptyRow('fa-user-clock', msg, 7);
+      if (el.approvedTbody) el.approvedTbody.innerHTML = emptyRow('fa-user-check', msg, 6);
+      if (el.pendingCountBadge) el.pendingCountBadge.textContent = '0 Pending Approvals';
+      return;
+    }
+
+    try {
+      const data = await api('trainers.php');
+      cache.trainers = data.trainers || [];
+      const pending = cache.trainers.filter(t => t.status === 'pending');
+      const approved = cache.trainers.filter(t => t.status === 'approved');
+
+      if (el.pendingCountBadge) {
+        el.pendingCountBadge.textContent = `${pending.length} Pending Approval${pending.length === 1 ? '' : 's'}`;
+      }
+
+      el.pendingTbody.innerHTML = pending.length
+        ? pending.map(t => `
+            <tr>
+              <td>
+                <div class="member-cell">
+                  <div class="avatar-chip">${getInitials(t.name)}</div>
+                  <div>
+                    <strong>${escapeHtml(t.name)}</strong>
+                    <div class="text-muted text-sm">${escapeHtml(t.email)}</div>
+                  </div>
+                </div>
+              </td>
+              <td>${escapeHtml(t.specialization)}</td>
+              <td>${t.experience} yrs</td>
+              <td>${t.shifts.map(s => `<span class="shift-tag">${escapeHtml(s)}</span>`).join('')}</td>
+              <td><span class="badge badge-amber"><i class="fa-solid fa-clock" style="font-size:8px;margin-right:4px;"></i> Pending</span></td>
+              <td>${t.registered_at || '-'}</td>
+              <td class="text-right">
+                <div class="action-buttons">
+                  <button class="btn btn-approve btn-sm" onclick="window.approveTrainer(${t.id})"><i class="fa-solid fa-check"></i> Approve</button>
+                  <button class="btn btn-reject btn-sm" onclick="window.rejectTrainer(${t.id})"><i class="fa-solid fa-xmark"></i> Reject</button>
+                </div>
+              </td>
+            </tr>
+          `).join('')
+        : emptyRow('fa-circle-check', 'No pending trainer applications. All caught up!', 7);
+
+      el.approvedTbody.innerHTML = approved.length
+        ? approved.map(t => {
+            const assigned = cache.bookings.filter(b => b.trainer_id === t.id).length;
+            return `
+            <tr>
+              <td>
+                <div class="member-cell">
+                  <div class="avatar-chip">${getInitials(t.name)}</div>
+                  <div>
+                    <strong>${escapeHtml(t.name)}</strong>
+                    <div class="text-muted text-sm">${escapeHtml(t.specialization)}</div>
+                  </div>
+                </div>
+              </td>
+              <td>${escapeHtml(t.specialization)}</td>
+              <td><span class="badge badge-indigo">${assigned} members</span></td>
+              <td>${t.shifts.length} active</td>
+              <td><span class="badge badge-emerald"><i class="fa-solid fa-circle" style="font-size:6px;margin-right:4px;"></i> Verified</span></td>
+              <td class="text-right">
+                <button class="btn btn-outline btn-sm" onclick="window.fitPulseApp.showToast('Managing ${escapeHtml(t.name)}...', 'info')">
+                  <i class="fa-solid fa-gear"></i> Manage
+                </button>
+              </td>
+            </tr>
+          `;
+          }).join('')
+        : emptyRow('fa-user-check', 'No approved trainers yet. Approve pending applications to publish them.', 6);
+    } catch (err) {
+      el.pendingTbody.innerHTML = emptyRow('fa-triangle-exclamation', err.message, 7);
+      el.approvedTbody.innerHTML = emptyRow('fa-triangle-exclamation', err.message, 6);
+    }
+  }
+
+  window.approveTrainer = async function (id) {
+    if (!isAdmin()) { showToast('Only a signed-in System Admin can verify trainers.', 'error'); return; }
+    try {
+      const data = await api('trainers.php', { method: 'POST', body: { id, action: 'approve' } });
+      showToast(data.message, 'success');
+      await Promise.all([renderAdminTrainers(), renderTrainerCatalog(), renderMetrics()]);
+    } catch (err) { showToast(err.message, 'error'); }
+  };
+
+  window.rejectTrainer = async function (id) {
+    if (!isAdmin()) { showToast('Only a signed-in System Admin can verify trainers.', 'error'); return; }
+    try {
+      const data = await api('trainers.php', { method: 'POST', body: { id, action: 'reject' } });
+      showToast(data.message, 'info');
+      await Promise.all([renderAdminTrainers(), renderTrainerCatalog(), renderMetrics()]);
+    } catch (err) { showToast(err.message, 'error'); }
+  };
+
+  // ------------------------------------------------------------------------
+  // 10. MEMBER / USER VIEWS
+  // ------------------------------------------------------------------------
+  async function renderTrainerCatalog() {
+    if (!el.trainersGrid) return;
+    try {
+      const data = await api('trainers.php');
+      cache.trainers = data.trainers || [];
+      const approved = cache.trainers.filter(t =>
+        !catalogQuery || t.name.toLowerCase().includes(catalogQuery) || t.specialization.toLowerCase().includes(catalogQuery)
+      );
+
+      if (!approved.length) {
+        el.trainersGrid.innerHTML = `<div style="grid-column:1 / -1;padding:40px;text-align:center;color:var(--text-muted);background:white;border-radius:var(--radius-lg);border:1px solid var(--border-color);">
+          <i class="fa-solid fa-dumbbell" style="font-size:2rem;margin-bottom:10px;display:block;"></i>
+          No verified trainers${catalogQuery ? ' matching your search' : ''} yet. Check back soon!
+        </div>`;
+        return;
+      }
+
+      el.trainersGrid.innerHTML = approved.map(t => `
+        <div class="trainer-card">
+          <div>
+            <div class="trainer-header">
+              <div class="trainer-avatar">${getInitials(t.name)}</div>
+              <div class="trainer-info">
+                <h4>${escapeHtml(t.name)}</h4>
+                <div class="trainer-spec">${escapeHtml(t.specialization)}</div>
+                <div class="text-muted text-sm"><i class="fa-solid fa-briefcase"></i> ${t.experience} yrs experience</div>
+              </div>
+            </div>
+            <div class="trainer-shifts-list">
+              ${t.shifts.map(s => `<span class="shift-tag"><i class="fa-regular fa-clock"></i> ${escapeHtml(s)}</span>`).join('')}
+            </div>
+          </div>
+          <button class="btn btn-primary" onclick="window.openBookTrainer(${t.id})">
+            <i class="fa-solid fa-calendar-plus"></i> Select This Trainer
+          </button>
+        </div>
+      `).join('');
+    } catch (err) {
+      el.trainersGrid.innerHTML = `<div style="grid-column:1 / -1;padding:40px;text-align:center;color:var(--text-muted);">
+        <i class="fa-solid fa-triangle-exclamation" style="font-size:2rem;margin-bottom:10px;display:block;"></i>${escapeHtml(err.message)}
+      </div>`;
+    }
+  }
+
+  async function renderUserBookings() {
+    if (!el.bookingBanner && !el.userBookingsList) return;
+
+    if (!session) {
+      if (el.bookingBanner) {
+        el.bookingBanner.innerHTML = `
+          <h3><i class="fa-solid fa-lock"></i> Member Booking Area</h3>
+          <p style="opacity:0.9">Sign in with your member account to book a verified trainer and reserve your shift.</p>`;
+      }
+      if (el.userBookingsList) el.userBookingsList.innerHTML = emptyState('fa-lock', 'Sign in as a member to view your bookings.');
+      return;
+    }
+
+    try {
+      const data = await api('bookings.php');
+      cache.bookings = data.bookings || [];
+
+      const latest = cache.bookings[0];
+      if (el.bookingBanner) {
+        if (!latest) {
+          el.bookingBanner.innerHTML = `
+            <h3>Hi ${escapeHtml(session.name.split(' ')[0])}, ready to train?</h3>
+            <p style="opacity:0.9">Browse the verified trainer catalog below and select your preferred shift.</p>`;
+        } else {
+          el.bookingBanner.innerHTML = `
+            <h3><i class="fa-solid fa-circle-check"></i> Current Selection</h3>
+            <p style="opacity:0.9">Trainer: <strong>${escapeHtml(latest.trainer_name)}</strong> &bull; ${escapeHtml(latest.shift)}</p>`;
+        }
+      }
+
+      if (el.userBookingsList) {
+        el.userBookingsList.innerHTML = cache.bookings.length
+          ? cache.bookings.map(b => `
+              <div class="booking-item">
+                <div class="booking-item-icon"><i class="fa-solid fa-user-ninja"></i></div>
+                <div class="booking-item-info">
+                  <strong>${escapeHtml(b.trainer_name)}</strong>
+                  <div class="text-muted text-sm"><i class="fa-regular fa-clock"></i> ${escapeHtml(b.shift)}</div>
+                  <div class="text-muted text-sm">Booked on ${b.booking_date}${b.notes ? ' &bull; ' + escapeHtml(b.notes) : ''}</div>
+                </div>
+                <span class="badge badge-emerald">Confirmed</span>
+              </div>
+            `).join('')
+          : emptyState('fa-calendar-plus', 'You have not booked any trainer yet. Head to Find Trainers to get started.');
+      }
+    } catch (err) {
+      if (el.bookingBanner) el.bookingBanner.innerHTML = `<h3>Booking area unavailable</h3><p style="opacity:0.9">${escapeHtml(err.message)}</p>`;
+      if (el.userBookingsList) el.userBookingsList.innerHTML = emptyState('fa-triangle-exclamation', err.message);
+    }
+  }
+
+  window.openBookTrainer = async function (id) {
+    if (!isUser()) {
+      showToast('Please log in as a member to book a trainer.', 'error');
+      return;
+    }
+    const t = cache.trainers.find(x => x.id === id);
+    if (!t) {
+      try { await renderTrainerCatalog(); } catch (e) { /* ignore */ }
+      return window.openBookTrainer(id);
+    }
+
+    el.bookTrainerId.value = t.id;
+    el.bookSummary.innerHTML = `
+      <div class="trainer-avatar">${getInitials(t.name)}</div>
+      <div>
+        <strong>${escapeHtml(t.name)}</strong>
+        <div class="text-muted text-sm">${escapeHtml(t.specialization)}</div>
+        <div class="text-muted text-sm"><i class="fa-solid fa-briefcase"></i> ${t.experience} yrs experience</div>
+      </div>`;
+    const shifts = t.shifts && t.shifts.length ? t.shifts : SHIFT_OPTIONS;
+    el.bookShiftSelect.innerHTML = shifts.map(s => `<option value="${escapeHtml(s)}">${escapeHtml(s)}</option>`).join('');
+    el.bookNotes.value = '';
+    showModal('modal-book-trainer');
+  };
+
+  async function submitBooking(e) {
+    e.preventDefault();
+    if (!isUser()) {
+      showToast('Please log in as a member to book a trainer.', 'error');
+      return;
+    }
+    try {
+      const data = await api('bookings.php', {
+        method: 'POST',
+        body: {
+          trainer_id: parseInt(el.bookTrainerId.value, 10),
+          shift: el.bookShiftSelect.value,
+          notes: el.bookNotes.value.trim()
+        }
+      });
+      hideModal('modal-book-trainer');
+      showToast(data.message, 'success');
+      await Promise.all([renderUserBookings(), renderMetrics()]);
+    } catch (err) {
+      showToast(err.message, 'error');
+    }
+  }
+
+  // ------------------------------------------------------------------------
+  // 11. TRAINER PORTAL VIEWS
+  // ------------------------------------------------------------------------
+  async function renderTrainerPortal() {
+    if (!el.trainerStatusBanner && !el.trainerShiftList && !el.trainerClientsList) return;
+
+    if (!isTrainer()) {
+      if (el.trainerStatusBanner) {
+        el.trainerStatusBanner.innerHTML = `
+          <div class="panel user-booking-banner" style="background:linear-gradient(135deg,#4338ca,#6366f1)">
+            <h3><i class="fa-solid fa-user-ninja"></i> Trainer Portal</h3>
+            <p style="opacity:0.9">Register as a trainer via the Trainer Register form, then get verified by an admin to access your dashboard.</p>
+          </div>`;
+      }
+      if (el.trainerShiftList) el.trainerShiftList.innerHTML = emptyState('fa-clock', 'Login as a trainer to view your shifts.');
+      if (el.trainerClientsList) el.trainerClientsList.innerHTML = emptyState('fa-users', 'Login as a trainer to view your clients.');
+      return;
+    }
+
+    // Status banner
+    let html = '';
+    if (trainer) {
+      if (trainer.status === 'approved') {
+        html = `<div class="panel user-booking-banner" style="background:linear-gradient(135deg,#047857,#059669)">
+          <h3><i class="fa-solid fa-circle-check"></i> Verified Trainer</h3>
+          <p style="opacity:0.9">You are approved and visible in the member trainer catalog.</p></div>`;
+      } else if (trainer.status === 'pending') {
+        html = `<div class="panel user-booking-banner" style="background:linear-gradient(135deg,#b45309,#d97706)">
+          <h3><i class="fa-solid fa-hourglass-half"></i> Awaiting Admin Verification</h3>
+          <p style="opacity:0.9">Your application (${escapeHtml(trainer.specialization)}) is under review. You will be activated once approved.</p></div>`;
+      } else {
+        html = `<div class="panel user-booking-banner" style="background:linear-gradient(135deg,#be123c,#e11d48)">
+          <h3><i class="fa-solid fa-circle-xmark"></i> Application Not Approved</h3>
+          <p style="opacity:0.9">Please contact the gym admin for more details about your application.</p></div>`;
+      }
+    }
+    if (el.trainerStatusBanner) el.trainerStatusBanner.innerHTML = html;
+
+    try {
+      const data = await api('bookings.php');
+      cache.bookings = data.bookings || [];
+
+      if (el.trainerShiftList) {
+        const shifts = trainer && trainer.shifts && trainer.shifts.length ? trainer.shifts : [];
+        el.trainerShiftList.innerHTML = shifts.length
+          ? shifts.map(s => `
+              <div class="booking-item">
+                <div class="booking-item-icon"><i class="fa-regular fa-clock"></i></div>
+                <div class="booking-item-info">
+                  <strong>${escapeHtml(s)}</strong>
+                  <div class="text-muted text-sm">Availability shift</div>
+                </div>
+                <span class="badge badge-indigo">Scheduled</span>
+              </div>
+            `).join('')
+          : emptyState('fa-calendar-plus', 'No shifts assigned yet.');
+      }
+
+      if (el.trainerClientsList) {
+        el.trainerClientsList.innerHTML = cache.bookings.length
+          ? cache.bookings.map(c => `
+              <div class="booking-item">
+                <div class="booking-item-icon"><i class="fa-solid fa-user"></i></div>
+                <div class="booking-item-info">
+                  <strong>${escapeHtml(c.member_name)}</strong>
+                  <div class="text-muted text-sm"><i class="fa-regular fa-clock"></i> ${escapeHtml(c.shift)}</div>
+                  ${c.notes ? `<div class="text-muted text-sm"><i class="fa-solid fa-note-sticky"></i> ${escapeHtml(c.notes)}</div>` : ''}
+                </div>
+                <span class="badge badge-emerald">Client</span>
+              </div>
+            `).join('')
+          : emptyState('fa-user-group', 'No clients assigned yet. Once members book your shifts, they appear here.');
+      }
+    } catch (err) {
+      if (el.trainerShiftList) el.trainerShiftList.innerHTML = emptyState('fa-triangle-exclamation', err.message);
+      if (el.trainerClientsList) el.trainerClientsList.innerHTML = emptyState('fa-triangle-exclamation', err.message);
+    }
+  }
+
+  // ------------------------------------------------------------------------
+  // 12. ADMIN VIEWS: MEMBERS DIRECTORY (CRUD)
+  // ------------------------------------------------------------------------
+  async function renderMembersTable() {
+    if (!el.membersTableTbody) return;
+
+    if (!isAdmin()) {
+      el.membersTableTbody.innerHTML = emptyRow('fa-users', 'Sign in as an admin to manage the member directory.', 7);
+      return;
+    }
+
+    try {
+      const data = await api('members.php');
+      cache.members = data.members || [];
+
+      const filtered = cache.members.filter(m => {
+        const q = memberQuery;
+        const matchesSearch = !q || m.name.toLowerCase().includes(q) || (m.email || '').toLowerCase().includes(q) || (m.phone || '').includes(q);
+        const matchesStatus = memberStatus === 'all' || m.status === memberStatus;
+        const matchesPlan = memberPlan === 'all' || m.plan === memberPlan;
+        return matchesSearch && matchesStatus && matchesPlan;
+      });
+
+      el.membersTableTbody.innerHTML = filtered.length
+        ? filtered.map(m => `
+            <tr>
+              <td>
+                <div class="member-cell">
+                  <div class="avatar-chip">${getInitials(m.name)}</div>
+                  <div>
+                    <strong>${escapeHtml(m.name)}</strong>
+                    <div class="text-muted text-sm">ID: #MP-${1000 + m.id}</div>
+                  </div>
+                </div>
+              </td>
+              <td>
+                <div>${escapeHtml(m.email || '-')}</div>
+                <div class="text-muted text-sm">${escapeHtml(m.phone || '-')}</div>
+              </td>
+              <td><span class="badge badge-indigo">${escapeHtml(m.plan)}</span></td>
+              <td>${getStatusBadgeHtml(m.status)}</td>
+              <td>${m.join_date || '-'}</td>
+              <td>${m.expiry_date || '-'}</td>
+              <td class="text-right">
+                <div class="action-buttons">
+                  <button class="action-icon-btn" title="Edit Member" onclick="window.editMember(${m.id})">
+                    <i class="fa-solid fa-pen-to-square"></i>
+                  </button>
+                  <button class="action-icon-btn delete-btn" title="Delete Member" onclick="window.deleteMember(${m.id})">
+                    <i class="fa-solid fa-trash"></i>
+                  </button>
+                </div>
+              </td>
+            </tr>
+          `).join('')
+        : emptyRow('fa-user-slash', 'No members matching your search filters.', 7);
+    } catch (err) {
+      el.membersTableTbody.innerHTML = emptyRow('fa-triangle-exclamation', err.message, 7);
+    }
+  }
+
+  function openMemberModal() {
+    document.getElementById('member-id').value = '';
+    el.formMember.reset();
+    document.getElementById('modal-member-title').textContent = 'Add New Member';
+    const today = todayStr();
+    document.getElementById('input-member-joindate').value = today;
+    const nextYear = new Date();
+    nextYear.setFullYear(nextYear.getFullYear() + 1);
+    document.getElementById('input-member-expirydate').value = nextYear.toISOString().split('T')[0];
+    showModal('modal-member');
+  }
+
+  window.editMember = function (id) {
+    const m = cache.members.find(x => x.id === id);
+    if (!m) return;
+    document.getElementById('member-id').value = m.id;
+    document.getElementById('input-member-name').value = m.name;
+    document.getElementById('input-member-email').value = m.email || '';
+    document.getElementById('input-member-phone').value = m.phone || '';
+    document.getElementById('input-member-plan').value = m.plan;
+    document.getElementById('input-member-status').value = m.status;
+    document.getElementById('input-member-joindate').value = m.join_date || todayStr();
+    document.getElementById('input-member-expirydate').value = m.expiry_date || '';
+    document.getElementById('modal-member-title').textContent = 'Edit Member Profile';
+    showModal('modal-member');
+  };
+
+  async function saveMember(e) {
+    e.preventDefault();
+    if (!isAdmin()) { showToast('Admin access required.', 'error'); return; }
+    const id = document.getElementById('member-id').value;
+    const body = {
+      name: document.getElementById('input-member-name').value.trim(),
+      email: document.getElementById('input-member-email').value.trim(),
+      phone: document.getElementById('input-member-phone').value.trim(),
+      plan: document.getElementById('input-member-plan').value,
+      status: document.getElementById('input-member-status').value,
+      join_date: document.getElementById('input-member-joindate').value,
+      expiry_date: document.getElementById('input-member-expirydate').value
+    };
+    try {
+      const data = await api('members.php', { method: id ? 'PUT' : 'POST', body: id ? { ...body, id: parseInt(id, 10) } : body });
+      hideModal('modal-member');
+      showToast(data.message, 'success');
+      await renderMembersTable();
+      await populatePaymentMemberSelect();
+    } catch (err) { showToast(err.message, 'error'); }
+  }
+
+  window.deleteMember = async function (id) {
+    if (!isAdmin()) { showToast('Admin access required.', 'error'); return; }
+    const m = cache.members.find(x => x.id === id);
+    if (!confirm(`Are you sure you want to delete member ${m ? m.name : ''}?`)) return;
+    try {
+      const data = await api(`members.php?id=${id}`, { method: 'DELETE' });
+      showToast(data.message, 'info');
+      await renderMembersTable();
+      await populatePaymentMemberSelect();
+    } catch (err) { showToast(err.message, 'error'); }
+  };
+
+  // ------------------------------------------------------------------------
+  // 13. ADMIN VIEWS: CLASS SCHEDULE
+  // ------------------------------------------------------------------------
+  async function renderClassesGrid() {
+    if (!el.classesCardsGrid) return;
+    try {
+      const data = await api('classes.php');
+      cache.classes = data.classes || [];
+
+      if (!cache.classes.length) {
+        el.classesCardsGrid.innerHTML = `<div class="class-card" style="grid-column:1 / -1;border-style:dashed;text-align:center;color:var(--text-muted);">
+          <i class="fa-solid fa-calendar-xmark" style="font-size:2rem;margin-bottom:10px;display:block;"></i>
+          No classes scheduled yet.${isAdmin() ? ' Use "Schedule Class" to add one.' : ''}
+        </div>`;
+        return;
+      }
+
+      el.classesCardsGrid.innerHTML = cache.classes.map(c => `
+        <div class="class-card">
+          <div class="class-card-header">
+            <span class="class-category">${escapeHtml(c.category)}</span>
+            <span class="badge badge-indigo">${escapeHtml(c.day)}</span>
+          </div>
+          <h3 class="class-card-title">${escapeHtml(c.title)}</h3>
+          <div class="class-info-item"><i class="fa-regular fa-clock"></i> ${escapeHtml(c.time)}</div>
+          <div class="class-info-item"><i class="fa-solid fa-user-ninja"></i> Trainer: <strong>${escapeHtml(c.trainer || '-')}</strong></div>
+          <div class="class-capacity-bar">
+            <span class="text-muted text-sm"><i class="fa-solid fa-users"></i> ${c.booked} / ${c.capacity} Booked</span>
+            ${isAdmin()
+              ? `<button class="btn btn-outline btn-sm" onclick="window.deleteClass(${c.id}, '${escapeHtml(c.title)}')"><i class="fa-solid fa-trash"></i> Delete</button>`
+              : `<span class="text-muted text-sm">Class open for booking</span>`}
+          </div>
+        </div>
+      `).join('');
+    } catch (err) {
+      el.classesCardsGrid.innerHTML = `<div style="grid-column:1 / -1;padding:40px;text-align:center;color:var(--text-muted);">${escapeHtml(err.message)}</div>`;
+    }
+  }
+
+  async function saveClass(e) {
+    e.preventDefault();
+    if (!isAdmin()) { showToast('Admin access required.', 'error'); return; }
+    const body = {
+      title: document.getElementById('input-class-name').value.trim(),
+      trainer: document.getElementById('input-class-trainer').value.trim(),
+      day: document.getElementById('input-class-day').value,
+      time: document.getElementById('input-class-time').value.trim(),
+      capacity: parseInt(document.getElementById('input-class-capacity').value, 10) || 20,
+      category: document.getElementById('input-class-category').value
+    };
+    try {
+      const data = await api('classes.php', { method: 'POST', body });
+      hideModal('modal-class');
+      showToast(data.message, 'success');
+      await renderClassesGrid();
+    } catch (err) { showToast(err.message, 'error'); }
+  }
+
+  window.deleteClass = async function (id, title) {
+    if (!isAdmin()) { showToast('Admin access required.', 'error'); return; }
+    if (!confirm(`Delete the class "${title}"?`)) return;
+    try {
+      const data = await api(`classes.php?id=${id}`, { method: 'DELETE' });
+      showToast(data.message, 'info');
+      await renderClassesGrid();
+    } catch (err) { showToast(err.message, 'error'); }
+  };
+
+  // ------------------------------------------------------------------------
+  // 14. ADMIN VIEWS: PAYMENTS
+  // ------------------------------------------------------------------------
+  async function renderPaymentsTable() {
+    if (!el.paymentsTableTbody) return;
+
+    if (!isAdmin()) {
+      el.paymentsTableTbody.innerHTML = emptyRow('fa-money-check-dollar', 'Sign in as an admin to view payment history.', 7);
+      return;
+    }
+
+    try {
+      const data = await api('payments.php');
+      cache.payments = data.payments || [];
+
+      const filtered = cache.payments.filter(p =>
+        !paymentQuery || p.invoice_no.toLowerCase().includes(paymentQuery) ||
+        p.member.toLowerCase().includes(paymentQuery) || p.plan.toLowerCase().includes(paymentQuery)
+      );
+
+      el.paymentsTableTbody.innerHTML = filtered.length
+        ? filtered.map(p => `
+            <tr>
+              <td><strong>${escapeHtml(p.invoice_no)}</strong></td>
+              <td>${escapeHtml(p.member)}</td>
+              <td>${escapeHtml(p.plan)}</td>
+              <td><strong>${Number(p.amount).toLocaleString()} NPR</strong></td>
+              <td>${escapeHtml(p.method)}</td>
+              <td>${p.payment_date || '-'}</td>
+              <td>${getPaymentStatusBadge(p.status)}</td>
+            </tr>
+          `).join('')
+        : emptyRow('fa-file-invoice-dollar', 'No payments found matching your search.', 7);
+    } catch (err) {
+      el.paymentsTableTbody.innerHTML = emptyRow('fa-triangle-exclamation', err.message, 7);
+    }
+  }
+
+  async function populatePaymentMemberSelect() {
+    if (!el.inputPayMember) return;
+    try {
+      const data = await api('members.php');
+      cache.members = data.members || [];
+      el.inputPayMember.innerHTML = cache.members.map(m =>
+        `<option value="${escapeHtml(m.name)}">${escapeHtml(m.name)}</option>`
+      ).join('');
+    } catch (err) { /* ignored */ }
+  }
+
+  async function savePayment(e) {
+    e.preventDefault();
+    if (!isAdmin()) { showToast('Admin access required.', 'error'); return; }
+    const body = {
+      member: el.inputPayMember.value,
+      plan: document.getElementById('input-pay-plan').value.trim() || 'Membership Fee',
+      amount: parseFloat(document.getElementById('input-pay-amount').value) || 0,
+      method: document.getElementById('input-pay-method').value,
+      status: document.getElementById('input-pay-status').value
+    };
+    try {
+      const data = await api('payments.php', { method: 'POST', body });
+      hideModal('modal-payment');
+      showToast(data.message, 'success');
+      await renderPaymentsTable();
+    } catch (err) { showToast(err.message, 'error'); }
+  }
+
+  // ------------------------------------------------------------------------
+  // 15. SYSTEM METRICS OVERVIEW
+  // ------------------------------------------------------------------------
+  async function renderMetrics() {
+    const ids = [el.statUsers, el.statApproved, el.statPending, el.statBookings];
+    ids.forEach(x => { if (x) x.textContent = '-'; });
+    if (!session) return;
+
+    try {
+      const data = await api('metrics.php');
+      const m = data.metrics || {};
+      if (el.statUsers) el.statUsers.textContent = m.users ?? '-';
+      if (el.statApproved) el.statApproved.textContent = m.approvedTrainers ?? '-';
+      if (el.statPending) el.statPending.textContent = m.pendingTrainers ?? '-';
+      if (el.statBookings) el.statBookings.textContent = m.bookings ?? '-';
+    } catch (err) { /* metrics are non-critical */ }
+  }
+
+  // ------------------------------------------------------------------------
+  // 16. BADGE HELPERS
+  // ------------------------------------------------------------------------
+  function getStatusBadgeHtml(status) {
+    if (status === 'Active') return '<span class="badge badge-emerald"><i class="fa-solid fa-circle" style="font-size:6px;margin-right:4px;"></i> Active</span>';
+    if (status === 'Expiring') return '<span class="badge badge-amber"><i class="fa-solid fa-clock" style="font-size:8px;margin-right:4px;"></i> Expiring</span>';
+    return '<span class="badge badge-rose">Inactive</span>';
+  }
+
+  function getPaymentStatusBadge(status) {
+    if (status === 'Paid') return '<span class="badge badge-emerald">Paid</span>';
+    return '<span class="badge badge-amber">Pending</span>';
+  }
+
+  // ------------------------------------------------------------------------
+  // 17. MASTER RENDER
+  // ------------------------------------------------------------------------
+  async function renderAll() {
+    const jobs = [
+      renderAdminTrainers(),
+      renderTrainerCatalog(),
+      renderUserBookings(),
+      renderTrainerPortal(),
+      renderMembersTable(),
+      renderClassesGrid(),
+      renderPaymentsTable(),
+      renderMetrics()
+    ];
+    await Promise.allSettled(jobs);
+  }
+
+  // ------------------------------------------------------------------------
+  // 18. EVENT WIRING
+  // ------------------------------------------------------------------------
+  function setupEvents() {
+    if (el.menuToggle) {
+      el.menuToggle.addEventListener('click', () => el.sidebar.classList.toggle('show'));
+    }
+
+    if (el.btnLogout) el.btnLogout.addEventListener('click', logout);
+
+    if (el.roleSelector) {
+      el.roleSelector.addEventListener('change', () => {
+        const role = el.roleSelector.value;
+        activeRole = role;
+        buildSidebarMenu(role);
+        switchTab(defaultTabForRole(role));
+        if (session && role !== session.role) {
+          showToast(`Previewing the ${ROLE_LABELS[role]} portal. You are signed in as ${ROLE_LABELS[session.role]}.`, 'info');
+        }
+      });
+    }
+
+    if (el.globalSearch) {
+      el.globalSearch.addEventListener('input', (e) => {
+        catalogQuery = e.target.value.toLowerCase().trim();
+        renderTrainerCatalog();
+      });
+    }
+
+    document.querySelectorAll('.auth-tab-btn').forEach(btn => {
+      btn.addEventListener('click', () => switchAuthTab(btn.getAttribute('data-auth-mode')));
+    });
+
+    if (el.formLogin) el.formLogin.addEventListener('submit', submitLogin);
+    if (el.formUserRegister) el.formUserRegister.addEventListener('submit', submitUserRegister);
+    if (el.formTrainerRegister) el.formTrainerRegister.addEventListener('submit', submitTrainerRegister);
+    if (el.formBookTrainer) el.formBookTrainer.addEventListener('submit', submitBooking);
+    if (el.formMember) el.formMember.addEventListener('submit', saveMember);
+    if (el.formClass) el.formClass.addEventListener('submit', saveClass);
+    if (el.formPayment) el.formPayment.addEventListener('submit', savePayment);
+
+    if (el.btnAddMember) el.btnAddMember.addEventListener('click', openMemberModal);
+    if (el.btnAddClass) {
+      el.btnAddClass.addEventListener('click', () => {
+        el.formClass.reset();
+        document.getElementById('input-class-capacity').value = 20;
+        showModal('modal-class');
+      });
+    }
+    if (el.btnAddPayment) {
+      el.btnAddPayment.addEventListener('click', async () => {
+        el.formPayment.reset();
+        await populatePaymentMemberSelect();
+        showModal('modal-payment');
+      });
+    }
+
+    if (el.memberSearchInput) el.memberSearchInput.addEventListener('input', (e) => { memberQuery = e.target.value.toLowerCase().trim(); renderMembersTable(); });
+    if (el.memberStatusFilter) el.memberStatusFilter.addEventListener('change', (e) => { memberStatus = e.target.value; renderMembersTable(); });
+    if (el.memberPlanFilter) el.memberPlanFilter.addEventListener('change', (e) => { memberPlan = e.target.value; renderMembersTable(); });
+    if (el.paymentSearchInput) el.paymentSearchInput.addEventListener('input', (e) => { paymentQuery = e.target.value.toLowerCase().trim(); renderPaymentsTable(); });
+
+    document.querySelectorAll('[data-close]').forEach(btn => {
+      btn.addEventListener('click', () => hideModal(btn.getAttribute('data-close')));
+    });
+
+    document.querySelectorAll('.modal-overlay').forEach(overlay => {
+      overlay.addEventListener('click', (e) => {
+        if (e.target === overlay) hideModal(overlay.id);
+      });
+    });
+
+    document.addEventListener('keydown', (e) => {
+      if (e.key === '/' && document.activeElement.tagName !== 'INPUT' && document.activeElement.tagName !== 'TEXTAREA') {
+        e.preventDefault();
+        if (el.globalSearch) el.globalSearch.focus();
+      }
+    });
+  }
+
+  // ------------------------------------------------------------------------
+  // 19. BOOTSTRAP
+  // ------------------------------------------------------------------------
+  setupEvents();
+
+  (async function init() {
+    await loadSession();
+    if (session) await renderAll();
+  })();
+
+  window.fitPulseApp = {
+    showToast,
+    logout,
+    switchTab,
+    approveTrainer: window.approveTrainer,
+    rejectTrainer: window.rejectTrainer,
+    openBookTrainer: window.openBookTrainer,
+    editMember: window.editMember,
+    deleteMember: window.deleteMember,
+    deleteClass: window.deleteClass
+  };
 });

@@ -822,6 +822,7 @@ button, input, select, textarea {
 .alert-info { background-color: var(--indigo-50); color: var(--indigo-700); border: 1px solid var(--indigo-100); }
 .alert-warning { background-color: var(--amber-50); color: var(--amber-600); border: 1px solid rgba(217, 119, 6, 0.2); }
 .alert-success { background-color: var(--emerald-50); color: var(--emerald-700); border: 1px solid rgba(5, 150, 105, 0.2); }
+.alert-danger { background-color: var(--rose-50); color: var(--rose-600); border: 1px solid #fecdd3; }
 
 .form-group {
   margin-bottom: 18px;
@@ -868,7 +869,7 @@ button, input, select, textarea {
   display: flex;
   flex-direction: column;
   gap: 10px;
-  z-index: 1100;
+  z-index: 3000;
 }
 
 .toast {
@@ -902,4 +903,355 @@ button, input, select, textarea {
   .topbar { padding: 0 16px; }
   .content-container { padding: 16px; }
   .role-label { display: none; }
+}
+
+/* --------------------------------------------------------------------------
+   12. AVATARS, MEMBER CELLS & ACTION BUTTONS
+   -------------------------------------------------------------------------- */
+.user-avatar {
+  overflow: hidden;
+}
+
+.user-avatar img {
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+  border-radius: var(--radius-full);
+  display: block;
+}
+
+.avatar-chip {
+  width: 36px;
+  height: 36px;
+  border-radius: var(--radius-full);
+  background-color: var(--indigo-100);
+  color: var(--indigo-700);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-weight: 700;
+  font-size: 0.8rem;
+  flex-shrink: 0;
+}
+
+.member-cell {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+}
+
+.action-buttons {
+  display: flex;
+  gap: 8px;
+  justify-content: flex-end;
+}
+
+/* --------------------------------------------------------------------------
+   13. BOOKING ITEMS, EMPTY STATES & TRAINER SUMMARY
+   -------------------------------------------------------------------------- */
+.booking-item {
+  display: flex;
+  align-items: center;
+  gap: 14px;
+  padding: 14px 16px;
+  border: 1px solid var(--border-color);
+  border-radius: var(--radius-md);
+  margin-bottom: 12px;
+  background-color: var(--bg-card);
+}
+
+.booking-item:last-child {
+  margin-bottom: 0;
+}
+
+.booking-item-icon {
+  width: 42px;
+  height: 42px;
+  border-radius: var(--radius-md);
+  background-color: var(--indigo-100);
+  color: var(--indigo-600);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-size: 1.05rem;
+  flex-shrink: 0;
+}
+
+.booking-item-info {
+  flex: 1;
+  min-width: 0;
+}
+
+.empty-state {
+  padding: 36px 20px;
+  text-align: center;
+  color: var(--text-muted);
+}
+
+.empty-state i {
+  font-size: 1.8rem;
+  margin-bottom: 10px;
+  display: block;
+  color: #cbd5e1;
+}
+
+.empty-state p {
+  margin: 0;
+}
+
+.trainer-summary-box {
+  display: flex;
+  align-items: center;
+  gap: 14px;
+  padding: 14px 16px;
+  background-color: var(--bg-app);
+  border: 1px solid var(--border-color);
+  border-radius: var(--radius-md);
+}
+
+.text-indigo {
+  color: var(--indigo-600);
+}
+
+/* --------------------------------------------------------------------------
+   14. ADMIN SECTIONS: FILTER BAR, CLASS CARDS, ACTION ICONS
+   -------------------------------------------------------------------------- */
+.filter-bar {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  flex-wrap: wrap;
+}
+
+.filter-input {
+  width: 260px;
+  max-width: 100%;
+}
+
+.filter-select {
+  width: auto;
+  min-width: 150px;
+}
+
+.header-actions {
+  display: flex;
+  gap: 10px;
+  align-items: center;
+}
+
+.panel-title-group {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+}
+
+.classes-cards-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(300px, 1fr));
+  gap: 20px;
+}
+
+.class-card {
+  background-color: var(--bg-card);
+  border: 1px solid var(--border-color);
+  border-radius: var(--radius-lg);
+  padding: 20px 22px;
+  box-shadow: var(--shadow-sm);
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+  transition: transform var(--transition-fast), box-shadow var(--transition-fast);
+}
+
+.class-card:hover {
+  transform: translateY(-2px);
+  box-shadow: var(--shadow-md);
+}
+
+.class-card-header {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  margin-bottom: 4px;
+}
+
+.class-category {
+  background-color: var(--indigo-100);
+  color: var(--indigo-700);
+  font-size: 0.7rem;
+  font-weight: 700;
+  text-transform: uppercase;
+  letter-spacing: 0.04em;
+  padding: 3px 10px;
+  border-radius: var(--radius-full);
+}
+
+.class-card-title {
+  font-size: 1.05rem;
+}
+
+.class-info-item {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  color: var(--text-muted);
+  font-size: 0.875rem;
+}
+
+.class-info-item i {
+  width: 16px;
+  color: var(--indigo-500);
+}
+
+.class-capacity-bar {
+  margin-top: 6px;
+  padding-top: 12px;
+  border-top: 1px solid var(--border-color);
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 10px;
+  flex-wrap: wrap;
+}
+
+.action-icon-btn {
+  background: none;
+  border: 1px solid var(--border-color);
+  color: var(--text-muted);
+  width: 32px;
+  height: 32px;
+  border-radius: var(--radius-sm);
+  cursor: pointer;
+  font-size: 0.85rem;
+  transition: all var(--transition-fast);
+}
+
+.action-icon-btn:hover {
+  background-color: var(--indigo-50);
+  color: var(--indigo-600);
+  border-color: var(--indigo-500);
+}
+
+.action-icon-btn.delete-btn:hover {
+  background-color: var(--rose-50);
+  color: var(--rose-600);
+  border-color: var(--rose-600);
+}
+
+/* --------------------------------------------------------------------------
+   15. AUTH GATE SCREEN (login / registration landing view)
+   -------------------------------------------------------------------------- */
+/* The app is hidden until the user is signed in (body.authed). */
+.app-layout {
+  display: none;
+}
+
+body.authed .app-layout {
+  display: flex;
+}
+
+.auth-screen {
+  position: fixed;
+  inset: 0;
+  z-index: 2000;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  padding: 24px;
+  overflow-y: auto;
+  background: linear-gradient(135deg, #0f172a 0%, #1e1b4b 45%, #312e81 100%);
+}
+
+body.authed .auth-screen {
+  display: none;
+}
+
+.auth-screen-bg {
+  position: absolute;
+  inset: 0;
+  pointer-events: none;
+  background:
+    radial-gradient(700px 420px at 12% 8%, rgba(99, 102, 241, 0.28), transparent 60%),
+    radial-gradient(600px 400px at 88% 92%, rgba(14, 165, 233, 0.18), transparent 60%);
+}
+
+.auth-card-wrap {
+  position: relative;
+  width: 100%;
+  max-width: 480px;
+  margin: auto;
+}
+
+.auth-card {
+  background-color: var(--bg-card);
+  border-radius: var(--radius-lg);
+  box-shadow: 0 25px 60px -12px rgba(0, 0, 0, 0.45);
+  overflow: hidden;
+  animation: auth-card-in 0.35s ease;
+}
+
+@keyframes auth-card-in {
+  from { opacity: 0; transform: translateY(16px); }
+  to   { opacity: 1; transform: translateY(0); }
+}
+
+.auth-card-brand {
+  padding: 28px 28px 20px;
+  text-align: center;
+}
+
+.auth-logo {
+  width: 58px;
+  height: 58px;
+  margin: 0 auto 12px;
+  border-radius: var(--radius-lg);
+  background: linear-gradient(135deg, var(--indigo-600), var(--blue-500));
+  color: #fff;
+  font-size: 1.5rem;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  box-shadow: 0 8px 20px -6px rgba(79, 70, 229, 0.55);
+}
+
+.auth-card-brand h1 {
+  font-family: 'Plus Jakarta Sans', 'Inter', sans-serif;
+  font-size: 1.6rem;
+  color: var(--text-main);
+  letter-spacing: -0.02em;
+}
+
+.auth-tagline {
+  color: var(--text-muted);
+  font-size: 0.85rem;
+  margin-top: 4px;
+}
+
+.auth-card-body {
+  padding: 8px 28px 28px;
+}
+
+.btn-block {
+  width: 100%;
+  justify-content: center;
+  margin-top: 8px;
+}
+
+.demo-hint {
+  display: flex;
+  align-items: flex-start;
+  gap: 8px;
+  margin-top: 16px;
+  padding: 10px 12px;
+  background-color: var(--indigo-50);
+  border: 1px dashed var(--indigo-500);
+  border-radius: var(--radius-md);
+  color: var(--indigo-700);
+  font-size: 0.75rem;
+  line-height: 1.45;
+}
+
+.demo-hint i {
+  margin-top: 1px;
+  flex-shrink: 0;
 }
