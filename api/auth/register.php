@@ -42,13 +42,15 @@ $hash = password_hash($password, PASSWORD_BCRYPT);
 
 // ---------------- MEMBER / USER REGISTRATION ----------------
 if ($type === 'user') {
-    $goal = (string)($data['goal'] ?? 'General Fitness');
+    $goal  = (string)($data['goal'] ?? 'General Fitness');
+    $phone = trim((string)($data['phone'] ?? ''));
+    $bio   = trim((string)($data['bio'] ?? ''));
 
     $pdo = db();
     $pdo->beginTransaction();
     try {
-        $stmt = $pdo->prepare('INSERT INTO users (name, email, password, role, goal) VALUES (?, ?, ?, "user", ?)');
-        $stmt->execute([$name, $email, $hash, $goal]);
+        $stmt = $pdo->prepare('INSERT INTO users (name, email, password, role, goal, phone, bio) VALUES (?, ?, ?, "user", ?, ?, ?)');
+        $stmt->execute([$name, $email, $hash, $goal, $phone, $bio]);
 
         // Keep the members directory in sync with new login accounts.
         $stmt = $pdo->prepare(
@@ -67,26 +69,33 @@ if ($type === 'user') {
 }
 
 // ---------------- TRAINER REGISTRATION ----------------
-$spec = trim((string)($data['specialization'] ?? ''));
-$exp  = (int)($data['experience'] ?? 0);
-$shift = (string)($data['shift'] ?? '');
+$spec        = trim((string)($data['specialization'] ?? ''));
+$exp         = (int)($data['experience'] ?? 0);
+$shift       = (string)($data['shift'] ?? '');
+$salary      = (float)($data['salary_expectation'] ?? 0);
+$certs       = trim((string)($data['certifications'] ?? ''));
+$phone       = trim((string)($data['phone'] ?? ''));
+$bio         = trim((string)($data['bio'] ?? ''));
 
 if ($spec === '' || $shift === '') {
     fail('Specialization and preferred shift are required.');
+}
+if ($salary <= 0) {
+    fail('Please enter your expected monthly salary.');
 }
 
 $pdo = db();
 $pdo->beginTransaction();
 try {
-    $stmt = $pdo->prepare('INSERT INTO users (name, email, password, role) VALUES (?, ?, ?, "trainer")');
-    $stmt->execute([$name, $email, $hash]);
+    $stmt = $pdo->prepare('INSERT INTO users (name, email, password, role, phone, bio) VALUES (?, ?, ?, "trainer", ?, ?)');
+    $stmt->execute([$name, $email, $hash, $phone, $bio]);
     $userId = (int)$pdo->lastInsertId();
 
     $stmt = $pdo->prepare(
-        'INSERT INTO trainers (user_id, specialization, experience, shifts, status)
-         VALUES (?, ?, ?, ?, "pending")'
+        'INSERT INTO trainers (user_id, specialization, experience, shifts, status, salary_expectation, certifications)
+         VALUES (?, ?, ?, ?, "pending", ?, ?)'
     );
-    $stmt->execute([$userId, $spec, $exp, json_encode([$shift])]);
+    $stmt->execute([$userId, $spec, $exp, json_encode([$shift]), $salary, $certs]);
 
     $pdo->commit();
 } catch (Throwable $e) {

@@ -19,7 +19,7 @@ if (!$u) {
 
 $trainer = null;
 if ($u['role'] === 'trainer') {
-    $stmt = db()->prepare('SELECT id, specialization, experience, shifts, status FROM trainers WHERE user_id = ?');
+    $stmt = db()->prepare('SELECT id, specialization, experience, shifts, status, salary_expectation, certifications, rating FROM trainers WHERE user_id = ?');
     $stmt->execute([$u['id']]);
     $trainer = $stmt->fetch() ?: null;
     if ($trainer) {

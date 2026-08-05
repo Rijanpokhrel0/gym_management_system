@@ -22,6 +22,8 @@ CREATE TABLE `users` (
   `password`   VARCHAR(255) NOT NULL,
   `role`       ENUM('admin','user','trainer') NOT NULL DEFAULT 'user',
   `goal`       VARCHAR(120) DEFAULT NULL,
+  `phone`      VARCHAR(40)  NOT NULL DEFAULT '',
+  `bio`        TEXT,
   `created_at` TIMESTAMP DEFAULT CURRENT_TIMESTAMP
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4;
 
@@ -37,13 +39,16 @@ CREATE TABLE `members` (
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4;
 
 CREATE TABLE `trainers` (
-  `id`             INT AUTO_INCREMENT PRIMARY KEY,
-  `user_id`        INT NOT NULL,
-  `specialization` VARCHAR(120) NOT NULL,
-  `experience`     INT NOT NULL DEFAULT 0,
-  `shifts`         JSON NOT NULL,
-  `status`         ENUM('pending','approved','rejected') NOT NULL DEFAULT 'pending',
-  `registered_at`  DATE DEFAULT NULL,
+  `id`                 INT AUTO_INCREMENT PRIMARY KEY,
+  `user_id`            INT NOT NULL,
+  `specialization`     VARCHAR(120) NOT NULL,
+  `experience`         INT NOT NULL DEFAULT 0,
+  `shifts`             JSON NOT NULL,
+  `status`             ENUM('pending','approved','rejected') NOT NULL DEFAULT 'pending',
+  `registered_at`      DATE DEFAULT NULL,
+  `salary_expectation` DECIMAL(10,2) NOT NULL DEFAULT 0,
+  `certifications`     TEXT,
+  `rating`             DECIMAL(2,1) NOT NULL DEFAULT 0,
   CONSTRAINT `fk_trainers_user` FOREIGN KEY (`user_id`) REFERENCES `users`(`id`) ON DELETE CASCADE
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4;
 
@@ -78,4 +83,50 @@ CREATE TABLE `bookings` (
   `booking_date` DATE DEFAULT NULL,
   CONSTRAINT `fk_bookings_user`    FOREIGN KEY (`user_id`)    REFERENCES `users`(`id`)    ON DELETE CASCADE,
   CONSTRAINT `fk_bookings_trainer` FOREIGN KEY (`trainer_id`) REFERENCES `trainers`(`id`) ON DELETE CASCADE
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4;
+
+-- Gym equipment inventory
+CREATE TABLE `equipment` (
+  `id`               INT AUTO_INCREMENT PRIMARY KEY,
+  `name`             VARCHAR(120) NOT NULL,
+  `category`         VARCHAR(60)  NOT NULL DEFAULT 'Strength',
+  `quantity`         INT NOT NULL DEFAULT 1,
+  `equipment_status` ENUM('New','Good','Needs Maintenance','Out of Service') NOT NULL DEFAULT 'Good',
+  `last_maintenance` DATE DEFAULT NULL,
+  `notes`            VARCHAR(255) NOT NULL DEFAULT ''
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4;
+
+-- Membership plan pricing catalog
+CREATE TABLE `membership_plans` (
+  `id`       INT AUTO_INCREMENT PRIMARY KEY,
+  `name`     VARCHAR(80) NOT NULL,
+  `price`    DECIMAL(10,2) NOT NULL DEFAULT 0,
+  `duration` VARCHAR(40)  NOT NULL DEFAULT 'Monthly',
+  `features` TEXT,
+  `popular`  TINYINT(1) NOT NULL DEFAULT 0
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4;
+
+-- Single-row gym profile (about, location, hours, contact)
+CREATE TABLE `gym_info` (
+  `id`      INT AUTO_INCREMENT PRIMARY KEY,
+  `name`    VARCHAR(120) NOT NULL DEFAULT 'FitPulse Gym',
+  `about`   TEXT,
+  `address` VARCHAR(255) NOT NULL DEFAULT '',
+  `phone`   VARCHAR(40)  NOT NULL DEFAULT '',
+  `email`   VARCHAR(150) NOT NULL DEFAULT '',
+  `hours`   TEXT,
+  `map_url` VARCHAR(500) NOT NULL DEFAULT ''
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4;
+
+-- Trainer salary payments
+CREATE TABLE `trainer_payments` (
+  `id`           INT AUTO_INCREMENT PRIMARY KEY,
+  `trainer_id`   INT NOT NULL,
+  `amount`       DECIMAL(10,2) NOT NULL DEFAULT 0,
+  `month`        VARCHAR(7) NOT NULL DEFAULT '',
+  `status`       ENUM('Paid','Pending') NOT NULL DEFAULT 'Pending',
+  `payment_date` DATE DEFAULT NULL,
+  `method`       VARCHAR(50) NOT NULL DEFAULT 'Cash',
+  `notes`        VARCHAR(255) NOT NULL DEFAULT '',
+  CONSTRAINT `fk_trainer_payments_trainer` FOREIGN KEY (`trainer_id`) REFERENCES `trainers`(`id`) ON DELETE CASCADE
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4;

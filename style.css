@@ -7,33 +7,34 @@
    1. DESIGN TOKENS & CSS VARIABLES
    -------------------------------------------------------------------------- */
 :root {
-  --bg-app: #f8fafc;
-  --bg-sidebar: #0f172a;
+  --bg-app: #fafaf9;
+  --bg-sidebar: #1c1917;
   --bg-card: #ffffff;
-  --bg-card-hover: #f1f5f9;
+  --bg-card-hover: #f5f5f4;
   
-  --text-main: #0f172a;
-  --text-muted: #64748b;
-  --text-light: #94a3b8;
+  --text-main: #1c1917;
+  --text-muted: #78716c;
+  --text-light: #a8a29e;
   --text-white: #ffffff;
 
-  --border-color: #e2e8f0;
-  --border-focus: #818cf8;
+  --border-color: #e7e5e4;
+  --border-focus: #f97316;
 
-  --indigo-50: #eep2ff;
-  --indigo-100: #e0e7ff;
-  --indigo-500: #6366f1;
-  --indigo-600: #4f46e5;
-  --indigo-700: #4338ca;
+  --orange-50: #fff7ed;
+  --orange-100: #ffedd5;
+  --orange-400: #fb923c;
+  --orange-500: #f97316;
+  --orange-600: #ea580c;
+  --orange-700: #c2410c;
 
-  --blue-500: #3b82f6;
-  --blue-600: #2563eb;
+  --blue-500: #0ea5e9;
+  --blue-600: #0284c7;
   
   --emerald-50: #ecfdf5;
   --emerald-600: #059669;
   --emerald-700: #047857;
 
-  --amber-50: #fffbe6;
+  --amber-50: #fffbeb;
   --amber-600: #d97706;
 
   --rose-50: #fff1f2;
@@ -80,13 +81,13 @@ h1, h2, h3, h4, h5, h6 {
 }
 
 a {
-  color: var(--indigo-600);
+  color: var(--orange-600);
   text-decoration: none;
   transition: color var(--transition-fast);
 }
 
 a:hover {
-  color: var(--indigo-700);
+  color: var(--orange-700);
 }
 
 button, input, select, textarea {
@@ -138,14 +139,14 @@ button, input, select, textarea {
 .brand-logo {
   width: 40px;
   height: 40px;
-  background: linear-gradient(135deg, var(--indigo-500), var(--blue-600));
+  background: linear-gradient(135deg, #f97316, #fb923c);
   border-radius: var(--radius-md);
   display: flex;
   align-items: center;
   justify-content: center;
   font-size: 1.2rem;
   color: var(--text-white);
-  box-shadow: 0 4px 10px rgba(99, 102, 241, 0.35);
+  box-shadow: 0 4px 10px rgba(249, 115, 22, 0.35);
 }
 
 .brand-info h2 {
@@ -156,8 +157,8 @@ button, input, select, textarea {
 
 .brand-info span {
   font-size: 0.725rem;
-  color: var(--indigo-100);
-  background-color: rgba(99, 102, 241, 0.3);
+  color: var(--orange-100);
+  background-color: rgba(249, 115, 22, 0.25);
   padding: 2px 8px;
   border-radius: 4px;
   font-weight: 600;
@@ -204,8 +205,8 @@ button, input, select, textarea {
 
 .nav-item.active {
   color: var(--text-white);
-  background: linear-gradient(90deg, var(--indigo-600), #6366f1);
-  box-shadow: 0 4px 12px rgba(79, 70, 229, 0.3);
+  background: linear-gradient(90deg, var(--orange-600), var(--orange-400));
+  box-shadow: 0 4px 12px rgba(234, 88, 12, 0.35);
 }
 
 .sidebar-user {
@@ -221,7 +222,7 @@ button, input, select, textarea {
   width: 38px;
   height: 38px;
   border-radius: var(--radius-full);
-  background-color: var(--indigo-500);
+  background-color: var(--orange-500);
   color: var(--text-white);
   display: flex;
   align-items: center;
@@ -332,9 +333,9 @@ button, input, select, textarea {
 }
 
 .search-bar input:focus {
-  border-color: var(--indigo-500);
+  border-color: var(--orange-500);
   background-color: #ffffff;
-  box-shadow: 0 0 0 3px var(--indigo-100);
+  box-shadow: 0 0 0 3px var(--orange-100);
 }
 
 .topbar-right {
@@ -363,7 +364,7 @@ button, input, select, textarea {
   border: none;
   background: transparent;
   font-weight: 700;
-  color: var(--indigo-600);
+  color: var(--orange-600);
   cursor: pointer;
   outline: none;
 }
@@ -387,13 +388,13 @@ button, input, select, textarea {
 }
 
 .btn-primary {
-  background-color: var(--indigo-600);
+  background-color: var(--orange-600);
   color: var(--text-white);
   box-shadow: var(--shadow-sm);
 }
 
 .btn-primary:hover {
-  background-color: var(--indigo-700);
+  background-color: var(--orange-700);
   box-shadow: var(--shadow-md);
 }
 
@@ -443,7 +444,7 @@ button, input, select, textarea {
   border-radius: var(--radius-full);
 }
 
-.badge-indigo { background-color: var(--indigo-100); color: var(--indigo-700); }
+.badge-orange { background-color: var(--orange-100); color: var(--orange-700); }
 .badge-emerald { background-color: var(--emerald-50); color: var(--emerald-700); border: 1px solid rgba(5, 150, 105, 0.2); }
 .badge-amber { background-color: var(--amber-50); color: var(--amber-600); border: 1px solid rgba(217, 119, 6, 0.2); }
 .badge-rose { background-color: var(--rose-50); color: var(--rose-600); border: 1px solid rgba(225, 29, 72, 0.2); }
@@ -527,7 +528,7 @@ button, input, select, textarea {
 
 .icon-blue { background-color: #eff6ff; color: var(--blue-600); }
 .icon-emerald { background-color: var(--emerald-50); color: var(--emerald-600); }
-.icon-indigo { background-color: var(--indigo-100); color: var(--indigo-600); }
+.icon-orange { background-color: var(--orange-100); color: var(--orange-600); }
 .icon-purple { background-color: #faf5ff; color: #9333ea; }
 
 .trend {
@@ -620,7 +621,7 @@ button, input, select, textarea {
    -------------------------------------------------------------------------- */
 .user-booking-banner {
   padding: 20px 24px;
-  background: linear-gradient(135deg, #4f46e5, #3b82f6);
+  background: linear-gradient(135deg, #ea580c, #f97316);
   color: white;
   border-radius: var(--radius-lg);
   margin-bottom: 28px;
@@ -653,7 +654,7 @@ button, input, select, textarea {
 .trainer-card:hover {
   transform: translateY(-3px);
   box-shadow: var(--shadow-md);
-  border-color: var(--indigo-500);
+  border-color: var(--orange-500);
 }
 
 .trainer-header {
@@ -667,8 +668,8 @@ button, input, select, textarea {
   width: 52px;
   height: 52px;
   border-radius: 50%;
-  background-color: var(--indigo-100);
-  color: var(--indigo-700);
+  background-color: var(--orange-100);
+  color: var(--orange-700);
   font-weight: 800;
   font-size: 1.1rem;
   display: flex;
@@ -682,7 +683,7 @@ button, input, select, textarea {
 }
 
 .trainer-spec {
-  color: var(--indigo-600);
+  color: var(--orange-600);
   font-weight: 600;
   font-size: 0.8125rem;
 }
@@ -796,9 +797,9 @@ button, input, select, textarea {
 }
 
 .auth-tab-btn.active {
-  color: var(--indigo-600);
+  color: var(--orange-600);
   background-color: white;
-  border-bottom-color: var(--indigo-600);
+  border-bottom-color: var(--orange-600);
 }
 
 .auth-form-step {
@@ -819,7 +820,7 @@ button, input, select, textarea {
   margin-bottom: 16px;
 }
 
-.alert-info { background-color: var(--indigo-50); color: var(--indigo-700); border: 1px solid var(--indigo-100); }
+.alert-info { background-color: var(--orange-50); color: var(--orange-700); border: 1px solid var(--orange-100); }
 .alert-warning { background-color: var(--amber-50); color: var(--amber-600); border: 1px solid rgba(217, 119, 6, 0.2); }
 .alert-success { background-color: var(--emerald-50); color: var(--emerald-700); border: 1px solid rgba(5, 150, 105, 0.2); }
 .alert-danger { background-color: var(--rose-50); color: var(--rose-600); border: 1px solid #fecdd3; }
@@ -846,8 +847,8 @@ button, input, select, textarea {
 }
 
 .form-control:focus, .form-select:focus {
-  border-color: var(--indigo-500);
-  box-shadow: 0 0 0 3px var(--indigo-100);
+  border-color: var(--orange-500);
+  box-shadow: 0 0 0 3px var(--orange-100);
 }
 
 .form-row {
@@ -924,8 +925,8 @@ button, input, select, textarea {
   width: 36px;
   height: 36px;
   border-radius: var(--radius-full);
-  background-color: var(--indigo-100);
-  color: var(--indigo-700);
+  background-color: var(--orange-100);
+  color: var(--orange-700);
   display: flex;
   align-items: center;
   justify-content: center;
@@ -968,8 +969,8 @@ button, input, select, textarea {
   width: 42px;
   height: 42px;
   border-radius: var(--radius-md);
-  background-color: var(--indigo-100);
-  color: var(--indigo-600);
+  background-color: var(--orange-100);
+  color: var(--orange-600);
   display: flex;
   align-items: center;
   justify-content: center;
@@ -1009,8 +1010,8 @@ button, input, select, textarea {
   border-radius: var(--radius-md);
 }
 
-.text-indigo {
-  color: var(--indigo-600);
+.text-orange {
+  color: var(--orange-600);
 }
 
 /* --------------------------------------------------------------------------
@@ -1076,8 +1077,8 @@ button, input, select, textarea {
 }
 
 .class-category {
-  background-color: var(--indigo-100);
-  color: var(--indigo-700);
+  background-color: var(--orange-100);
+  color: var(--orange-700);
   font-size: 0.7rem;
   font-weight: 700;
   text-transform: uppercase;
@@ -1100,7 +1101,7 @@ button, input, select, textarea {
 
 .class-info-item i {
   width: 16px;
-  color: var(--indigo-500);
+  color: var(--orange-500);
 }
 
 .class-capacity-bar {
@@ -1127,9 +1128,9 @@ button, input, select, textarea {
 }
 
 .action-icon-btn:hover {
-  background-color: var(--indigo-50);
-  color: var(--indigo-600);
-  border-color: var(--indigo-500);
+  background-color: var(--orange-50);
+  color: var(--orange-600);
+  border-color: var(--orange-500);
 }
 
 .action-icon-btn.delete-btn:hover {
@@ -1159,7 +1160,7 @@ body.authed .app-layout {
   justify-content: center;
   padding: 24px;
   overflow-y: auto;
-  background: linear-gradient(135deg, #0f172a 0%, #1e1b4b 45%, #312e81 100%);
+  background: linear-gradient(135deg, #1c1917 0%, #431407 48%, #7c2d12 100%);
 }
 
 body.authed .auth-screen {
@@ -1171,7 +1172,7 @@ body.authed .auth-screen {
   inset: 0;
   pointer-events: none;
   background:
-    radial-gradient(700px 420px at 12% 8%, rgba(99, 102, 241, 0.28), transparent 60%),
+    radial-gradient(700px 420px at 12% 8%, rgba(249, 115, 22, 0.3), transparent 60%),
     radial-gradient(600px 400px at 88% 92%, rgba(14, 165, 233, 0.18), transparent 60%);
 }
 
@@ -1205,13 +1206,13 @@ body.authed .auth-screen {
   height: 58px;
   margin: 0 auto 12px;
   border-radius: var(--radius-lg);
-  background: linear-gradient(135deg, var(--indigo-600), var(--blue-500));
+  background: linear-gradient(135deg, var(--orange-600), var(--orange-400));
   color: #fff;
   font-size: 1.5rem;
   display: flex;
   align-items: center;
   justify-content: center;
-  box-shadow: 0 8px 20px -6px rgba(79, 70, 229, 0.55);
+  box-shadow: 0 8px 20px -6px rgba(234, 88, 12, 0.5);
 }
 
 .auth-card-brand h1 {
@@ -1243,10 +1244,10 @@ body.authed .auth-screen {
   gap: 8px;
   margin-top: 16px;
   padding: 10px 12px;
-  background-color: var(--indigo-50);
-  border: 1px dashed var(--indigo-500);
+  background-color: var(--orange-50);
+  border: 1px dashed var(--orange-500);
   border-radius: var(--radius-md);
-  color: var(--indigo-700);
+  color: var(--orange-700);
   font-size: 0.75rem;
   line-height: 1.45;
 }
@@ -1254,4 +1255,453 @@ body.authed .auth-screen {
 .demo-hint i {
   margin-top: 1px;
   flex-shrink: 0;
+}
+
+/* --------------------------------------------------------------------------
+   16. UNIFIED REGISTRATION: ROLE TOGGLE & HINTS
+   -------------------------------------------------------------------------- */
+.auth-hint {
+  display: flex;
+  align-items: flex-start;
+  gap: 8px;
+  margin: 4px 0 14px;
+  padding: 8px 10px;
+  background-color: var(--orange-50);
+  border-radius: var(--radius-md);
+  color: var(--orange-700);
+  font-size: 0.75rem;
+  line-height: 1.5;
+}
+
+.auth-hint i {
+  margin-top: 1px;
+  flex-shrink: 0;
+}
+
+.role-toggle {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 8px;
+  margin-bottom: 16px;
+  padding: 4px;
+  background-color: var(--bg-app);
+  border: 1px solid var(--border-color);
+  border-radius: var(--radius-md);
+}
+
+.role-toggle-btn {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 8px;
+  padding: 10px 12px;
+  border: none;
+  background: transparent;
+  border-radius: calc(var(--radius-md) - 4px);
+  font-weight: 600;
+  font-size: 0.875rem;
+  color: var(--text-muted);
+  cursor: pointer;
+  transition: all var(--transition-fast);
+}
+
+.role-toggle-btn i {
+  font-size: 1rem;
+}
+
+.role-toggle-btn:hover {
+  color: var(--orange-600);
+}
+
+.role-toggle-btn.active {
+  background: linear-gradient(135deg, var(--orange-600), var(--orange-500));
+  color: var(--text-white);
+  box-shadow: 0 4px 10px rgba(234, 88, 12, 0.35);
+}
+
+/* --------------------------------------------------------------------------
+   17. USER PORTAL: EQUIPMENT CARDS
+   -------------------------------------------------------------------------- */
+.equipment-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(270px, 1fr));
+  gap: 18px;
+}
+
+.equipment-card {
+  display: flex;
+  gap: 14px;
+  background-color: var(--bg-card);
+  border: 1px solid var(--border-color);
+  border-radius: var(--radius-lg);
+  padding: 18px;
+  box-shadow: var(--shadow-sm);
+  transition: transform var(--transition-fast), box-shadow var(--transition-fast);
+}
+
+.equipment-card:hover {
+  transform: translateY(-2px);
+  box-shadow: var(--shadow-md);
+}
+
+.equipment-card-icon {
+  flex-shrink: 0;
+  width: 48px;
+  height: 48px;
+  border-radius: var(--radius-md);
+  background-color: var(--orange-100);
+  color: var(--orange-600);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-size: 1.3rem;
+}
+
+.equipment-card-body h4 {
+  font-size: 0.95rem;
+  margin-bottom: 2px;
+}
+
+.equipment-card-body .text-muted {
+  font-size: 0.8125rem;
+}
+
+/* --------------------------------------------------------------------------
+   18. MEMBERSHIP PLANS (USER + ADMIN)
+   -------------------------------------------------------------------------- */
+.plans-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(280px, 1fr));
+  gap: 22px;
+  align-items: stretch;
+}
+
+.plan-card {
+  position: relative;
+  background-color: var(--bg-card);
+  border: 1px solid var(--border-color);
+  border-radius: var(--radius-lg);
+  padding: 28px 24px;
+  box-shadow: var(--shadow-sm);
+  display: flex;
+  flex-direction: column;
+  gap: 14px;
+  transition: transform var(--transition-fast), box-shadow var(--transition-fast);
+}
+
+.plan-card:hover {
+  transform: translateY(-3px);
+  box-shadow: var(--shadow-lg);
+}
+
+.plan-card-popular {
+  border: 2px solid var(--orange-500);
+  box-shadow: 0 12px 28px -10px rgba(249, 115, 22, 0.45);
+}
+
+.plan-ribbon {
+  position: absolute;
+  top: -12px;
+  left: 50%;
+  transform: translateX(-50%);
+  background: linear-gradient(135deg, var(--orange-600), var(--orange-500));
+  color: #fff;
+  font-size: 0.7rem;
+  font-weight: 700;
+  text-transform: uppercase;
+  letter-spacing: 0.05em;
+  padding: 4px 14px;
+  border-radius: var(--radius-full);
+  box-shadow: 0 4px 10px rgba(234, 88, 12, 0.35);
+}
+
+.plan-name {
+  font-family: 'Plus Jakarta Sans', sans-serif;
+  font-size: 1.15rem;
+  font-weight: 700;
+}
+
+.plan-price {
+  font-family: 'Plus Jakarta Sans', sans-serif;
+  font-size: 2rem;
+  font-weight: 800;
+  letter-spacing: -0.02em;
+  color: var(--text-main);
+}
+
+.plan-currency {
+  font-size: 1rem;
+  font-weight: 700;
+  color: var(--orange-600);
+  vertical-align: super;
+  margin-right: 2px;
+}
+
+.plan-duration {
+  font-size: 0.8125rem;
+  font-weight: 500;
+  color: var(--text-muted);
+}
+
+.plan-features {
+  list-style: none;
+  flex: 1;
+  display: flex;
+  flex-direction: column;
+  gap: 9px;
+  margin: 4px 0;
+}
+
+.plan-features li {
+  display: flex;
+  align-items: flex-start;
+  gap: 9px;
+  font-size: 0.875rem;
+  color: var(--text-muted);
+}
+
+.plan-features li i {
+  margin-top: 3px;
+  font-size: 0.8rem;
+  color: var(--orange-600);
+}
+
+.admin-plans-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(260px, 1fr));
+  gap: 16px;
+}
+
+.admin-plan-card {
+  display: flex;
+  flex-direction: column;
+  gap: 10px;
+  background-color: var(--bg-app);
+  border: 1px solid var(--border-color);
+  border-radius: var(--radius-md);
+  padding: 16px 18px;
+}
+
+.admin-plan-head {
+  display: flex;
+  align-items: flex-start;
+  justify-content: space-between;
+  gap: 10px;
+}
+
+.admin-plan-price {
+  font-weight: 800;
+  color: var(--orange-600);
+  white-space: nowrap;
+}
+
+.admin-plan-actions {
+  display: flex;
+  gap: 8px;
+  margin-top: 4px;
+}
+
+/* --------------------------------------------------------------------------
+   19. USER PORTAL: ABOUT GYM & LOCATION
+   -------------------------------------------------------------------------- */
+.gym-hero {
+  display: flex;
+  align-items: center;
+  gap: 18px;
+  padding: 28px 32px;
+  background: linear-gradient(135deg, #1c1917, #431407);
+  color: var(--text-white);
+}
+
+.gym-hero-icon {
+  width: 62px;
+  height: 62px;
+  border-radius: var(--radius-lg);
+  background: linear-gradient(135deg, var(--orange-600), var(--orange-400));
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-size: 1.6rem;
+  box-shadow: 0 8px 20px -6px rgba(249, 115, 22, 0.5);
+  flex-shrink: 0;
+}
+
+.gym-hero h2 {
+  color: var(--text-white);
+  font-size: 1.5rem;
+  margin-bottom: 2px;
+}
+
+.gym-hero p {
+  color: rgba(255, 255, 255, 0.75);
+  font-size: 0.9rem;
+}
+
+.gym-sections {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(300px, 1fr));
+  gap: 0;
+}
+
+.gym-section {
+  padding: 28px 32px;
+  border-top: 1px solid var(--border-color);
+}
+
+.gym-section:not(:last-child) {
+  border-right: 1px solid var(--border-color);
+}
+
+.gym-section-title {
+  font-weight: 700;
+  font-size: 0.95rem;
+  margin-bottom: 12px;
+  display: flex;
+  align-items: center;
+  gap: 8px;
+}
+
+.gym-section-title i {
+  font-size: 1rem;
+}
+
+.gym-about-text {
+  color: var(--text-muted);
+  font-size: 0.9rem;
+  line-height: 1.7;
+  white-space: pre-line;
+}
+
+.gym-contact-row {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 8px 20px;
+  margin-top: 14px;
+  font-size: 0.875rem;
+  color: var(--text-main);
+}
+
+.gym-contact-row i {
+  color: var(--orange-600);
+  margin-right: 6px;
+}
+
+.gym-hours-list {
+  list-style: none;
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+  color: var(--text-muted);
+  font-size: 0.875rem;
+}
+
+.gym-hours-list li i {
+  color: var(--orange-600);
+}
+
+.gym-address-line {
+  color: var(--text-muted);
+  font-size: 0.875rem;
+  margin-bottom: 14px;
+}
+
+.gym-map {
+  width: 100%;
+  height: 230px;
+  border: 1px solid var(--border-color);
+  border-radius: var(--radius-md);
+}
+
+/* --------------------------------------------------------------------------
+   20. TRAINER PORTAL: PROFILE, CERTS, BIO
+   -------------------------------------------------------------------------- */
+.trainer-profile {
+  display: flex;
+  flex-direction: column;
+  gap: 12px;
+}
+
+.trainer-profile-top {
+  display: flex;
+  align-items: center;
+  gap: 14px;
+  padding-bottom: 12px;
+  border-bottom: 1px solid var(--border-color);
+}
+
+.trainer-profile-detail {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 12px;
+  font-size: 0.875rem;
+  padding: 7px 0;
+  border-bottom: 1px dashed var(--border-color);
+}
+
+.trainer-profile-detail span {
+  color: var(--text-muted);
+  display: flex;
+  align-items: center;
+  gap: 7px;
+}
+
+.trainer-profile-detail span i {
+  width: 16px;
+  color: var(--orange-600);
+}
+
+.trainer-profile-detail strong {
+  text-align: right;
+  font-weight: 600;
+  font-size: 0.8125rem;
+}
+
+.trainer-profile-bio {
+  margin-top: 6px;
+  padding: 12px;
+  background-color: var(--orange-50);
+  border-radius: var(--radius-md);
+  font-size: 0.85rem;
+  color: var(--text-main);
+  line-height: 1.6;
+}
+
+.trainer-certs {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  margin-top: 8px;
+  font-size: 0.75rem;
+  color: var(--orange-700);
+  background-color: var(--orange-50);
+  border: 1px solid var(--orange-100);
+  padding: 3px 10px;
+  border-radius: var(--radius-full);
+}
+
+.trainer-certs i {
+  color: var(--orange-600);
+}
+
+.trainer-bio {
+  margin-top: 8px;
+  font-size: 0.8125rem;
+  color: var(--text-muted);
+  line-height: 1.55;
+}
+
+.icon-amber {
+  background-color: var(--amber-50);
+  color: var(--amber-600);
+}
+
+/* --------------------------------------------------------------------------
+   21. RESPONSIVE TWEAKS FOR NEW SECTIONS
+   -------------------------------------------------------------------------- */
+@media (max-width: 768px) {
+  .gym-section:not(:last-child) {
+    border-right: none;
+    border-bottom: 1px solid var(--border-color);
+  }
 }

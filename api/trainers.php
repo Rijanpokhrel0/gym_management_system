@@ -20,7 +20,8 @@ if ($method === 'GET') {
     if ($u && $u['role'] === 'admin') {
         $status = (string)($_GET['status'] ?? '');
         $sql = 'SELECT t.id, t.user_id, t.specialization, t.experience, t.shifts, t.status, t.registered_at,
-                       u.name, u.email
+                       t.salary_expectation, t.certifications, t.rating,
+                       u.name, u.email, u.phone, u.bio
                 FROM trainers t
                 JOIN users u ON u.id = t.user_id';
         $params = [];
@@ -41,7 +42,7 @@ if ($method === 'GET') {
 
     // Public / member catalog: verified trainers only.
     $stmt = db()->query(
-        'SELECT t.id, t.specialization, t.experience, t.shifts, u.name, u.email
+        'SELECT t.id, t.specialization, t.experience, t.shifts, t.certifications, t.rating, u.name, u.email, u.bio
          FROM trainers t
          JOIN users u ON u.id = t.user_id
          WHERE t.status = "approved"

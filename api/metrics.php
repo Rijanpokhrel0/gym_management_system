@@ -23,6 +23,10 @@ $metrics = [
     'members'          => (int)$pdo->query('SELECT COUNT(*) FROM members')->fetchColumn(),
     'classes'          => (int)$pdo->query('SELECT COUNT(*) FROM classes')->fetchColumn(),
     'payments'         => (int)$pdo->query('SELECT COUNT(*) FROM payments')->fetchColumn(),
+    'equipment'        => (int)$pdo->query('SELECT COUNT(*) FROM equipment')->fetchColumn(),
+    'revenue'          => (float)$pdo->query('SELECT COALESCE(SUM(amount), 0) FROM payments WHERE status = "Paid"')->fetchColumn(),
+    'salaryPaid'       => (float)$pdo->query('SELECT COALESCE(SUM(amount), 0) FROM trainer_payments WHERE status = "Paid"')->fetchColumn(),
+    'salaryPending'    => (float)$pdo->query('SELECT COALESCE(SUM(amount), 0) FROM trainer_payments WHERE status = "Pending"')->fetchColumn(),
 ];
 
 ok(['metrics' => $metrics]);

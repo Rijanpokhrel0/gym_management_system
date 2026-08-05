@@ -26,6 +26,10 @@ $pdo = db();
 
 // ---- 2. Reset tables ----
 $pdo->exec('SET FOREIGN_KEY_CHECKS = 0');
+$pdo->exec('DROP TABLE IF EXISTS trainer_payments');
+$pdo->exec('DROP TABLE IF EXISTS gym_info');
+$pdo->exec('DROP TABLE IF EXISTS membership_plans');
+$pdo->exec('DROP TABLE IF EXISTS equipment');
 $pdo->exec('DROP TABLE IF EXISTS bookings');
 $pdo->exec('DROP TABLE IF EXISTS payments');
 $pdo->exec('DROP TABLE IF EXISTS classes');
@@ -43,6 +47,8 @@ $pdo->exec('
     password   VARCHAR(255) NOT NULL,
     role       ENUM("admin","user","trainer") NOT NULL DEFAULT "user",
     goal       VARCHAR(120) DEFAULT NULL,
+    phone      VARCHAR(40)  NOT NULL DEFAULT "",
+    bio        TEXT,
     created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP
   ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4
 ');
@@ -62,13 +68,16 @@ $pdo->exec('
 
 $pdo->exec('
   CREATE TABLE trainers (
-    id             INT AUTO_INCREMENT PRIMARY KEY,
-    user_id        INT NOT NULL,
-    specialization VARCHAR(120) NOT NULL,
-    experience     INT NOT NULL DEFAULT 0,
-    shifts         JSON NOT NULL,
-    status         ENUM("pending","approved","rejected") NOT NULL DEFAULT "pending",
-    registered_at  DATE DEFAULT NULL,
+    id                 INT AUTO_INCREMENT PRIMARY KEY,
+    user_id            INT NOT NULL,
+    specialization     VARCHAR(120) NOT NULL,
+    experience         INT NOT NULL DEFAULT 0,
+    shifts             JSON NOT NULL,
+    status             ENUM("pending","approved","rejected") NOT NULL DEFAULT "pending",
+    registered_at      DATE DEFAULT NULL,
+    salary_expectation DECIMAL(10,2) NOT NULL DEFAULT 0,
+    certifications     TEXT,
+    rating             DECIMAL(2,1) NOT NULL DEFAULT 0,
     CONSTRAINT fk_trainers_user FOREIGN KEY (user_id) REFERENCES users(id) ON DELETE CASCADE
   ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4
 ');
@@ -112,37 +121,88 @@ $pdo->exec('
   ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4
 ');
 
+$pdo->exec('
+  CREATE TABLE equipment (
+    id               INT AUTO_INCREMENT PRIMARY KEY,
+    name             VARCHAR(120) NOT NULL,
+    category         VARCHAR(60)  NOT NULL DEFAULT "Strength",
+    quantity         INT NOT NULL DEFAULT 1,
+    equipment_status ENUM("New","Good","Needs Maintenance","Out of Service") NOT NULL DEFAULT "Good",
+    last_maintenance DATE DEFAULT NULL,
+    notes            VARCHAR(255) NOT NULL DEFAULT ""
+  ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4
+');
+
+$pdo->exec('
+  CREATE TABLE membership_plans (
+    id       INT AUTO_INCREMENT PRIMARY KEY,
+    name     VARCHAR(80) NOT NULL,
+    price    DECIMAL(10,2) NOT NULL DEFAULT 0,
+    duration VARCHAR(40)  NOT NULL DEFAULT "Monthly",
+    features TEXT,
+    popular  TINYINT(1) NOT NULL DEFAULT 0
+  ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4
+');
+
+$pdo->exec('
+  CREATE TABLE gym_info (
+    id      INT AUTO_INCREMENT PRIMARY KEY,
+    name    VARCHAR(120) NOT NULL DEFAULT "FitPulse Gym",
+    about   TEXT,
+    address VARCHAR(255) NOT NULL DEFAULT "",
+    phone   VARCHAR(40)  NOT NULL DEFAULT "",
+    email   VARCHAR(150) NOT NULL DEFAULT "",
+    hours   TEXT,
+    map_url VARCHAR(500) NOT NULL DEFAULT ""
+  ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4
+');
+
+$pdo->exec('
+  CREATE TABLE trainer_payments (
+    id           INT AUTO_INCREMENT PRIMARY KEY,
+    trainer_id   INT NOT NULL,
+    amount       DECIMAL(10,2) NOT NULL DEFAULT 0,
+    month        VARCHAR(7) NOT NULL DEFAULT "",
+    status       ENUM("Paid","Pending") NOT NULL DEFAULT "Pending",
+    payment_date DATE DEFAULT NULL,
+    method       VARCHAR(50) NOT NULL DEFAULT "Cash",
+    notes        VARCHAR(255) NOT NULL DEFAULT "",
+    CONSTRAINT fk_trainer_payments_trainer FOREIGN KEY (trainer_id) REFERENCES trainers(id) ON DELETE CASCADE
+  ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4
+');
+
 echo "[ok] Tables created.\n";
 
 // ---- 4. Seed demo users (bcrypt hashed passwords) ----
-function seed_user(PDO $pdo, string $name, string $email, string $role, string $plainPassword, ?string $goal = null): int
+function seed_user(PDO $pdo, string $name, string $email, string $role, string $plainPassword, ?string $goal = null, string $phone = '', ?string $bio = null): int
 {
-    $stmt = $pdo->prepare('INSERT INTO users (name, email, password, role, goal) VALUES (?, ?, ?, ?, ?)');
-    $stmt->execute([$name, $email, password_hash($plainPassword, PASSWORD_BCRYPT), $role, $goal]);
+    $stmt = $pdo->prepare('INSERT INTO users (name, email, password, role, goal, phone, bio) VALUES (?, ?, ?, ?, ?, ?, ?)');
+    $stmt->execute([$name, $email, password_hash($plainPassword, PASSWORD_BCRYPT), $role, $goal, $phone, $bio]);
     return (int)$pdo->lastInsertId();
 }
 
-$adminId  = seed_user($pdo, 'System Administrator', 'admin@fitpulse.com', 'admin', 'admin123');
-$aaravId  = seed_user($pdo, 'Aarav Sharma', 'aarav.sharma@example.com', 'user', 'user123', 'Muscle Hypertrophy');
-$sitaId   = seed_user($pdo, 'Sita Gurung', 'sita.g@example.com', 'user', 'user123', 'Weight Loss & Cardio');
-$alexId   = seed_user($pdo, 'Alex Morgan', 'alex.trainer@fitpulse.com', 'trainer', 'trainer123');
-$sujataId = seed_user($pdo, 'Sujata Rai', 'sujata.rai@fitpulse.com', 'trainer', 'trainer123');
-$markId   = seed_user($pdo, 'Mark Davis', 'mark.davis@fitpulse.com', 'trainer', 'trainer123');
-$elenaId  = seed_user($pdo, 'Elena Rostova', 'elena.r@fitpulse.com', 'trainer', 'trainer123');
+$adminId  = seed_user($pdo, 'System Administrator', 'admin@fitpulse.com', 'admin', 'admin123', null, '+977 9800000001', 'Owner and head administrator of FitPulse Gym.');
+$aaravId  = seed_user($pdo, 'Aarav Sharma', 'aarav.sharma@example.com', 'user', 'user123', 'Muscle Hypertrophy', '+977 9841234567', 'Aiming to add 5 kg of lean muscle this season.');
+$sitaId   = seed_user($pdo, 'Sita Gurung', 'sita.g@example.com', 'user', 'user123', 'Weight Loss & Cardio', '+977 9801987654', 'Training for a 10k and overall endurance.');
+$alexId   = seed_user($pdo, 'Alex Morgan', 'alex.trainer@fitpulse.com', 'trainer', 'trainer123', null, '+977 9811112222', 'Certified strength coach with a passion for powerlifting.');
+$sujataId = seed_user($pdo, 'Sujata Rai', 'sujata.rai@fitpulse.com', 'trainer', 'trainer123', null, '+977 9822223333', 'Yoga instructor and mobility specialist.');
+$markId   = seed_user($pdo, 'Mark Davis', 'mark.davis@fitpulse.com', 'trainer', 'trainer123', null, '+977 9833334444', 'CrossFit L2 trainer and endurance coach.');
+$elenaId  = seed_user($pdo, 'Elena Rostova', 'elena.r@fitpulse.com', 'trainer', 'trainer123', null, '+977 9844445555', 'Zumba and cardio dance expert.');
 
 // ---- 5. Seed trainers ----
 $trainers = [
-    [$alexId,   'HIIT & Powerlifting',  5, ['Morning Shift (06:00 AM - 10:00 AM)'],   'approved', '2026-07-10'],
-    [$sujataId, 'Yoga & Flexibility',   8, ['Evening Shift (05:00 PM - 09:00 PM)'],  'approved', '2026-07-12'],
-    [$markId,   'CrossFit Endurance',   6, ['Afternoon Shift (12:00 PM - 04:00 PM)'], 'pending',  '2026-07-28'],
-    [$elenaId,  'Zumba & Cardio Dance', 4, ['Morning Shift (06:00 AM - 10:00 AM)'],   'pending',  '2026-07-30'],
+    [$alexId,   'HIIT & Powerlifting',  5, ['Morning Shift (06:00 AM - 10:00 AM)'],   'approved', '2026-07-10', 45000, 'ACE-CPT, Powerlifting L1',      4.9],
+    [$sujataId, 'Yoga & Flexibility',   8, ['Evening Shift (05:00 PM - 09:00 PM)'],  'approved', '2026-07-12', 40000, 'RYT-500, Mobility Specialist',  4.8],
+    [$markId,   'CrossFit Endurance',   6, ['Afternoon Shift (12:00 PM - 04:00 PM)'], 'pending',  '2026-07-28', 42000, 'CrossFit L2, First Aid',         0],
+    [$elenaId,  'Zumba & Cardio Dance', 4, ['Morning Shift (06:00 AM - 10:00 AM)'],   'pending',  '2026-07-30', 38000, 'Zumba ZIN, Dance Fitness',       0],
 ];
-$stmt = $pdo->prepare('INSERT INTO trainers (user_id, specialization, experience, shifts, status, registered_at) VALUES (?, ?, ?, ?, ?, ?)');
+$stmt = $pdo->prepare('INSERT INTO trainers (user_id, specialization, experience, shifts, status, registered_at, salary_expectation, certifications, rating) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?)');
 foreach ($trainers as $t) {
-    $stmt->execute([$t[0], $t[1], $t[2], json_encode($t[3]), $t[4], $t[5]]);
+    $stmt->execute([$t[0], $t[1], $t[2], json_encode($t[3]), $t[4], $t[5], $t[6], $t[7], $t[8]]);
 }
 $alexTrainerId = (int)$pdo->query('SELECT id FROM trainers WHERE user_id = ' . $alexId)->fetchColumn();
 $sujataTrainerId = (int)$pdo->query('SELECT id FROM trainers WHERE user_id = ' . $sujataId)->fetchColumn();
+$markTrainerId = (int)$pdo->query('SELECT id FROM trainers WHERE user_id = ' . $markId)->fetchColumn();
 
 // ---- 6. Seed members directory ----
 $members = [
@@ -191,6 +251,61 @@ $bookings = [
 $stmt = $pdo->prepare('INSERT INTO bookings (user_id, trainer_id, shift, notes, booking_date) VALUES (?, ?, ?, ?, ?)');
 foreach ($bookings as $b) {
     $stmt->execute($b);
+}
+
+// ---- 10. Seed equipment ----
+$equipment = [
+    ['Smith Machine',            'Strength',    2, 'Good',              '2026-06-15', ''],
+    ['Free Weights (Dumbbells)', 'Strength',   12, 'New',               '2026-07-01', 'Racks 2.5kg - 40kg'],
+    ['Treadmill',                'Cardio',      6, 'Needs Maintenance', '2026-05-20', 'Conveyor belt needs servicing'],
+    ['Elliptical Trainer',       'Cardio',      4, 'Good',              '2026-06-10', ''],
+    ['Stationary Bikes',         'Cardio',      5, 'Good',              '2026-06-18', ''],
+    ['Rowing Machine',           'Cardio',      3, 'New',               '2026-07-05', ''],
+    ['Bench Press Rack',         'Strength',    4, 'Good',              '2026-06-12', ''],
+    ['Yoga Mats',                'Flexibility', 20, 'Good',             '2026-07-08', ''],
+    ['Kettlebells',              'Strength',   10, 'New',               '2026-07-01', ''],
+    ['Squat Rack',               'Strength',    3, 'Needs Maintenance', '2026-04-30', 'Tighten safety pins'],
+    ['Resistance Bands',         'Flexibility', 30, 'Good',             '2026-06-25', ''],
+    ['Battle Ropes',             'Functional',  4, 'New',               '2026-07-10', ''],
+];
+$stmt = $pdo->prepare('INSERT INTO equipment (name, category, quantity, equipment_status, last_maintenance, notes) VALUES (?, ?, ?, ?, ?, ?)');
+foreach ($equipment as $e) {
+    $stmt->execute($e);
+}
+
+// ---- 11. Seed membership plans ----
+$plans = [
+    ['Basic Access',      1500, 'Monthly',  "Gym floor access\nLocker room\n1 group class / week",                       0],
+    ['Standard Fitness',  2500, 'Monthly',  "Full gym floor access\nUnlimited group classes\nLocker room + showers\nFree fitness assessment", 1],
+    ['Premium VIP',       22000, 'Yearly',  "All Standard features\n3 PT sessions / month\nSauna + steam\nGuest passes (2 / month)\nNutrition consultation", 0],
+];
+$stmt = $pdo->prepare('INSERT INTO membership_plans (name, price, duration, features, popular) VALUES (?, ?, ?, ?, ?)');
+foreach ($plans as $p) {
+    $stmt->execute($p);
+}
+
+// ---- 12. Seed gym info ----
+$stmt = $pdo->prepare('INSERT INTO gym_info (name, about, address, phone, email, hours, map_url) VALUES (?, ?, ?, ?, ?, ?, ?)');
+$stmt->execute([
+    'FitPulse Gym',
+    "FitPulse is a modern, results-driven fitness centre. From strength and cardio zones to yoga studios and functional training areas, our certified trainers and top-of-the-line equipment help every member hit their goals.\n\nFacilities include: 12,000 sq ft training floor, steam & sauna, showers, lockers, parking, smoothie bar, and a dedicated recovery zone.",
+    'Baneshwor, Kathmandu 44600, Nepal',
+    '+977 1-4492345',
+    'hello@fitpulse.com',
+    "Mon - Fri: 05:30 AM - 10:00 PM\nSat - Sun: 07:00 AM - 09:00 PM",
+    'https://www.google.com/maps/embed?pb=!1m18!1m12!1m3!1d7066.9!2d85.3296!3d27.6974!2m3!1f0!2f0!3f0!3m2!1i1024!2i768!4f13.1!3m3!1m2!1s0x0%3A0x0!2zMjfCsDQxJzUwLjYiTiA4NcKwMTknNDYuNSJF!5e0!3m2!1sen!2snp!4v1600000000000',
+]);
+
+// ---- 13. Seed trainer salary payments ----
+$trainerPayments = [
+    [$alexTrainerId,   45000, '2026-06', 'Paid',    '2026-07-01', 'Bank Transfer', 'Monthly salary'],
+    [$sujataTrainerId, 40000, '2026-06', 'Paid',    '2026-07-01', 'Cash',          'Monthly salary'],
+    [$alexTrainerId,   45000, '2026-07', 'Pending', null,          'Bank Transfer', 'Monthly salary'],
+    [$sujataTrainerId, 40000, '2026-07', 'Pending', null,          'Cash',          'Monthly salary'],
+];
+$stmt = $pdo->prepare('INSERT INTO trainer_payments (trainer_id, amount, month, status, payment_date, method, notes) VALUES (?, ?, ?, ?, ?, ?, ?)');
+foreach ($trainerPayments as $tp) {
+    $stmt->execute($tp);
 }
 
 echo "[ok] Demo data inserted.\n";
