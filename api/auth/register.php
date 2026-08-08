@@ -1,106 +1,85 @@
 <?php
 /**
- * POST /api/auth/register.php
- * Body: { type: "user" | "trainer", name, email, password, ...fields }
- *  - type "user":    creates a member login account + a members directory record.
- *  - type "trainer": creates a trainer account + pending trainer application.
- * Passwords are hashed with bcrypt.
+ * register - self-registration for gym members (User portal).
+ * POST { name, email, password, phone, goal, admin_id? }
+ *
+ * Creates the account, then emails a verification link. The user must
+ * verify their email before they can sign in.
  */
-
+declare(strict_types=1);
 require_once __DIR__ . '/../../config/init.php';
+require_once __DIR__ . '/../../config/mailer.php';
 
-if ($_SERVER['REQUEST_METHOD'] !== 'POST') {
-    fail('Method not allowed.', 405);
-}
+$d = body();
+$name     = trim((string)($d['name'] ?? ''));
+$email    = strtolower(trim((string)($d['email'] ?? '')));
+$password = (string)($d['password'] ?? '');
+$phone    = trim((string)($d['phone'] ?? ''));
+$goal     = trim((string)($d['goal'] ?? '')) ?: null;
+$adminId  = isset($d['admin_id']) ? (int)$d['admin_id'] : null;
 
-$data     = json_decode(file_get_contents('php://input'), true) ?: [];
-$type     = (string)($data['type'] ?? '');
-$name     = trim((string)($data['name'] ?? ''));
-$email    = strtolower(trim((string)($data['email'] ?? '')));
-$password = (string)($data['password'] ?? '');
-
-if (!in_array($type, ['user', 'trainer'], true)) {
-    fail('Invalid registration type.');
-}
 if ($name === '' || $email === '' || $password === '') {
     fail('Name, email and password are required.');
+}
+if (strlen($password) < 6) {
+    fail('Password must be at least 6 characters.');
 }
 if (!filter_var($email, FILTER_VALIDATE_EMAIL)) {
     fail('Please enter a valid email address.');
 }
-if (strlen($password) < 6) {
-    fail('Password must be at least 6 characters long.');
-}
 
-$stmt = db()->prepare('SELECT id FROM users WHERE email = ?');
+$stmt = db()->prepare('SELECT id, email_verified_at, verification_sent_at FROM users WHERE email = ?');
 $stmt->execute([$email]);
-if ($stmt->fetch()) {
-    fail('An account with this email already exists. Please log in instead.');
-}
-
-$hash = password_hash($password, PASSWORD_BCRYPT);
-
-// ---------------- MEMBER / USER REGISTRATION ----------------
-if ($type === 'user') {
-    $goal  = (string)($data['goal'] ?? 'General Fitness');
-    $phone = trim((string)($data['phone'] ?? ''));
-    $bio   = trim((string)($data['bio'] ?? ''));
-
-    $pdo = db();
-    $pdo->beginTransaction();
-    try {
-        $stmt = $pdo->prepare('INSERT INTO users (name, email, password, role, goal, phone, bio) VALUES (?, ?, ?, "user", ?, ?, ?)');
-        $stmt->execute([$name, $email, $hash, $goal, $phone, $bio]);
-
-        // Keep the members directory in sync with new login accounts.
-        $stmt = $pdo->prepare(
-            'INSERT INTO members (name, email, phone, plan, status, join_date, expiry_date)
-             VALUES (?, ?, "", "Standard Fitness", "Active", CURDATE(), DATE_ADD(CURDATE(), INTERVAL 1 YEAR))'
-        );
-        $stmt->execute([$name, $email]);
-
-        $pdo->commit();
-    } catch (Throwable $e) {
-        $pdo->rollBack();
-        fail('Registration failed: ' . $e->getMessage(), 500);
+$existing = $stmt->fetch();
+if ($existing) {
+    if (!empty($existing['email_verified_at'])) {
+        fail('An account with that email already exists.', 409);
     }
-
-    ok(['message' => 'Member account created successfully. You can now log in.']);
+    $wait = email_cooldown_left('users', 'id = ?', [(int)$existing['id']], 'verification_sent_at');
+    if ($wait > 0) {
+        fail("A verification email was sent recently. Please wait {$wait} seconds before requesting another.", 429);
+    }
+    // Unverified account: regenerate the token and resend.
+    $token = bin2hex(random_bytes(32));
+    db()->prepare('UPDATE users SET verification_token = ?, verification_sent_at = NOW(), name = ?, password = ?, phone = ?, goal = ? WHERE id = ?')
+        ->execute([$token, $name, password_hash($password, PASSWORD_BCRYPT), $phone, $goal, (int)$existing['id']]);
+    $id = (int)$existing['id'];
+} else {
+    if ($adminId) {
+        $stmt = db()->prepare('SELECT id FROM admins WHERE id = ?');
+        $stmt->execute([$adminId]);
+        if (!$stmt->fetch()) {
+            fail('The selected gym is invalid.');
+        }
+    }
+    $token = bin2hex(random_bytes(32));
+    $stmt = db()->prepare('INSERT INTO users (name, email, password, phone, goal, admin_id, verification_token, verification_sent_at) VALUES (?, ?, ?, ?, ?, ?, ?, NOW())');
+    $stmt->execute([$name, $email, password_hash($password, PASSWORD_BCRYPT), $phone, $goal, $adminId, $token]);
+    $id = (int)db()->lastInsertId();
 }
 
-// ---------------- TRAINER REGISTRATION ----------------
-$spec        = trim((string)($data['specialization'] ?? ''));
-$exp         = (int)($data['experience'] ?? 0);
-$shift       = (string)($data['shift'] ?? '');
-$salary      = (float)($data['salary_expectation'] ?? 0);
-$certs       = trim((string)($data['certifications'] ?? ''));
-$phone       = trim((string)($data['phone'] ?? ''));
-$bio         = trim((string)($data['bio'] ?? ''));
+$link = APP_URL . '/index.html?verify=' . $token;
+$sent = mail_send($email, 'Verify your FitPulse account', verification_email($link));
 
-if ($spec === '' || $shift === '') {
-    fail('Specialization and preferred shift are required.');
-}
-if ($salary <= 0) {
-    fail('Please enter your expected monthly salary.');
-}
-
-$pdo = db();
-$pdo->beginTransaction();
-try {
-    $stmt = $pdo->prepare('INSERT INTO users (name, email, password, role, phone, bio) VALUES (?, ?, ?, "trainer", ?, ?)');
-    $stmt->execute([$name, $email, $hash, $phone, $bio]);
-    $userId = (int)$pdo->lastInsertId();
-
-    $stmt = $pdo->prepare(
-        'INSERT INTO trainers (user_id, specialization, experience, shifts, status, salary_expectation, certifications)
-         VALUES (?, ?, ?, ?, "pending", ?, ?)'
-    );
-    $stmt->execute([$userId, $spec, $exp, json_encode([$shift]), $salary, $certs]);
-
-    $pdo->commit();
-} catch (Throwable $e) {
-    $pdo->rollBack();
-    fail('Registration failed: ' . $e->getMessage(), 500);
+if (SMTP_DEMO) {
+    // Demo mode: no real SMTP configured, so auto-verify so the account works.
+    db()->prepare('UPDATE users SET email_verified_at = NOW(), verification_token = NULL WHERE id = ?')->execute([$id]);
+    sign_in('user', $id);
+    ok([
+        'id'          => $id,
+        'email'       => $email,
+        'portal'      => 'user',
+        'name'        => $name,
+        'verify_sent' => false,
+        'message'     => 'Account created. (Demo mode: email verification is skipped and you are signed in automatically.)',
+    ]);
 }
 
-ok(['message' => 'Trainer application submitted. The admin will verify your credentials soon.']);
+ok([
+    'id'          => $id,
+    'email'       => $email,
+    'verify_sent' => $sent[0],
+    'message'     => $sent[0]
+        ? 'Account created. Check your email to verify, then sign in.'
+        : 'Account created. (Email could not be sent: ' . $sent[1] . ')',
+]);

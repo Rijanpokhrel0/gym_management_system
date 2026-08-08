@@ -737,8 +737,11 @@ button, input, select, textarea {
   border-radius: var(--radius-lg);
   width: 100%;
   max-width: 540px;
+  max-height: calc(100vh - 40px);
+  display: flex;
+  flex-direction: column;
   box-shadow: var(--shadow-xl);
-  overflow: hidden;
+  overflow: visible;
   transform: scale(0.95);
   transition: transform var(--transition-fast);
 }
@@ -753,6 +756,8 @@ button, input, select, textarea {
   display: flex;
   align-items: center;
   justify-content: space-between;
+  border-radius: var(--radius-lg) var(--radius-lg) 0 0;
+  flex-shrink: 0;
 }
 
 .modal-close {
@@ -764,8 +769,18 @@ button, input, select, textarea {
   line-height: 1;
 }
 
+.modal > form {
+  flex: 1;
+  min-height: 0;
+  display: flex;
+  flex-direction: column;
+}
+
 .modal-body {
   padding: 24px;
+  overflow-y: auto;
+  min-height: 0;
+  flex: 1;
 }
 
 .modal-footer {
@@ -775,6 +790,8 @@ button, input, select, textarea {
   display: flex;
   justify-content: flex-end;
   gap: 12px;
+  border-radius: 0 0 var(--radius-lg) var(--radius-lg);
+  flex-shrink: 0;
 }
 
 .auth-tabs {
@@ -1278,6 +1295,63 @@ body.authed .auth-screen {
   flex-shrink: 0;
 }
 
+.auth-links-row {
+  display: flex;
+  justify-content: space-between;
+  gap: 8px;
+  margin: 2px 0 14px;
+  font-size: 0.8rem;
+}
+.auth-links-row a {
+  color: var(--orange-600);
+  text-decoration: none;
+  font-weight: 600;
+}
+.auth-links-row a:hover {
+  text-decoration: underline;
+}
+
+.auth-step-title {
+  margin: 0 0 4px;
+  font-size: 1.1rem;
+  color: var(--text-primary);
+}
+.auth-step-sub {
+  margin: 0 0 16px;
+  font-size: 0.8rem;
+  color: var(--text-muted);
+}
+
+.auth-divider {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  margin: 18px 0 10px;
+  color: var(--text-muted);
+  font-size: 0.75rem;
+  text-transform: uppercase;
+  letter-spacing: 0.5px;
+}
+.auth-divider::before,
+.auth-divider::after {
+  content: '';
+  flex: 1;
+  height: 1px;
+  background-color: var(--border-color);
+}
+
+.btn-ghost {
+  background: transparent;
+  border: none;
+  color: var(--text-muted);
+  box-shadow: none;
+  font-weight: 600;
+}
+.btn-ghost:hover {
+  background-color: var(--bg-app);
+  color: var(--text-primary);
+}
+
 .role-toggle {
   display: grid;
   grid-template-columns: 1fr 1fr;
@@ -1704,4 +1778,206 @@ body.authed .auth-screen {
     border-right: none;
     border-bottom: 1px solid var(--border-color);
   }
+}
+
+
+/* ============================================================
+   FITPULSE MULTI-ADMIN SYSTEM - ADDITIONAL STYLES
+   ============================================================ */
+.section-subtitle-heading {
+  margin-top: 28px;
+  margin-bottom: 14px;
+}
+.section-subtitle-heading h3 {
+  font-size: 1.05rem;
+  font-weight: 700;
+  margin: 0;
+}
+.text-center { text-align: center; }
+
+.badge-blue {
+  background: rgba(59,130,246,0.15);
+  color: #3b82f6;
+}
+.badge-neutral {
+  background: rgba(100,116,139,0.15);
+  color: #64748b;
+}
+
+/* Gym cards (user portal) */
+.gyms-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(300px, 1fr));
+  gap: 18px;
+}
+.gym-card {
+  background: var(--bg-card);
+  border: 1px solid var(--border-color);
+  border-radius: var(--radius-lg);
+  padding: 22px;
+  display: flex;
+  flex-direction: column;
+  gap: 10px;
+  transition: transform 0.2s ease, box-shadow 0.2s ease;
+}
+.gym-card:hover { transform: translateY(-3px); box-shadow: var(--shadow-lg); }
+.gym-card-head { display: flex; justify-content: space-between; align-items: flex-start; gap: 10px; }
+.gym-card-head h3 { margin: 0; font-size: 1.1rem; }
+.gym-card-loc { color: var(--text-muted); font-size: 0.85rem; display: flex; gap: 8px; align-items: center; }
+.gym-card-desc { color: var(--text-muted); font-size: 0.9rem; line-height: 1.5; flex: 1; }
+.gym-card-meta { display: flex; gap: 14px; color: var(--text-muted); font-size: 0.85rem; }
+
+/* Product cards (user portal) */
+.products-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(240px, 1fr));
+  gap: 18px;
+}
+.product-card {
+  background: var(--bg-card);
+  border: 1px solid var(--border-color);
+  border-radius: var(--radius-lg);
+  overflow: hidden;
+  display: flex;
+  flex-direction: column;
+}
+.product-card-img {
+  height: 120px;
+  background: linear-gradient(135deg, rgba(234,88,12,0.15), rgba(234,88,12,0.05));
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-size: 2.2rem;
+  color: var(--orange-600);
+}
+.product-card-body { padding: 16px; display: flex; flex-direction: column; gap: 8px; flex: 1; }
+.product-card-body h4 { margin: 0; font-size: 1rem; }
+.product-card-cat { font-size: 0.75rem; font-weight: 600; text-transform: uppercase; letter-spacing: 0.4px; color: var(--orange-600); }
+.product-card-desc { color: var(--text-muted); font-size: 0.85rem; flex: 1; }
+.product-card-foot { display: flex; justify-content: space-between; align-items: center; margin-top: 4px; }
+.product-price { font-weight: 800; color: var(--orange-600); font-size: 1.05rem; }
+.product-stock { font-size: 0.78rem; color: var(--text-muted); }
+
+/* QR payment box */
+.qr-box {
+  display: flex;
+  justify-content: center;
+  padding: 8px 0 14px;
+}
+.qr-box img {
+  width: 220px;
+  height: 220px;
+  border: 1px solid var(--border-color);
+  border-radius: var(--radius-md);
+  background: #fff;
+  padding: 8px;
+}
+
+/* Plan card "subscribe" variant */
+.plan-card { position: relative; }
+.plan-card .plan-price { display: block; }
+
+.empty-state {
+  text-align: center;
+  color: var(--text-muted);
+  padding: 40px 16px;
+  font-size: 0.9rem;
+}
+.empty-state i { font-size: 2rem; display: block; margin-bottom: 10px; opacity: 0.6; }
+
+/* Locked panel notice */
+.panel-locked { opacity: 0.75; position: relative; }
+.panel-locked::after {
+  content: "";
+  position: absolute;
+  inset: 0;
+  background: rgba(255,255,255,0.25);
+  border-radius: inherit;
+}
+
+/* Small table thumbnail helpers */
+.thumbs a { color: var(--orange-600); margin-right: 10px; }
+.text-right { text-align: right; }
+
+
+/* Nav links fill the full sidebar item */
+.nav-item a {
+  display: flex;
+  align-items: center;
+  gap: 14px;
+  width: 100%;
+  color: inherit;
+  text-decoration: none;
+}
+
+/* Button variants */
+.btn-danger {
+  color: #dc2626;
+}
+.btn-danger:hover {
+  background-color: rgba(220,38,38,0.1);
+  border-color: #dc2626;
+  color: #dc2626;
+}
+.btn-success {
+  background-color: #16a34a;
+  border-color: #16a34a;
+  color: #fff;
+}
+.btn-success:hover {
+  background-color: #15803d;
+  border-color: #15803d;
+}
+
+/* Metric icon colors */
+.icon-teal {
+  background-color: #ccfbf1;
+  color: #0d9488;
+}
+
+/* Plan card helpers */
+.plan-card-body { display: flex; flex-direction: column; gap: 8px; flex: 1; }
+.plan-card-body .plan-cat {
+  font-size: 0.75rem;
+  font-weight: 700;
+  text-transform: uppercase;
+  letter-spacing: 0.5px;
+  color: var(--orange-600);
+}
+.plan-card-foot { display: flex; gap: 8px; margin-top: 4px; }
+.plan-card-foot .btn-block { flex: 1; }
+
+/* Filters inside panel headers */
+.filter-select, .filter-input { min-width: 180px; }
+
+/* Gym logo + user cell */
+.gym-logo {
+  width: 42px;
+  height: 42px;
+  border-radius: 10px;
+  object-fit: cover;
+  background: var(--orange-50);
+  flex-shrink: 0;
+}
+.gym-logo-fallback {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  color: var(--orange-500);
+  font-size: 1.05rem;
+}
+.gym-logo-sm { width: 30px; height: 30px; border-radius: 7px; vertical-align: middle; }
+.cell-user {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+}
+.cell-user h3 { margin: 0; }
+.form-hint {
+  margin-top: 6px;
+  font-size: 0.8rem;
+  color: var(--text-muted);
+  display: flex;
+  align-items: center;
+  gap: 8px;
 }

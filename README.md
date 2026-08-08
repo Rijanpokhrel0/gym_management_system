@@ -1,62 +1,148 @@
-# FitPulse - Gym Management System (PHP + MySQL)
+# FitPulse - Multi-Admin Gym Management System (PHP + MySQL)
 
-A professional multi-role gym management system with a **PHP REST API** and a
-**MySQL database** on localhost.
+A professional **multi-admin** gym management system with three isolated
+portals: **Superadmin**, **Admin** and **User** — powered by a PHP REST API and
+a MySQL database on localhost (XAMPP).
 
-## Roles & Features
+> This project replaces the old single-gym app. Trainers now have **no login
+> portal**; their records are managed manually. Each admin runs an independent
+> gym (supplements / merch / memberships / services) with full data isolation.
 
-| Role | Access |
-|------|--------|
-| **Admin** | Trainer verification, member directory (CRUD), class schedule (CRUD), payments, system overview |
-| **Member / User** | Browse verified trainers, book trainers & shifts, view booking history |
-| **Trainer** | Application status, assigned shifts, assigned client roster |
+---
 
-Authentication uses **email + password** (bcrypt hashed) with PHP sessions
-(httpOnly cookies). All data lives in MySQL - no localStorage.
-
-## Tech Stack
-
-- Frontend: HTML5 + CSS3 + Vanilla JS (fetch API)
-- Backend: PHP 8 (PDO prepared statements)
-- Database: MySQL / MariaDB (schema: `fitpulse`)
-
-## Project Structure
+## 1. System Architecture Overview
 
 ```
-├── index.html                 Frontend entry point
+┌────────────────────┐   ┌────────────────────┐   ┌────────────────────┐
+│   SUPERADMIN       │   │   ADMIN            │   │   USER             │
+│   (one fixed acct) │   │   (gym owner)      │   │   (gym member)     │
+└─────────┬──────────┘   └─────────┬──────────┘   └─────────┬──────────┘
+          │  session cookie        │  session cookie       │  session cookie
+          ▼                        ▼                       ▼
+   ┌──────────────────────────────────────────────────────────────┐
+   │                 PHP REST API  (api/*.php)                    │
+   │  auth (login/me/logout/register) · superadmin/* · admin/*    │
+   │  user/* · payments.php (static QR generation)                │
+   └──────────────────────────────────────────────────────────────┘
+          │                        │                       │
+          ▼                        ▼                       ▼
+   superadmins              admins · subscription_plans   users · user_gyms
+   trainers (all)          subscriptions · trainers       products (read)
+                           products · users
+                  ┌────────────────────────────┐
+                  │   MySQL database `fitpulse` │
+                  └────────────────────────────┘
+```
+
+### Portal Roles
+
+| Portal | Who | What they can do |
+|--------|-----|------------------|
+| **Superadmin** | Platform owner (fixed account) | Create/suspend/delete Admin accounts, define subscription plans, monitor & verify all subscription payments, view all gyms, add/manage trainers manually (assign to any gym), global metrics |
+| **Admin** | Independent gym owner | Own login, purchase a subscription plan via **QR payment**, after activation manage **own** products (supplements / merch / memberships / services), create & manage **own** users, add/manage **own** trainers (manual records) |
+| **User** | Gym member | Own registration/login, dashboard, browse all gyms with an active subscription, **select/follow multiple gyms**, view products & trainers of each selected gym |
+
+### Authentication
+
+- Email + password, **bcrypt** hashed via `password_hash()`.
+- Single sign-in form; the portal is detected automatically by looking up
+  `superadmins` → `admins` → `users`.
+- PHP sessions (`httpOnly`, `Lax`, regenerated on login); identity stored as
+  `['portal' => ..., 'id' => ...]` and resolved to the correct table by
+  `current_user()`.
+- Role checks on every protected endpoint via `require_portal()`; admin writes
+  additionally require an **active subscription** (`require_admin_active()`).
+
+### User Flows
+
+1. **Superadmin** creates an Admin → Admin logs in → picks a plan → pays by QR →
+   Superadmin verifies the payment → subscription becomes active → Admin adds
+   products/users/trainers.
+2. **User** registers → browses gyms (only those with active subscriptions) →
+   selects gyms to follow → opens each gym's product catalog.
+
+### Payment Process (QR, manual verification)
+
+1. Admin clicks **Subscribe** on a plan (`api/admin/subscribe.php`).
+2. Server creates a `pending` subscription with a unique reference
+   (`qr_ref`, e.g. `FITQ-XXXX-XXXXXX`) and returns it.
+3. Frontend renders the static QR via `api/payments.php?ref=...`, which encodes
+   the payment instruction text (plan, amount, reference) as a PNG using the
+   bundled **phpqrcode** library (works fully offline).
+4. The admin pays using eSewa / Khalti / bank transfer in the real world.
+5. The Superadmin opens the **Payments & Subs** tab, sees the pending reference,
+   and clicks **Verify** to activate the subscription (or Reject). `expires_at`
+   is set from the plan duration; expired subscriptions are auto-flagged.
+
+### Data Isolation (Multi-Admin)
+
+- Every admin-owned row (`trainers`, `products`, `users`, `subscriptions`)
+  carries an `admin_id`.
+- Admin endpoints filter every query by the signed-in admin's id
+  (`WHERE admin_id = ?`), so admin A can never read/write admin B's data.
+- `user_gyms` links members to the gyms they follow; products are always shown
+  scoped to the selected `admin_id`.
+- Deleting an admin cascades to all of their data (`ON DELETE CASCADE`).
+
+### Technology Stack
+
+- **Frontend:** HTML5 + CSS3 + Vanilla JS (`fetch`, single-page UI, no build step)
+- **Backend:** PHP 8 (PDO prepared statements)
+- **Database:** MySQL / MariaDB (XAMPP), database `fitpulse`
+- **QR codes:** `vendor/phpqrcode/` (pure-PHP, offline)
+
+---
+
+## 2. Project Structure
+
+```
+├── index.html                 Single-page frontend (3 portals)
 ├── style.css                  Styles
-├── script.js                  Frontend logic (talks to the PHP API)
-├── config/init.php            DB credentials, session, CORS, helpers
+├── script.js                  Frontend logic (auth, portal routing, CRUD)
+├── config/init.php            DB credentials, session, CORS, auth helpers
 ├── api/
-│   ├── auth/login.php         Email + password login
-│   ├── auth/register.php      User / trainer registration
-│   ├── auth/logout.php        End session
-│   ├── auth/me.php            Restore session on page load
-│   ├── trainers.php           List + admin approve/reject
-│   ├── bookings.php           Create + role-based listing
-│   ├── members.php            Admin CRUD
-│   ├── classes.php            List + admin CRUD
-│   ├── payments.php           Admin CRUD
-│   └── metrics.php            Dashboard statistics
-└── database/
-    ├── seed.php               One-click database + demo data setup
-    └── schema.sql             Reference schema (optional)
+│   ├── auth/
+│   │   ├── login.php          Portal auto-detect login
+│   │   ├── register.php       User self-registration
+│   │   ├── me.php             Restore session
+│   │   └── logout.php
+│   ├── superadmin/
+│   │   ├── admins.php         Admin accounts CRUD
+│   │   ├── plans.php          Subscription plans CRUD
+│   │   ├── subscriptions.php  List + verify/reject payments
+│   │   ├── trainers.php       Trainer records CRUD (any gym)
+│   │   └── metrics.php        Global dashboard stats
+│   ├── admin/
+│   │   ├── dashboard.php      Admin metrics + subscription status
+│   │   ├── subscribe.php      Create payment request (QR)
+│   │   ├── subscriptions.php  Own history / current status
+│   │   ├── products.php       Own products CRUD (requires active sub)
+│   │   ├── users.php          Own gym users CRUD (requires active sub)
+│   │   └── trainers.php       Own gym trainers CRUD (requires active sub)
+│   ├── user/
+│   │   ├── dashboard.php      Member dashboard
+│   │   ├── gyms.php           List/select/follow gyms
+│   │   ├── products.php       Products of a selected gym
+│   │   └── trainers.php       Trainers of a selected gym
+│   └── payments.php           Static QR PNG + info generator
+├── database/
+│   ├── seed.php               One-click DB + tables + demo data
+│   └── schema.sql             Reference schema
+└── vendor/phpqrcode/          Bundled QR encoder (LGPL)
 ```
 
-## Setup (Windows, XAMPP recommended)
+---
 
-### 1. Install XAMPP
-Download from https://www.apachefriends.org and install. XAMPP bundles
-**Apache (PHP)** + **MariaDB (MySQL)** together.
+## 3. Setup (Windows, XAMPP)
 
-> Already have PHP and MySQL separately? Skip to step 3.
+### 1. Install XAMPP and copy the project
 
-### 2. Copy the project into htdocs
-Copy this entire folder into `C:\xampp\htdocs\`
-(e.g. `C:\xampp\htdocs\gym-management-system`).
+Install XAMPP from https://www.apachefriends.org, then copy this folder to
+`C:\xampp\htdocs\gym-management-system` (folder name optional).
 
-### 3. Configure the database credentials
-Open `config/init.php` and check the constants at the top:
+### 2. Configure credentials (if needed)
+
+Open `config/init.php`:
 
 ```php
 const DB_HOST = '127.0.0.1';
@@ -66,59 +152,78 @@ const DB_USER = 'root';
 const DB_PASS = '';   // XAMPP default is empty
 ```
 
-If your MySQL root password is set, change `DB_PASS`.
+### 3. Start Apache + MySQL
 
-### 4. Start the servers
-Open the XAMPP Control Panel and **Start** both:
-- **Apache**
-- **MySQL**
+Open the XAMPP Control Panel and start **Apache** and **MySQL**.
 
-### 5. Create the database & seed demo data
-Open a terminal in the project folder and run:
+### 4. Create the database & demo data
 
 ```bash
 php database/seed.php
 ```
 
-This creates the `fitpulse` database, all tables, and demo data. It is
-idempotent (re-running resets the database).
+Idempotent — re-running resets the database. (Alternative: import
+`database/schema.sql` in phpMyAdmin, but demo passwords only come from seed.php.)
 
-> Alternative: import `database/schema.sql` via phpMyAdmin
-> (http://localhost/phpmyadmin).
+### 5. Open the app
 
-### 6. Open the app
 Go to: `http://localhost/<your-folder-name>/index.html`
 
-## Demo Accounts
+---
 
-| Role | Email | Password |
-|------|-------|----------|
-| Admin | `admin@fitpulse.com` | `admin123` |
-| Member | `aarav.sharma@example.com` | `user123` |
-| Trainer | `alex.trainer@fitpulse.com` | `trainer123` |
+## 4. Demo Accounts
 
-## API Summary
+| Portal | Email | Password | Notes |
+|--------|-------|----------|-------|
+| **Superadmin** | `rijanpokhrel@superadmin.com` | `Rijan@123` | Fixed platform owner |
+| **Admin (active)** | `admin@peakfitness.com` | `Admin@123` | Subscription ACTIVE — products/users unlocked |
+| **Admin (pending)** | `admin@ironcore.com` | `Admin@123` | Pending payment — try the full QR verification flow |
+| **User** | `aarav.sharma@example.com` | `user123` | Member |
+
+---
+
+## 5. API Summary
 
 | Method | Endpoint | Auth | Purpose |
 |--------|----------|------|---------|
-| POST | `/api/auth/login.php` | - | Sign in (email, password, portal) |
-| POST | `/api/auth/register.php` | - | Register user or trainer |
-| POST | `/api/auth/logout.php` | - | Sign out |
-| GET | `/api/auth/me.php` | - | Current session user |
-| GET | `/api/trainers.php` | - | Approved catalog (or all for admin) |
-| POST | `/api/trainers.php` | admin | Approve / reject trainer |
-| GET | `/api/bookings.php` | any | Bookings by role |
-| POST | `/api/bookings.php` | user | Book a trainer |
-| GET/POST/PUT/DELETE | `/api/members.php` | admin | Member directory CRUD |
-| GET/POST/DELETE | `/api/classes.php` | GET public, rest admin | Class schedule |
-| GET/POST | `/api/payments.php` | admin | Payments |
-| GET | `/api/metrics.php` | any signed-in | Dashboard stats |
+| POST | `/api/auth/login.php` | - | Portal auto-detect login |
+| POST | `/api/auth/register.php` | - | User registration |
+| GET  | `/api/auth/me.php` | any | Restore session |
+| POST | `/api/auth/logout.php` | any | Sign out |
+| GET/POST/PUT/DELETE | `/api/superadmin/admins.php` | superadmin | Admin account management |
+| GET/POST/PUT/DELETE | `/api/superadmin/plans.php` | superadmin | Subscription plans |
+| GET/POST | `/api/superadmin/subscriptions.php` | superadmin | List + verify/reject payments |
+| GET/POST/PUT/DELETE | `/api/superadmin/trainers.php` | superadmin | Manual trainer records |
+| GET | `/api/superadmin/metrics.php` | superadmin | Global stats |
+| GET | `/api/admin/dashboard.php` | admin | Own metrics + sub status |
+| POST | `/api/admin/subscribe.php` | admin | Purchase a plan (QR ref) |
+| GET | `/api/admin/subscriptions.php` | admin | Own history + status |
+| GET/POST/PUT/DELETE | `/api/admin/products.php` | admin* | Own products |
+| GET/POST/PUT/DELETE | `/api/admin/users.php` | admin* | Own gym users |
+| GET/POST/PUT/DELETE | `/api/admin/trainers.php` | admin* | Own gym trainers |
+| GET | `/api/user/dashboard.php` | user | Member dashboard |
+| GET/POST/DELETE | `/api/user/gyms.php` | user | Browse / select gyms |
+| GET | `/api/user/products.php` | user | Products of a gym |
+| GET | `/api/user/trainers.php` | user | Trainers of a gym |
+| GET | `/api/payments.php?ref=...` | - | QR PNG / payment info |
 
-## Security Notes
+\* `admin/*` write endpoints also require an **active subscription**.
+
+---
+
+## 6. Security Notes
 
 - Passwords hashed with `password_hash()` (bcrypt).
 - All queries use PDO prepared statements (SQL-injection safe).
-- Sessions are httpOnly, regenerated on login, role checks on every protected
-  endpoint.
-- **Demo only:** this project has no CSRF tokens or rate limiting. For
-  production, add HTTPS, CSRF protection, and password reset flows.
+- Sessions are httpOnly, Lax, regenerated on login; role + subscription checks
+  on every protected endpoint.
+- QR references are random (16 hex chars) and required to view a QR.
+- **Demo only:** no CSRF tokens or rate limiting. For production add HTTPS,
+  CSRF protection, real payment gateway webhooks, and audit logs.
+
+---
+
+## 7. Bundled QR library
+
+`vendor/phpqrcode/` is the well-known pure-PHP QR encoder (LGPL). It renders
+the payment QR codes offline, so no external API / internet is needed at runtime.

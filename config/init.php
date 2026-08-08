@@ -1,10 +1,14 @@
 <?php
 /**
  * ==========================================================================
- * FITPULSE GYM MANAGEMENT SYSTEM - BACKEND BOOTSTRAP
+ * FITPULSE MULTI-ADMIN GYM MANAGEMENT SYSTEM - BACKEND BOOTSTRAP
  * ==========================================================================
  * Central configuration: database credentials, session handling, CORS,
  * PDO connection and shared helpers. Every API endpoint requires this file.
+ *
+ * Three portals: superadmin / admin / user. The signed-in identity is stored
+ * in the session as ['portal' => ..., 'id' => ...] and resolved to the right
+ * table by current_user().
  *
  * Default XAMPP credentials are root / (empty password). If your MySQL
  * uses a different username or password, change them here.
@@ -82,29 +86,64 @@ function fail(string $message, int $code = 400): void
     json_response(['ok' => false, 'message' => $message], $code);
 }
 
-// ---- Auth helpers ----
-function current_user(): ?array
+function body(): array
 {
-    if (empty($_SESSION['user_id'])) {
-        return null;
-    }
-    static $user = null;
-    if ($user === null) {
-        $stmt = db()->prepare('SELECT id, name, email, role, goal, phone, bio, created_at FROM users WHERE id = ?');
-        $stmt->execute([$_SESSION['user_id']]);
-        $user = $stmt->fetch() ?: null;
-    }
-    return $user;
+    $raw = file_get_contents('php://input');
+    $data = json_decode($raw, true);
+    return is_array($data) ? $data : [];
 }
 
-function require_role(string $role): array
+// ---------------------------------------------------------------------------
+// Auth helpers
+// ---------------------------------------------------------------------------
+const PORTAL_TABLES = ['superadmin' => 'superadmins', 'admin' => 'admins', 'trainer' => 'trainers', 'user' => 'users'];
+
+/** @return array{portal:string,id:int,name:string,email:string}|null */
+function current_user(): ?array
+{
+    if (empty($_SESSION['auth']['portal']) || empty($_SESSION['auth']['id'])) {
+        return null;
+    }
+    $portal = $_SESSION['auth']['portal'];
+    $table  = PORTAL_TABLES[$portal] ?? null;
+    if (!$table) {
+        return null;
+    }
+    static $cache = [];
+    $key = $portal . ':' . (int)$_SESSION['auth']['id'];
+    if (isset($cache[$key])) {
+        return $cache[$key];
+    }
+    $stmt = db()->prepare("SELECT id, name, email, created_at FROM `$table` WHERE id = ?");
+    $stmt->execute([(int)$_SESSION['auth']['id']]);
+    $row = $stmt->fetch();
+    if (!$row) {
+        return null;
+    }
+    $row['portal'] = $portal;
+    $row['id'] = (int)$row['id'];
+    return $cache[$key] = $row;
+}
+
+function sign_in(string $portal, int $id): void
+{
+    session_regenerate_id(true);
+    $_SESSION['auth'] = ['portal' => $portal, 'id' => $id];
+}
+
+function require_portal(string $portal): array
 {
     $u = current_user();
     if (!$u) {
         fail('Authentication required. Please log in.', 401);
     }
-    if ($u['role'] !== $role) {
-        fail('Access denied. This action is restricted to the ' . $role . ' portal.', 403);
+    if ($u['portal'] !== $portal) {
+        fail('Access denied. This action is restricted to the ' . $portal . ' portal.', 403);
     }
     return $u;
+}
+
+function p_date($value): ?string
+{
+    return $value ? (is_string($value) ? $value : null) : null;
 }

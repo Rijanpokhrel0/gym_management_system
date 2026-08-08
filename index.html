@@ -3,28 +3,22 @@
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <meta name="description" content="FitPulse - Multi-Role Gym Management System with Trainer Selection, Shift Scheduling, and Admin Verification">
-  <title>FitPulse | Multi-Role Gym Management & Trainer Scheduling</title>
+  <meta name="description" content="FitPulse - Multi-Admin Gym Management System with Superadmin, Admin, Trainer and User portals, gym logos and QR payments">
+  <title>FitPulse | Multi-Admin Gym Management System</title>
 
-  <!-- Google Fonts: Inter & Plus Jakarta Sans -->
   <link rel="preconnect" href="https://fonts.googleapis.com">
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
   <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&family=Plus+Jakarta+Sans:wght@500;600;700;800&display=swap" rel="stylesheet">
-
-  <!-- Font Awesome Icons -->
   <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.1/css/all.min.css">
-
-  <!-- Favicon (avoids /favicon.ico 404) -->
   <link rel="icon" type="image/svg+xml" href="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24'%3E%3Crect width='24' height='24' rx='6' fill='%23ea580c'/%3E%3Cpath d='M6.5 6.5v11M17.5 6.5v11M4 9v6M20 9v6' stroke='white' stroke-width='1.8' stroke-linecap='round'/%3E%3C/svg%3E">
 
-  <!-- Main Stylesheet -->
   <link rel="stylesheet" href="style.css?v=6">
 </head>
 <body>
 
-  <!-- ====================================================================
-       AUTH SCREEN: LOGIN / REGISTRATION (landing view; app is gated behind it)
-       ==================================================================== -->
+  <!-- ======================================================================
+       AUTH SCREEN (login / user registration)
+       ====================================================================== -->
   <div class="auth-screen" id="auth-screen">
     <div class="auth-screen-bg"></div>
     <div class="auth-card-wrap">
@@ -32,12 +26,12 @@
         <div class="auth-card-brand">
           <div class="auth-logo"><i class="fa-solid fa-dumbbell"></i></div>
           <h1>FitPulse</h1>
-          <p class="auth-tagline">Gym Management &amp; Trainer Scheduling</p>
+          <p class="auth-tagline">Multi-Admin Gym Management System</p>
         </div>
 
         <div class="alert-box alert-danger" id="backend-error-box" style="display:none;margin:0 28px 16px;">
           <i class="fa-solid fa-triangle-exclamation"></i>
-          <span><strong>Cannot reach the backend.</strong> This app needs XAMPP&rsquo;s <strong>Apache</strong> and <strong>MySQL</strong> running &mdash; a static live server (e.g. VS Code Live Server) cannot run PHP. Open <strong>http://localhost/gym/</strong> instead.</span>
+          <span><strong>Cannot reach the backend at http://localhost/gym/.</strong> This app needs XAMPP&rsquo;s <strong>Apache</strong> and <strong>MySQL</strong> running. Start them in the XAMPP Control Panel and reload.</span>
         </div>
 
         <div class="auth-tabs">
@@ -46,48 +40,43 @@
         </div>
 
         <div class="auth-card-body">
-          <!-- Form 1: Account Login (role is detected automatically from the database) -->
           <form id="form-login" class="auth-form-step active" novalidate>
             <div class="form-group">
               <label for="login-email">Email Address <span class="text-rose">*</span></label>
-              <input type="email" id="login-email" class="form-control" placeholder="e.g. admin@fitpulse.com" required>
+              <input type="email" id="login-email" class="form-control" placeholder="e.g. admin@peakfitness.com" required>
             </div>
             <div class="form-group">
               <label for="login-password">Password <span class="text-rose">*</span></label>
               <input type="password" id="login-password" class="form-control" placeholder="Enter your password" required>
             </div>
+            <div class="auth-links-row">
+              <a href="#" id="link-forgot">Forgot password?</a>
+              <a href="#" id="link-resend">Resend verification</a>
+            </div>
             <p class="auth-hint">
               <i class="fa-solid fa-shield-halved"></i>
-              Your portal (Admin, Member or Trainer) is detected automatically from your account &mdash; no need to choose.
+              Your portal (Superadmin, Admin, Trainer or User) is detected automatically from your account.
             </p>
             <button type="submit" class="btn btn-primary btn-block">Log In</button>
             <div class="demo-hint">
               <i class="fa-solid fa-circle-info"></i>
-              <span><strong>Demo accounts:</strong> admin@fitpulse.com / admin123 &middot; aarav.sharma@example.com / user123 &middot; alex.trainer@fitpulse.com / trainer123</span>
+              <span><strong>Demo:</strong> superadmin / rijanpokhrel@superadmin.com &middot; Rijan@123</span>
+            </div>
+            <div class="demo-hint">
+              <i class="fa-solid fa-user-ninja"></i>
+              <span><strong>Trainer:</strong> alex@peakfitness.com &middot; Trainer@123</span>
             </div>
           </form>
 
-          <!-- Form 2: Unified Registration (Member or Trainer via role toggle) -->
           <form id="form-register" class="auth-form-step" novalidate>
             <div class="alert-box alert-info">
               <i class="fa-solid fa-circle-info"></i>
-              <span>Register once below &mdash; choose whether you are joining as a <strong>Member</strong> or applying as a <strong>Trainer</strong>. Trainer applications require <strong>Admin Verification &amp; Approval</strong>.</span>
+              <span>Create a <strong>Member (User)</strong> account. Admins are created only by the Superadmin.</span>
             </div>
-
-            <div class="role-toggle" role="tablist" aria-label="Registration role">
-              <button type="button" class="role-toggle-btn active" data-reg-role="user">
-                <i class="fa-solid fa-user"></i> Member
-              </button>
-              <button type="button" class="role-toggle-btn" data-reg-role="trainer">
-                <i class="fa-solid fa-user-ninja"></i> Trainer
-              </button>
-            </div>
-
             <div class="form-group">
               <label for="reg-name">Full Name <span class="text-rose">*</span></label>
               <input type="text" id="reg-name" class="form-control" placeholder="e.g. Rijan Pokhrel" required>
             </div>
-
             <div class="form-row">
               <div class="form-group col-6">
                 <label for="reg-email">Email Address <span class="text-rose">*</span></label>
@@ -98,183 +87,273 @@
                 <input type="password" id="reg-password" class="form-control" placeholder="Min. 6 characters" required>
               </div>
             </div>
-
-            <div class="form-group">
-              <label for="reg-phone">Phone Number</label>
-              <input type="text" id="reg-phone" class="form-control" placeholder="e.g. +977 98XXXXXXXX">
-            </div>
-
-            <div id="reg-fields-user">
-              <div class="form-group">
+            <div class="form-row">
+              <div class="form-group col-6">
+                <label for="reg-phone">Phone Number</label>
+                <input type="text" id="reg-phone" class="form-control" placeholder="+977 98XXXXXXXX">
+              </div>
+              <div class="form-group col-6">
                 <label for="reg-goal">Fitness Goal</label>
                 <select id="reg-goal" class="form-select">
-                  <option value="Weight Loss & Cardio">Weight Loss &amp; Cardio</option>
-                  <option value="Muscle Hypertrophy">Muscle Hypertrophy &amp; Bodybuilding</option>
-                  <option value="Flexibility & Yoga">Flexibility &amp; Core Balance</option>
-                  <option value="General Fitness">General Fitness</option>
+                  <option value="">Select goal...</option>
+                  <option>Weight Loss &amp; Cardio</option>
+                  <option>Muscle Hypertrophy</option>
+                  <option>Flexibility &amp; Core</option>
+                  <option>General Fitness</option>
                 </select>
               </div>
             </div>
-
-            <div id="reg-fields-trainer" style="display:none;">
-              <div class="form-row">
-                <div class="form-group col-6">
-                  <label for="reg-spec">Specialization <span class="text-rose">*</span></label>
-                  <input type="text" id="reg-spec" class="form-control" placeholder="e.g. HIIT &amp; Powerlifting" required>
-                </div>
-                <div class="form-group col-6">
-                  <label for="reg-exp">Years of Experience</label>
-                  <input type="number" id="reg-exp" class="form-control" value="3" min="1" max="25">
-                </div>
-              </div>
-
-              <div class="form-group">
-                <label for="reg-shift">Preferred Working Shift <span class="text-rose">*</span></label>
-                <select id="reg-shift" class="form-select" required>
-                  <option value="Morning Shift (06:00 AM - 10:00 AM)">Morning Shift (06:00 AM - 10:00 AM)</option>
-                  <option value="Afternoon Shift (12:00 PM - 04:00 PM)">Afternoon Shift (12:00 PM - 04:00 PM)</option>
-                  <option value="Evening Shift (05:00 PM - 09:00 PM)">Evening Shift (05:00 PM - 09:00 PM)</option>
-                </select>
-              </div>
-
-              <div class="form-group">
-                <label for="reg-salary">Expected Monthly Salary (NPR) <span class="text-rose">*</span></label>
-                <input type="number" id="reg-salary" class="form-control" placeholder="e.g. 40000" min="1">
-              </div>
-
-              <div class="form-group">
-                <label for="reg-certs">Certifications</label>
-                <input type="text" id="reg-certs" class="form-control" placeholder="e.g. ACE-CPT, Powerlifting L1">
-              </div>
-            </div>
-
-            <div class="form-group">
-              <label for="reg-bio">Short Bio</label>
-              <textarea id="reg-bio" class="form-control" rows="2" placeholder="Tell us about your fitness journey..."></textarea>
-            </div>
-
             <button type="submit" class="btn btn-primary btn-block">Create Account</button>
           </form>
-        </div>
+
+          <form id="form-forgot" class="auth-form-step" novalidate>
+            <h3 class="auth-step-title">Reset your password</h3>
+            <p class="auth-step-sub">Enter your account email and we'll send you a reset link (valid for 1 hour).</p>
+            <div class="form-group">
+              <label for="forgot-email">Email Address <span class="text-rose">*</span></label>
+              <input type="email" id="forgot-email" class="form-control" placeholder="you@example.com" required>
+            </div>
+            <button type="submit" class="btn btn-primary btn-block">Send Reset Link</button>
+            <button type="button" class="btn btn-ghost btn-block" id="back-to-login-forgot"><i class="fa-solid fa-arrow-left"></i> Back to Sign In</button>
+          </form>
+
+          <form id="form-reset" class="auth-form-step" novalidate>
+            <h3 class="auth-step-title">Choose a new password</h3>
+            <p class="auth-step-sub">Set a new password for your account.</p>
+            <div class="form-group">
+              <label for="reset-pass">New Password <span class="text-rose">*</span></label>
+              <input type="password" id="reset-pass" class="form-control" placeholder="Min. 6 characters" required>
+            </div>
+            <div class="form-group">
+              <label for="reset-pass2">Confirm Password <span class="text-rose">*</span></label>
+              <input type="password" id="reset-pass2" class="form-control" placeholder="Repeat password" required>
+            </div>
+            <button type="submit" class="btn btn-primary btn-block">Update Password</button>
+          </form>
+
+          <div class="auth-divider"><span>or</span></div>
+          <button type="button" class="btn btn-outline btn-block" id="btn-browse-guest">
+            <i class="fa-solid fa-dumbbell"></i> Browse Gyms Without Logging In
+          </button>
         </div>
       </div>
     </div>
   </div>
 
+  <!-- ======================================================================
+       APP LAYOUT
+       ====================================================================== -->
   <div class="app-layout" id="app-layout">
-    <!-- Sidebar Navigation -->
     <aside class="sidebar" id="sidebar">
       <div class="sidebar-brand">
-        <div class="brand-logo">
-          <i class="fa-solid fa-dumbbell"></i>
-        </div>
+        <div class="brand-logo"><i class="fa-solid fa-dumbbell"></i></div>
         <div class="brand-info">
           <h2>FitPulse</h2>
-          <span id="role-badge-display">Admin Portal</span>
+          <span id="role-badge-display">Portal</span>
         </div>
       </div>
 
-      <!-- Navigation links dynamically adapted based on active user role -->
       <nav class="sidebar-nav">
         <ul id="sidebar-menu-list">
-          <!-- Populated by script.js based on role (Admin, User, Trainer) -->
+          <!-- Populated by script.js based on portal -->
         </ul>
       </nav>
 
-      <!-- Active User Profile Box -->
-      <div class="sidebar-user" id="sidebar-user-box">
-        <div class="user-avatar" id="current-user-avatar">RP</div>
+      <div class="sidebar-user" id="sidebar-user-box" style="display:none;">
+        <div class="user-avatar" id="current-user-avatar">FP</div>
         <div class="user-details">
-          <strong id="current-user-name">Rijan Pokhrel</strong>
-          <span id="current-user-role-label">System Administrator</span>
+          <strong id="current-user-name">User</strong>
+          <span id="current-user-role-label">Portal</span>
         </div>
-        <button class="btn-icon-logout" id="btn-logout" title="Switch Account / Logout">
+        <button class="btn-icon-logout" id="btn-logout" title="Sign out">
           <i class="fa-solid fa-right-from-bracket"></i>
+        </button>
+        <button class="btn-icon-logout" id="btn-signin" title="Sign in" style="display:none;">
+          <i class="fa-solid fa-right-to-bracket"></i>
         </button>
       </div>
     </aside>
 
-    <!-- Main Content Area -->
     <div class="main-wrapper">
-      <!-- Topbar Header -->
       <header class="topbar">
         <div class="topbar-left">
           <button class="menu-toggle" id="menu-toggle" aria-label="Toggle Navigation">
             <i class="fa-solid fa-bars"></i>
           </button>
-          <div class="search-bar">
+          <div class="search-bar" style="display:none;">
             <i class="fa-solid fa-magnifying-glass search-icon"></i>
-            <input type="text" id="global-search" placeholder="Search trainers, members, or shifts... (Press /)">
+            <input type="text" id="global-search" placeholder="Search...">
           </div>
         </div>
-
         <div class="topbar-right">
-          <!-- Role Switcher Pill -->
           <div class="role-switcher-pill">
-            <span class="role-label">Active Role:</span>
-            <select id="role-selector" class="role-select">
-              <option value="admin">System Admin</option>
-              <option value="user">Member / User</option>
-              <option value="trainer">Trainer Portal</option>
-            </select>
+            <span class="role-label">Portal:</span>
+            <span id="active-role-label" class="badge badge-blue">-</span>
           </div>
-
         </div>
       </header>
 
-      <!-- Main Content Container -->
       <main class="content-container">
-
-        <!-- ====================================================================
-             1. ADMIN DASHBOARD & TRAINER VERIFICATION PANEL
-             ==================================================================== -->
-        <section id="tab-admin-verification" class="tab-content active">
+        <!-- ============================================================
+             SUPERADMIN PORTAL
+             ============================================================ -->
+        <section id="tab-sa-dashboard" class="tab-content">
           <div class="page-header">
             <div>
-              <h1 class="page-title">Admin Verification & Management</h1>
-              <p class="page-subtitle">Review trainer applications, verify credentials, and grant active status.</p>
-            </div>
-            <div class="header-actions">
-              <span class="badge badge-amber" id="pending-verification-count-badge">2 Pending Approvals</span>
+              <h1 class="page-title">Superadmin Dashboard</h1>
+              <p class="page-subtitle">System-wide oversight of admins, products, users and trainers.</p>
             </div>
           </div>
+          <div class="metrics-grid" id="sa-metrics-grid"></div>
+        </section>
 
-          <!-- Pending Trainer Verification Table -->
+        <section id="tab-sa-admins" class="tab-content">
+          <div class="page-header">
+            <div>
+              <h1 class="page-title">Admin Portals</h1>
+              <p class="page-subtitle">Create and manage independent gym-admin accounts.</p>
+            </div>
+            <div class="header-actions">
+              <button class="btn btn-primary" id="btn-add-admin"><i class="fa-solid fa-user-shield"></i> Add Admin</button>
+            </div>
+          </div>
           <div class="panel">
             <div class="panel-header">
               <div class="panel-title-group">
-                <h3><i class="fa-solid fa-user-clock text-amber"></i> Pending Trainer Registration Requests</h3>
+                <h3><i class="fa-solid fa-building text-orange"></i> All Admins &amp; Gyms</h3>
               </div>
-              <span class="text-muted text-sm">Action required prior to public listing</span>
             </div>
             <div class="panel-body p-0">
               <div class="table-responsive">
                 <table class="data-table">
                   <thead>
                     <tr>
-                      <th>Trainer Name</th>
-                      <th>Specialization</th>
-                      <th>Experience</th>
-                      <th>Preferred Shifts</th>
-                      <th>Expected Salary</th>
+                      <th>Admin</th>
+                      <th>Gym Name</th>
+                      <th>Contact</th>
                       <th>Status</th>
-                      <th>Registration Date</th>
-                      <th class="text-right">Admin Action</th>
+                      <th class="text-right">Actions</th>
                     </tr>
                   </thead>
-                  <tbody id="pending-trainers-tbody">
-                    <!-- Populated dynamically by script.js -->
-                  </tbody>
+                  <tbody id="sa-admins-tbody"></tbody>
                 </table>
               </div>
             </div>
           </div>
+        </section>
 
-          <!-- Verified & Active Trainers Management Table -->
+        <!-- ============================================================
+             ADMIN PORTAL
+             ============================================================ -->
+        <section id="tab-admin-dashboard" class="tab-content">
+          <div class="page-header">
+            <div>
+              <h1 class="page-title" id="admin-dash-title">Admin Dashboard</h1>
+              <p class="page-subtitle">Manage your gym, products, users and trainers.</p>
+            </div>
+            <div class="header-actions">
+              <button class="btn btn-outline" id="btn-admin-profile"><i class="fa-solid fa-pen-to-square"></i> My Gym Profile</button>
+            </div>
+          </div>
+          <div class="metrics-grid" id="admin-metrics-grid"></div>
+        </section>
+
+        <section id="tab-admin-products" class="tab-content">
+          <div class="page-header">
+            <div>
+              <h1 class="page-title">Products</h1>
+              <p class="page-subtitle">Supplements, merchandise, memberships and services sold at your gym.</p>
+            </div>
+            <div class="header-actions">
+              <button class="btn btn-primary" id="btn-add-product"><i class="fa-solid fa-plus"></i> Add Product</button>
+            </div>
+          </div>
           <div class="panel">
             <div class="panel-header">
-              <h3><i class="fa-solid fa-user-check text-emerald"></i> Approved & Active Trainers</h3>
-              <span class="text-muted text-sm">Trainers available for user selection</span>
+              <div class="panel-title-group">
+                <h3><i class="fa-solid fa-box-open text-orange"></i> Your Products</h3>
+              </div>
+              <select id="admin-product-cat-filter" class="form-select filter-select">
+                <option value="all">All Categories</option>
+                <option>Supplement</option>
+                <option>Merchandise</option>
+                <option>Membership</option>
+                <option>Service</option>
+              </select>
+            </div>
+            <div class="panel-body p-0">
+              <div class="table-responsive">
+                <table class="data-table">
+                  <thead>
+                    <tr>
+                      <th>Product</th>
+                      <th>Category</th>
+                      <th>Price</th>
+                      <th>Stock</th>
+                      <th>Status</th>
+                      <th>Added</th>
+                      <th class="text-right">Actions</th>
+                    </tr>
+                  </thead>
+                  <tbody id="admin-products-tbody"></tbody>
+                </table>
+              </div>
+            </div>
+          </div>
+        </section>
+
+        <section id="tab-admin-users" class="tab-content">
+          <div class="page-header">
+            <div>
+              <h1 class="page-title">My Users</h1>
+              <p class="page-subtitle">Users registered under your gym. You can create accounts for them.</p>
+            </div>
+            <div class="header-actions">
+              <button class="btn btn-primary" id="btn-add-admin-user"><i class="fa-solid fa-user-plus"></i> Add User</button>
+            </div>
+          </div>
+          <div class="panel">
+            <div class="panel-header">
+              <div class="panel-title-group">
+                <h3><i class="fa-solid fa-users text-orange"></i> Gym Users</h3>
+              </div>
+              <input type="text" id="admin-user-search" class="form-control filter-input" placeholder="Search name, email...">
+            </div>
+            <div class="panel-body p-0">
+              <div class="table-responsive">
+                <table class="data-table">
+                  <thead>
+                    <tr>
+                      <th>User</th>
+                      <th>Email</th>
+                      <th>Phone</th>
+                      <th>Goal</th>
+                      <th>Joined</th>
+                      <th class="text-right">Actions</th>
+                    </tr>
+                  </thead>
+                  <tbody id="admin-users-tbody"></tbody>
+                </table>
+              </div>
+            </div>
+          </div>
+        </section>
+
+        <section id="tab-admin-trainers" class="tab-content">
+          <div class="page-header">
+            <div>
+              <h1 class="page-title">My Trainers</h1>
+              <p class="page-subtitle">Trainers get their own login to track their gym, schedule and clients.</p>
+            </div>
+            <div class="header-actions">
+              <button class="btn btn-primary" id="btn-add-admin-trainer"><i class="fa-solid fa-user-plus"></i> Add Trainer</button>
+            </div>
+          </div>
+          <div class="panel">
+            <div class="panel-header">
+              <div class="panel-title-group">
+                <h3><i class="fa-solid fa-users text-orange"></i> Gym Trainers</h3>
+              </div>
             </div>
             <div class="panel-body p-0">
               <div class="table-responsive">
@@ -282,957 +361,416 @@
                   <thead>
                     <tr>
                       <th>Trainer</th>
+                      <th>Login Email</th>
                       <th>Specialization</th>
-                      <th>Assigned Members</th>
-                      <th>Active Shifts</th>
-                      <th>Monthly Salary</th>
-                      <th>Approval Status</th>
-                      <th class="text-right">Manage</th>
+                      <th>Experience</th>
+                      <th>Salary</th>
+                      <th>Status</th>
+                      <th class="text-right">Actions</th>
                     </tr>
                   </thead>
-                  <tbody id="approved-trainers-tbody">
-                    <!-- Populated dynamically by script.js -->
-                  </tbody>
+                  <tbody id="admin-trainers-tbody"></tbody>
                 </table>
               </div>
             </div>
           </div>
         </section>
 
-        <!-- ====================================================================
-             2. USER / MEMBER SECTION: VIEW TRAINERS & SELECT SHIFTS
-             ==================================================================== -->
+        <!-- ============================================================
+             TRAINER PORTAL
+             ============================================================ -->
+        <section id="tab-trainer-dashboard" class="tab-content">
+          <div class="page-header">
+            <div>
+              <h1 class="page-title" id="trainer-dash-title">Trainer Dashboard</h1>
+              <p class="page-subtitle">Your gym, your schedule and your members.</p>
+            </div>
+          </div>
+          <div class="panel" style="margin-top:24px;">
+            <div class="panel-header">
+              <h3><i class="fa-solid fa-building text-amber"></i> My Gym</h3>
+            </div>
+            <div class="panel-body" id="trainer-gym-box">
+              <p class="text-muted">No gym assigned.</p>
+            </div>
+          </div>
+          <div class="metrics-grid" id="trainer-metrics-grid"></div>
+          <div class="panel" style="margin-top:24px;">
+            <div class="panel-header">
+              <h3><i class="fa-solid fa-users text-amber"></i> My Members</h3>
+            </div>
+            <div class="panel-body p-0">
+              <div class="table-responsive">
+                <table class="data-table">
+                  <thead>
+                    <tr>
+                      <th>Member</th>
+                      <th>Email</th>
+                      <th>Phone</th>
+                      <th>Goal</th>
+                      <th>Joined</th>
+                    </tr>
+                  </thead>
+                  <tbody id="trainer-members-tbody"></tbody>
+                </table>
+              </div>
+            </div>
+          </div>
+        </section>
+
+        <!-- ============================================================
+             USER PORTAL
+             ============================================================ -->
+        <section id="tab-user-dashboard" class="tab-content">
+          <div class="page-header">
+            <div>
+              <h1 class="page-title" id="user-dash-title">Member Dashboard</h1>
+              <p class="page-subtitle">Track your selected gyms and browse products.</p>
+            </div>
+          </div>
+          <div class="metrics-grid" id="user-metrics-grid"></div>
+          <div class="panel" style="margin-top:24px;">
+            <div class="panel-header">
+              <h3><i class="fa-solid fa-house text-amber"></i> Home Gym</h3>
+            </div>
+            <div class="panel-body" id="user-home-gym-box">
+              <p class="text-muted">No home gym assigned.</p>
+            </div>
+          </div>
+        </section>
+
+        <section id="tab-user-gyms" class="tab-content">
+          <div class="page-header">
+            <div>
+              <h1 class="page-title">Browse Gyms</h1>
+              <p class="page-subtitle">Select gyms managed by different admins to follow them.</p>
+            </div>
+          </div>
+          <div class="gyms-grid" id="user-gyms-grid"></div>
+        </section>
+
+        <section id="tab-user-products" class="tab-content">
+          <div class="page-header">
+            <div>
+              <h1 class="page-title">Gym Products</h1>
+              <p class="page-subtitle">Products added by each admin for their gym.</p>
+            </div>
+          </div>
+          <div class="panel">
+            <div class="panel-header">
+              <div class="panel-title-group">
+                <h3><i class="fa-solid fa-box-open text-amber"></i> Select a Gym</h3>
+              </div>
+              <select id="user-product-gym-select" class="form-select filter-select"></select>
+            </div>
+            <div class="panel-body">
+              <div class="products-grid" id="user-products-grid"></div>
+            </div>
+          </div>
+        </section>
+
         <section id="tab-user-trainers" class="tab-content">
           <div class="page-header">
             <div>
-              <h1 class="page-title">Find & Select Your Personal Trainer</h1>
-              <p class="page-subtitle">Browse admin-verified fitness trainers and select your preferred shift time.</p>
+              <h1 class="page-title">Gym Trainers</h1>
+              <p class="page-subtitle">Trainers available at the selected gym.</p>
             </div>
           </div>
-
-          <!-- Current Booking Status Banner -->
-          <div class="panel user-booking-banner" id="user-booking-status-card">
-            <!-- Dynamic banner showing currently selected trainer and shift -->
-          </div>
-
-          <!-- Verified Trainers Catalog Grid -->
-          <div class="section-subtitle-heading" style="margin-bottom: 16px;">
-            <h3>Verified Certified Trainers</h3>
-          </div>
-          <div class="trainers-grid" id="trainers-catalog-grid">
-            <!-- Dynamic Verified Trainer Cards -->
-          </div>
-        </section>
-
-        <!-- ====================================================================
-             2B. USER / MEMBER SECTION: MY BOOKED SHIFTS
-             ==================================================================== -->
-        <section id="tab-user-bookings" class="tab-content">
-          <div class="page-header">
-            <div>
-              <h1 class="page-title">My Bookings & Shift History</h1>
-              <p class="page-subtitle">Review the verified trainers you have selected and your reserved shift slots.</p>
-            </div>
-          </div>
-
-          <div class="panel">
-            <div class="panel-header">
-              <h3><i class="fa-solid fa-calendar-check text-orange"></i> Booked Shift History</h3>
-              <span class="text-muted text-sm">Confirmations stored locally on this device</span>
-            </div>
-            <div class="panel-body" id="user-bookings-list">
-              <!-- Dynamic booking history for the signed-in member -->
-            </div>
-          </div>
-        </section>
-
-        <!-- ====================================================================
-             2C. USER SECTION: CLASS SCHEDULE (PUBLIC)
-             ==================================================================== -->
-        <section id="tab-user-classes" class="tab-content">
-          <div class="page-header">
-            <div>
-              <h1 class="page-title">Group Classes & Schedule</h1>
-              <p class="page-subtitle">Explore the weekly group fitness timetable and reserve your spot.</p>
-            </div>
-          </div>
-
-          <div class="panel">
-            <div class="panel-header">
-              <h3><i class="fa-solid fa-dumbbell text-amber"></i> Weekly Classes</h3>
-              <span class="text-muted text-sm">Booked slots update in real time</span>
-            </div>
-            <div class="panel-body">
-              <div class="classes-cards-grid" id="user-classes-grid">
-                <!-- Populated dynamically -->
-              </div>
-            </div>
-          </div>
-        </section>
-
-        <!-- ====================================================================
-             2D. USER SECTION: GYM EQUIPMENT
-             ==================================================================== -->
-        <section id="tab-user-equipment" class="tab-content">
-          <div class="page-header">
-            <div>
-              <h1 class="page-title">Gym Equipment</h1>
-              <p class="page-subtitle">Browse the machines and gear available across our training floor.</p>
-            </div>
-          </div>
-
-          <div class="section-subtitle-heading" style="margin-bottom: 16px;">
-            <h3>Our Training Equipment</h3>
-          </div>
-          <div class="equipment-grid" id="user-equipment-grid">
-            <!-- Populated dynamically -->
-          </div>
-        </section>
-
-        <!-- ====================================================================
-             2E. USER SECTION: MEMBERSHIP PLANS
-             ==================================================================== -->
-        <section id="tab-user-plans" class="tab-content">
-          <div class="page-header">
-            <div>
-              <h1 class="page-title">Membership Plans & Pricing</h1>
-              <p class="page-subtitle">Choose the plan that fits your goals and budget.</p>
-            </div>
-          </div>
-
-          <div class="plans-grid" id="user-plans-grid">
-            <!-- Populated dynamically -->
-          </div>
-        </section>
-
-        <!-- ====================================================================
-             2F. USER SECTION: ABOUT GYM & LOCATION
-             ==================================================================== -->
-        <section id="tab-user-gym" class="tab-content">
-          <div class="page-header">
-            <div>
-              <h1 class="page-title">About FitPulse &amp; Location</h1>
-              <p class="page-subtitle">Get to know the gym, its facilities, opening hours, and how to find us.</p>
-            </div>
-          </div>
-
-          <div id="gym-info-panel">
-            <!-- Populated dynamically from /api/gym.php -->
-          </div>
-        </section>
-
-        <!-- ====================================================================
-             3. TRAINER PORTAL SECTION: SHIFT SCHEDULE & CLIENT ROSTER
-             ==================================================================== -->
-        <section id="tab-trainer-portal" class="tab-content">
-          <div class="page-header">
-            <div>
-              <h1 class="page-title">Trainer Dashboard & Shift Manager</h1>
-              <p class="page-subtitle">Track your verification status, clients, salary, and professional profile.</p>
-            </div>
-          </div>
-
-          <!-- Verification Status Banner -->
-          <div id="trainer-status-banner"></div>
-
-          <!-- Performance Dashboard Stats -->
-          <div class="metrics-grid" id="trainer-dashboard-stats">
-            <!-- Populated dynamically -->
-          </div>
-
-          <div class="dashboard-grid">
-            <!-- Professional Profile -->
-            <div class="panel">
-              <div class="panel-header">
-                <h3><i class="fa-solid fa-id-badge text-amber"></i> My Professional Profile</h3>
-              </div>
-              <div class="panel-body">
-                <div id="trainer-profile-details">
-                  <!-- Dynamic content -->
-                </div>
-              </div>
-            </div>
-
-            <!-- Salary & Payments -->
-            <div class="panel">
-              <div class="panel-header">
-                <h3><i class="fa-solid fa-wallet text-emerald"></i> Salary & Payments</h3>
-              </div>
-              <div class="panel-body">
-                <div id="trainer-salary-list">
-                  <!-- Dynamic content -->
-                </div>
-              </div>
-            </div>
-
-            <!-- Shifts Overview -->
-            <div class="panel">
-              <div class="panel-header">
-                <h3><i class="fa-regular fa-clock"></i> My Assigned Shifts & Availability</h3>
-              </div>
-              <div class="panel-body">
-                <div id="trainer-shift-list">
-                  <!-- Dynamic content -->
-                </div>
-              </div> 
-            </div>
-
-            <!-- Client Roster -->
-            <div class="panel">
-              <div class="panel-header">
-                <h3><i class="fa-solid fa-users"></i> My Assigned Clients / Members</h3>
-              </div>
-              <div class="panel-body">
-                <div id="trainer-clients-list">
-                  <!-- Dynamic content -->
-                </div>
-              </div>
-            </div>
-          </div>
-        </section>
-
-        <!-- ====================================================================
-             4. SYSTEM OVERVIEW & METRIC ANALYTICS (ADMIN)
-             ==================================================================== -->
-        <section id="tab-admin-overview" class="tab-content">
-          <div class="page-header">
-            <div>
-              <h1 class="page-title">System Metrics & Overview</h1>
-              <p class="page-subtitle">Real-time statistics across all users, trainers, and booked shifts.</p>
-            </div>
-          </div>
-
-          <div class="metrics-grid">
-            <div class="metric-card">
-              <div class="metric-header">
-                <div class="metric-icon icon-blue"><i class="fa-solid fa-users"></i></div>
-                <span class="trend trend-up">Active</span>
-              </div>
-              <div class="metric-body">
-                <h3 id="stat-total-users">14</h3>
-                <p>Registered Members</p>
-              </div>
-            </div>
-
-            <div class="metric-card">
-              <div class="metric-header">
-                <div class="metric-icon icon-emerald"><i class="fa-solid fa-user-shield"></i></div>
-                <span class="trend trend-up">Verified</span>
-              </div>
-              <div class="metric-body">
-                <h3 id="stat-approved-trainers">4</h3>
-                <p>Verified Trainers</p>
-              </div>
-            </div>
-
-            <div class="metric-card">
-              <div class="metric-header">
-                <div class="metric-icon icon-purple"><i class="fa-solid fa-user-clock"></i></div>
-                <span class="trend trend-neutral">Action Needed</span>
-              </div>
-              <div class="metric-body">
-                <h3 id="stat-pending-trainers">2</h3>
-                <p>Pending Approvals</p>
-              </div>
-            </div>
-
-            <div class="metric-card">
-              <div class="metric-header">
-                <div class="metric-icon icon-orange"><i class="fa-solid fa-calendar-check"></i></div>
-                <span class="trend trend-up">Active Shifts</span>
-              </div>
-              <div class="metric-body">
-                <h3 id="stat-booked-shifts">8</h3>
-                <p>Booked Shifts</p>
-              </div>
-            </div>
-          </div>
-        </section>
-
-        <!-- ====================================================================
-             5. ADMIN SECTION: MEMBERS DIRECTORY (CRUD)
-             ==================================================================== -->
-        <section id="tab-admin-members" class="tab-content">
-          <div class="page-header">
-            <div>
-              <h1 class="page-title">Member Directory</h1>
-              <p class="page-subtitle">Manage gym memberships, plans, and membership status.</p>
-            </div>
-            <div class="header-actions">
-              <button class="btn btn-primary" id="btn-add-member">
-                <i class="fa-solid fa-user-plus"></i> Add Member
-              </button>
-            </div>
-          </div>
-
           <div class="panel">
             <div class="panel-header">
               <div class="panel-title-group">
-                <h3><i class="fa-solid fa-users text-orange"></i> All Members</h3>
+                <h3><i class="fa-solid fa-users text-amber"></i> Select a Gym</h3>
               </div>
-              <div class="filter-bar">
-                <input type="text" id="member-search-input" class="form-control filter-input" placeholder="Search name, email, phone...">
-                <select id="member-status-filter" class="form-select filter-select">
-                  <option value="all">All Status</option>
-                  <option value="Active">Active</option>
-                  <option value="Expiring">Expiring</option>
-                  <option value="Inactive">Inactive</option>
-                </select>
-                <select id="member-plan-filter" class="form-select filter-select">
-                  <option value="all">All Plans</option>
-                  <option value="Premium VIP">Premium VIP</option>
-                  <option value="Standard Fitness">Standard Fitness</option>
-                  <option value="Basic Access">Basic Access</option>
-                </select>
-              </div>
-            </div>
-            <div class="panel-body p-0">
-              <div class="table-responsive">
-                <table class="data-table">
-                  <thead>
-                    <tr>
-                      <th>Member</th>
-                      <th>Contact</th>
-                      <th>Plan</th>
-                      <th>Status</th>
-                      <th>Joined</th>
-                      <th>Expires</th>
-                      <th class="text-right">Actions</th>
-                    </tr>
-                  </thead>
-                  <tbody id="members-table-tbody">
-                    <!-- Populated dynamically -->
-                  </tbody>
-                </table>
-              </div>
-            </div>
-          </div>
-        </section>
-
-        <!-- ====================================================================
-             6. ADMIN SECTION: CLASS SCHEDULE (CRUD)
-             ==================================================================== -->
-        <section id="tab-admin-classes" class="tab-content">
-          <div class="page-header">
-            <div>
-              <h1 class="page-title">Class Schedule</h1>
-              <p class="page-subtitle">Create and manage the weekly group fitness class timetable.</p>
-            </div>
-            <div class="header-actions">
-              <button class="btn btn-primary" id="btn-add-class">
-                <i class="fa-solid fa-calendar-plus"></i> Schedule Class
-              </button>
-            </div>
-          </div>
-
-          <div class="panel">
-            <div class="panel-header">
-              <h3><i class="fa-solid fa-dumbbell text-orange"></i> Weekly Classes</h3>
-              <span class="text-muted text-sm">Booked slots update in real time</span>
+              <select id="user-trainer-gym-select" class="form-select filter-select"></select>
             </div>
             <div class="panel-body">
-              <div class="classes-cards-grid" id="classes-cards-grid">
-                <!-- Populated dynamically -->
-              </div>
+              <div class="trainers-grid" id="user-trainers-grid"></div>
             </div>
           </div>
         </section>
-
-        <!-- ====================================================================
-             7. ADMIN SECTION: PAYMENTS & INVOICES
-             ==================================================================== -->
-        <section id="tab-admin-payments" class="tab-content">
-          <div class="page-header">
-            <div>
-              <h1 class="page-title">Payments & Invoices</h1>
-              <p class="page-subtitle">Record membership payments and track invoice status.</p>
-            </div>
-            <div class="header-actions">
-              <button class="btn btn-primary" id="btn-add-payment">
-                <i class="fa-solid fa-file-invoice-dollar"></i> Record Payment
-              </button>
-            </div>
-          </div>
-
-          <div class="panel">
-            <div class="panel-header">
-              <h3><i class="fa-solid fa-money-check-dollar text-orange"></i> Payment History</h3>
-              <input type="text" id="payment-search-input" class="form-control filter-input" placeholder="Search invoice, member, or plan...">
-            </div>
-            <div class="panel-body p-0">
-              <div class="table-responsive">
-                <table class="data-table">
-                  <thead>
-                    <tr>
-                      <th>Invoice</th>
-                      <th>Member</th>
-                      <th>Plan</th>
-                      <th>Amount</th>
-                      <th>Method</th>
-                      <th>Date</th>
-                      <th>Status</th>
-                    </tr>
-                  </thead>
-                  <tbody id="payments-table-tbody">
-                    <!-- Populated dynamically -->
-                  </tbody>
-                </table>
-              </div>
-            </div>
-          </div>
-        </section>
-
-        <!-- ====================================================================
-             8. ADMIN SECTION: GYM SETUP (PROFILE, EQUIPMENT, PLANS, SALARIES)
-             ==================================================================== -->
-        <section id="tab-admin-gym" class="tab-content">
-          <div class="page-header">
-            <div>
-              <h1 class="page-title">Gym Setup & Management</h1>
-              <p class="page-subtitle">Manage the gym profile, equipment inventory, membership plans, and trainer salaries.</p>
-            </div>
-          </div>
-
-          <!-- Gym Profile Editor -->
-          <div class="panel">
-            <div class="panel-header">
-              <h3><i class="fa-solid fa-store text-amber"></i> Gym Profile (About, Location &amp; Hours)</h3>
-              <span class="text-muted text-sm">Shown to members on the About &amp; Location page</span>
-            </div>
-            <div class="panel-body">
-              <form id="form-gym-info">
-                <div class="form-row">
-                  <div class="form-group col-6">
-                    <label for="gym-name">Gym Name</label>
-                    <input type="text" id="gym-name" class="form-control" placeholder="FitPulse Gym">
-                  </div>
-                  <div class="form-group col-6">
-                    <label for="gym-phone">Phone</label>
-                    <input type="text" id="gym-phone" class="form-control" placeholder="+977 1-4492345">
-                  </div>
-                </div>
-                <div class="form-row">
-                  <div class="form-group col-6">
-                    <label for="gym-email">Email</label>
-                    <input type="email" id="gym-email" class="form-control" placeholder="hello@fitpulse.com">
-                  </div>
-                  <div class="form-group col-6">
-                    <label for="gym-address">Address</label>
-                    <input type="text" id="gym-address" class="form-control" placeholder="Baneshwor, Kathmandu 44600, Nepal">
-                  </div>
-                </div>
-                <div class="form-group">
-                  <label for="gym-hours">Opening Hours</label>
-                  <textarea id="gym-hours" class="form-control" rows="2" placeholder="Mon - Fri: 05:30 AM - 10:00 PM"></textarea>
-                </div>
-                <div class="form-group">
-                  <label for="gym-about">About the Gym &amp; Facilities</label>
-                  <textarea id="gym-about" class="form-control" rows="4" placeholder="Describe facilities, amenities, equipment zones..."></textarea>
-                </div>
-                <div class="form-group">
-                  <label for="gym-map">Google Maps Embed URL</label>
-                  <input type="text" id="gym-map" class="form-control" placeholder="https://www.google.com/maps/embed?pb=...">
-                </div>
-                <button type="submit" class="btn btn-primary"><i class="fa-solid fa-floppy-disk"></i> Save Gym Profile</button>
-              </form>
-            </div>
-          </div>
-
-          <!-- Equipment Management -->
-          <div class="panel">
-            <div class="panel-header">
-              <div class="panel-title-group">
-                <h3><i class="fa-solid fa-dumbbell text-amber"></i> Equipment Inventory</h3>
-              </div>
-              <div class="header-actions" style="gap:10px;">
-                <button class="btn btn-outline btn-sm" id="btn-equipment-filter" onclick="window.fitPulseApp.toggleEquipmentFilter()"><i class="fa-solid fa-filter"></i> Maintenance Only</button>
-                <button class="btn btn-primary btn-sm" id="btn-add-equipment"><i class="fa-solid fa-plus"></i> Add Equipment</button>
-              </div>
-            </div>
-            <div class="panel-body p-0">
-              <div class="table-responsive">
-                <table class="data-table">
-                  <thead>
-                    <tr>
-                      <th>Equipment</th>
-                      <th>Category</th>
-                      <th>Qty</th>
-                      <th>Condition</th>
-                      <th>Last Maintenance</th>
-                      <th>Notes</th>
-                      <th class="text-right">Actions</th>
-                    </tr>
-                  </thead>
-                  <tbody id="equipment-table-tbody">
-                    <!-- Populated dynamically -->
-                  </tbody>
-                </table>
-              </div>
-            </div>
-          </div>
-
-          <!-- Membership Plans Management -->
-          <div class="panel">
-            <div class="panel-header">
-              <div class="panel-title-group">
-                <h3><i class="fa-solid fa-tags text-amber"></i> Membership Plans</h3>
-              </div>
-              <button class="btn btn-primary btn-sm" id="btn-add-plan"><i class="fa-solid fa-plus"></i> Add Plan</button>
-            </div>
-            <div class="panel-body">
-              <div class="admin-plans-grid" id="admin-plans-grid">
-                <!-- Populated dynamically -->
-              </div>
-            </div>
-          </div>
-
-          <!-- Trainer Salary Management -->
-          <div class="panel">
-            <div class="panel-header">
-              <div class="panel-title-group">
-                <h3><i class="fa-solid fa-wallet text-amber"></i> Trainer Salaries &amp; Payments</h3>
-              </div>
-              <button class="btn btn-primary btn-sm" id="btn-add-salary"><i class="fa-solid fa-plus"></i> Record Salary</button>
-            </div>
-            <div class="panel-body p-0">
-              <div class="table-responsive">
-                <table class="data-table">
-                  <thead>
-                    <tr>
-                      <th>Trainer</th>
-                      <th>Month</th>
-                      <th>Amount</th>
-                      <th>Method</th>
-                      <th>Paid On</th>
-                      <th>Status</th>
-                      <th class="text-right">Actions</th>
-                    </tr>
-                  </thead>
-                  <tbody id="salary-table-tbody">
-                    <!-- Populated dynamically -->
-                  </tbody>
-                </table>
-              </div>
-            </div>
-          </div>
-        </section>
-
       </main>
     </div>
   </div>
 
-  <!-- ====================================================================
-       MODAL: USER BOOK TRAINER & SHIFT
-       ==================================================================== -->
-  <div class="modal-overlay" id="modal-book-trainer">
+  <!-- ======================================================================
+       MODAL: ADMIN (superadmin)
+       ====================================================================== -->
+  <div class="modal-overlay" id="modal-sa-admin">
     <div class="modal">
       <div class="modal-header">
-        <h3>Book Trainer & Select Shift</h3>
-        <button class="modal-close" data-close="modal-book-trainer">&times;</button>
+        <h3 id="modal-sa-admin-title">Add Admin</h3>
+        <button class="modal-close" data-close="modal-sa-admin">&times;</button>
       </div>
-      <form id="form-book-trainer">
+      <form id="form-sa-admin">
         <div class="modal-body">
-          <input type="hidden" id="book-trainer-id">
-          
-          <div class="trainer-summary-box" id="book-trainer-summary-box">
-            <!-- Dynamic summary of selected trainer -->
-          </div>
-
-          <div class="form-group" style="margin-top: 16px;">
-            <label for="select-trainer-shift">Choose Shift Time <span class="text-rose">*</span></label>
-            <select id="select-trainer-shift" class="form-select" required>
-              <!-- Options populated dynamically based on trainer shift availability -->
-            </select>
-          </div>
-
+          <input type="hidden" id="sa-admin-id">
           <div class="form-group">
-            <label for="book-notes">Special Requests / Training Goals</label>
-            <textarea id="book-notes" class="form-control" rows="3" placeholder="e.g. Focus on mobility and muscle strength..."></textarea>
+            <label for="sa-admin-name">Owner Name <span class="text-rose">*</span></label>
+            <input type="text" id="sa-admin-name" class="form-control" required>
+          </div>
+          <div class="form-group">
+            <label for="sa-admin-gym">Gym Name</label>
+            <input type="text" id="sa-admin-gym" class="form-control" placeholder="e.g. Peak Fitness Club">
+          </div>
+          <div class="form-row">
+            <div class="form-group col-6">
+              <label for="sa-admin-email">Email <span class="text-rose">*</span></label>
+              <input type="email" id="sa-admin-email" class="form-control" required>
+            </div>
+            <div class="form-group col-6">
+              <label for="sa-admin-pass">Password <span class="text-rose">*</span></label>
+              <input type="password" id="sa-admin-pass" class="form-control" placeholder="Min. 6 characters" required>
+            </div>
+          </div>
+          <div class="form-row">
+            <div class="form-group col-6">
+              <label for="sa-admin-phone">Phone</label>
+              <input type="text" id="sa-admin-phone" class="form-control">
+            </div>
+            <div class="form-group col-6">
+              <label for="sa-admin-status">Account Status</label>
+              <select id="sa-admin-status" class="form-select">
+                <option value="active">Active</option>
+                <option value="suspended">Suspended</option>
+              </select>
+            </div>
+          </div>
+          <div class="form-group">
+            <label for="sa-admin-address">Address</label>
+            <input type="text" id="sa-admin-address" class="form-control">
+          </div>
+          <div class="form-group">
+            <label for="sa-admin-logo">Gym Logo URL (optional)</label>
+            <input type="text" id="sa-admin-logo" class="form-control" placeholder="https://...">
+          </div>
+          <div class="form-group">
+            <label for="sa-admin-desc">Description</label>
+            <textarea id="sa-admin-desc" class="form-control" rows="2"></textarea>
           </div>
         </div>
-
         <div class="modal-footer">
-          <button type="button" class="btn btn-outline" data-close="modal-book-trainer">Cancel</button>
-          <button type="submit" class="btn btn-primary"><i class="fa-solid fa-check"></i> Confirm Selection</button>
+          <button type="button" class="btn btn-outline" data-close="modal-sa-admin">Cancel</button>
+          <button type="submit" class="btn btn-primary">Save Admin</button>
         </div>
       </form>
     </div>
   </div>
 
-  <!-- ====================================================================
-       MODAL: ADD / EDIT MEMBER (ADMIN)
-       ==================================================================== -->
-  <div class="modal-overlay" id="modal-member">
+  <!-- ======================================================================
+       MODAL: TRAINER (admin only)
+       ====================================================================== -->
+  <div class="modal-overlay" id="modal-trainer">
     <div class="modal">
       <div class="modal-header">
-        <h3 id="modal-member-title">Add New Member</h3>
-        <button class="modal-close" data-close="modal-member">&times;</button>
+        <h3 id="modal-trainer-title">Add Trainer</h3>
+        <button class="modal-close" data-close="modal-trainer">&times;</button>
       </div>
-      <form id="form-member">
+      <form id="form-trainer">
         <div class="modal-body">
-          <input type="hidden" id="member-id">
-
+          <input type="hidden" id="trainer-id">
           <div class="form-group">
-            <label for="input-member-name">Full Name <span class="text-rose">*</span></label>
-            <input type="text" id="input-member-name" class="form-control" placeholder="e.g. Aarav Sharma" required>
+            <label for="trainer-name">Trainer Name <span class="text-rose">*</span></label>
+            <input type="text" id="trainer-name" class="form-control" required>
           </div>
-
           <div class="form-row">
             <div class="form-group col-6">
-              <label for="input-member-email">Email Address</label>
-              <input type="email" id="input-member-email" class="form-control" placeholder="member@example.com">
+              <label for="trainer-email">Login Email <span class="text-rose">*</span></label>
+              <input type="email" id="trainer-email" class="form-control" required>
             </div>
             <div class="form-group col-6">
-              <label for="input-member-phone">Phone Number</label>
-              <input type="text" id="input-member-phone" class="form-control" placeholder="+977 98XXXXXXXX">
+              <label for="trainer-pass">Password <span class="text-rose">*</span></label>
+              <input type="password" id="trainer-pass" class="form-control" placeholder="Min. 6 characters" required>
             </div>
           </div>
-
           <div class="form-row">
             <div class="form-group col-6">
-              <label for="input-member-plan">Membership Plan</label>
-              <select id="input-member-plan" class="form-select">
-                <option value="Premium VIP">Premium VIP</option>
-                <option value="Standard Fitness">Standard Fitness</option>
-                <option value="Basic Access">Basic Access</option>
-              </select>
+              <label for="trainer-spec">Specialization</label>
+              <input type="text" id="trainer-spec" class="form-control" placeholder="e.g. HIIT & Powerlifting">
             </div>
             <div class="form-group col-6">
-              <label for="input-member-status">Membership Status</label>
-              <select id="input-member-status" class="form-select">
-                <option value="Active">Active</option>
-                <option value="Expiring">Expiring</option>
-                <option value="Inactive">Inactive</option>
-              </select>
+              <label for="trainer-exp">Experience (yrs)</label>
+              <input type="number" id="trainer-exp" class="form-control" min="0" value="1">
             </div>
           </div>
-
           <div class="form-row">
             <div class="form-group col-6">
-              <label for="input-member-joindate">Join Date</label>
-              <input type="date" id="input-member-joindate" class="form-control">
+              <label for="trainer-phone">Phone</label>
+              <input type="text" id="trainer-phone" class="form-control">
             </div>
             <div class="form-group col-6">
-              <label for="input-member-expirydate">Expiry Date</label>
-              <input type="date" id="input-member-expirydate" class="form-control">
+              <label for="trainer-salary">Salary (NPR)</label>
+              <input type="number" id="trainer-salary" class="form-control" min="0" value="0">
             </div>
           </div>
-        </div>
-        <div class="modal-footer">
-          <button type="button" class="btn btn-outline" data-close="modal-member">Cancel</button>
-          <button type="submit" class="btn btn-primary">Save Member</button>
-        </div>
-      </form>
-    </div>
-  </div>
-
-  <!-- ====================================================================
-       MODAL: SCHEDULE CLASS (ADMIN)
-       ==================================================================== -->
-  <div class="modal-overlay" id="modal-class">
-    <div class="modal">
-      <div class="modal-header">
-        <h3>Schedule New Class</h3>
-        <button class="modal-close" data-close="modal-class">&times;</button>
-      </div>
-      <form id="form-class">
-        <div class="modal-body">
           <div class="form-group">
-            <label for="input-class-name">Class Title <span class="text-rose">*</span></label>
-            <input type="text" id="input-class-name" class="form-control" placeholder="e.g. HIIT Fat Burner" required>
+            <label for="trainer-certs">Certifications</label>
+            <input type="text" id="trainer-certs" class="form-control">
           </div>
-
-          <div class="form-row">
-            <div class="form-group col-6">
-              <label for="input-class-trainer">Trainer Name</label>
-              <input type="text" id="input-class-trainer" class="form-control" placeholder="e.g. Alex Morgan">
-            </div>
-            <div class="form-group col-6">
-              <label for="input-class-category">Category</label>
-              <select id="input-class-category" class="form-select">
-                <option value="Cardio">Cardio</option>
-                <option value="Strength">Strength</option>
-                <option value="Flexibility">Flexibility</option>
-                <option value="Dance">Dance</option>
-                <option value="CrossFit">CrossFit</option>
-                <option value="Spin">Spin</option>
-              </select>
-            </div>
-          </div>
-
-          <div class="form-row">
-            <div class="form-group col-6">
-              <label for="input-class-day">Day</label>
-              <select id="input-class-day" class="form-select">
-                <option value="Monday">Monday</option>
-                <option value="Tuesday">Tuesday</option>
-                <option value="Wednesday">Wednesday</option>
-                <option value="Thursday">Thursday</option>
-                <option value="Friday">Friday</option>
-                <option value="Saturday">Saturday</option>
-                <option value="Sunday">Sunday</option>
-              </select>
-            </div>
-            <div class="form-group col-6">
-              <label for="input-class-time">Time Slot</label>
-              <input type="text" id="input-class-time" class="form-control" placeholder="e.g. 06:30 AM - 07:30 AM">
-            </div>
-          </div>
-
           <div class="form-group">
-            <label for="input-class-capacity">Capacity</label>
-            <input type="number" id="input-class-capacity" class="form-control" value="20" min="1" max="100">
-          </div>
-        </div>
-        <div class="modal-footer">
-          <button type="button" class="btn btn-outline" data-close="modal-class">Cancel</button>
-          <button type="submit" class="btn btn-primary">Schedule Class</button>
-        </div>
-      </form>
-    </div>
-  </div>
-
-  <!-- ====================================================================
-       MODAL: RECORD PAYMENT (ADMIN)
-       ==================================================================== -->
-  <div class="modal-overlay" id="modal-payment">
-    <div class="modal">
-      <div class="modal-header">
-        <h3>Record Payment</h3>
-        <button class="modal-close" data-close="modal-payment">&times;</button>
-      </div>
-      <form id="form-payment">
-        <div class="modal-body">
-          <div class="form-group">
-            <label for="input-pay-member">Member <span class="text-rose">*</span></label>
-            <select id="input-pay-member" class="form-select" required>
-              <!-- Populated dynamically from the members directory -->
-            </select>
-          </div>
-
-          <div class="form-group">
-            <label for="input-pay-plan">Plan / Description</label>
-            <input type="text" id="input-pay-plan" class="form-control" placeholder="e.g. Standard Fitness Renewal">
-          </div>
-
-          <div class="form-row">
-            <div class="form-group col-6">
-              <label for="input-pay-amount">Amount (NPR) <span class="text-rose">*</span></label>
-              <input type="number" id="input-pay-amount" class="form-control" placeholder="0.00" min="0" step="0.01" required>
-            </div>
-            <div class="form-group col-6">
-              <label for="input-pay-method">Payment Method</label>
-              <select id="input-pay-method" class="form-select">
-                <option value="Cash">Cash</option>
-                <option value="eSewa Wallet">eSewa Wallet</option>
-                <option value="Khalti">Khalti</option>
-                <option value="Credit Card">Credit Card</option>
-                <option value="Bank Transfer">Bank Transfer</option>
-              </select>
-            </div>
-          </div>
-
-          <div class="form-group">
-            <label for="input-pay-status">Status</label>
-            <select id="input-pay-status" class="form-select">
-              <option value="Paid">Paid</option>
-              <option value="Pending">Pending</option>
+            <label for="trainer-status">Status</label>
+            <select id="trainer-status" class="form-select">
+              <option value="active">Active</option>
+              <option value="inactive">Inactive</option>
             </select>
           </div>
         </div>
         <div class="modal-footer">
-          <button type="button" class="btn btn-outline" data-close="modal-payment">Cancel</button>
-          <button type="submit" class="btn btn-primary">Record Payment</button>
+          <button type="button" class="btn btn-outline" data-close="modal-trainer">Cancel</button>
+          <button type="submit" class="btn btn-primary">Save Trainer</button>
         </div>
       </form>
     </div>
   </div>
 
-  <!-- ====================================================================
-       MODAL: ADD / EDIT EQUIPMENT (ADMIN)
-       ==================================================================== -->
-  <div class="modal-overlay" id="modal-equipment">
+  <!-- ======================================================================
+       MODAL: ADMIN PROFILE / MY GYM (admin edits own gym info)
+       ====================================================================== -->
+  <div class="modal-overlay" id="modal-admin-profile">
     <div class="modal">
       <div class="modal-header">
-        <h3 id="modal-equipment-title">Add Equipment</h3>
-        <button class="modal-close" data-close="modal-equipment">&times;</button>
+        <h3>My Gym Profile</h3>
+        <button class="modal-close" data-close="modal-admin-profile">&times;</button>
       </div>
-      <form id="form-equipment">
+      <form id="form-admin-profile">
         <div class="modal-body">
-          <input type="hidden" id="equipment-id">
-
           <div class="form-group">
-            <label for="input-equipment-name">Equipment Name <span class="text-rose">*</span></label>
-            <input type="text" id="input-equipment-name" class="form-control" placeholder="e.g. Smith Machine" required>
+            <label for="ap-gym-name">Gym Name <span class="text-rose">*</span></label>
+            <input type="text" id="ap-gym-name" class="form-control" required>
           </div>
-
-          <div class="form-row">
-            <div class="form-group col-6">
-              <label for="input-equipment-category">Category</label>
-              <select id="input-equipment-category" class="form-select">
-                <option value="Strength">Strength</option>
-                <option value="Cardio">Cardio</option>
-                <option value="Flexibility">Flexibility</option>
-                <option value="Functional">Functional</option>
-                <option value="Other">Other</option>
-              </select>
-            </div>
-            <div class="form-group col-6">
-              <label for="input-equipment-qty">Quantity</label>
-              <input type="number" id="input-equipment-qty" class="form-control" value="1" min="1" max="100">
-            </div>
-          </div>
-
-          <div class="form-row">
-            <div class="form-group col-6">
-              <label for="input-equipment-status">Condition</label>
-              <select id="input-equipment-status" class="form-select">
-                <option value="New">New</option>
-                <option value="Good">Good</option>
-                <option value="Needs Maintenance">Needs Maintenance</option>
-                <option value="Out of Service">Out of Service</option>
-              </select>
-            </div>
-            <div class="form-group col-6">
-              <label for="input-equipment-maintenance">Last Maintenance</label>
-              <input type="date" id="input-equipment-maintenance" class="form-control">
-            </div>
-          </div>
-
           <div class="form-group">
-            <label for="input-equipment-notes">Notes</label>
-            <input type="text" id="input-equipment-notes" class="form-control" placeholder="Optional maintenance / usage notes">
+            <label for="ap-logo">Gym Logo URL</label>
+            <input type="text" id="ap-logo" class="form-control" placeholder="https://...">
+            <p class="form-hint" id="ap-logo-preview-label"></p>
+          </div>
+          <div class="form-group">
+            <label for="ap-phone">Phone</label>
+            <input type="text" id="ap-phone" class="form-control">
+          </div>
+          <div class="form-group">
+            <label for="ap-address">Address</label>
+            <input type="text" id="ap-address" class="form-control">
+          </div>
+          <div class="form-group">
+            <label for="ap-description">Gym Description</label>
+            <textarea id="ap-description" class="form-control" rows="3"></textarea>
           </div>
         </div>
         <div class="modal-footer">
-          <button type="button" class="btn btn-outline" data-close="modal-equipment">Cancel</button>
-          <button type="submit" class="btn btn-primary">Save Equipment</button>
+          <button type="button" class="btn btn-outline" data-close="modal-admin-profile">Cancel</button>
+          <button type="submit" class="btn btn-primary">Save Profile</button>
         </div>
       </form>
     </div>
   </div>
 
-  <!-- ====================================================================
-       MODAL: ADD / EDIT MEMBERSHIP PLAN (ADMIN)
-       ==================================================================== -->
-  <div class="modal-overlay" id="modal-plan">
+  <!-- ======================================================================
+       MODAL: PRODUCT (admin)
+       ====================================================================== -->
+  <div class="modal-overlay" id="modal-product">
     <div class="modal">
       <div class="modal-header">
-        <h3 id="modal-plan-title">Add Membership Plan</h3>
-        <button class="modal-close" data-close="modal-plan">&times;</button>
+        <h3 id="modal-product-title">Add Product</h3>
+        <button class="modal-close" data-close="modal-product">&times;</button>
       </div>
-      <form id="form-plan">
+      <form id="form-product">
         <div class="modal-body">
-          <input type="hidden" id="plan-id">
-
-          <div class="form-row">
-            <div class="form-group col-6">
-              <label for="input-plan-name">Plan Name <span class="text-rose">*</span></label>
-              <input type="text" id="input-plan-name" class="form-control" placeholder="e.g. Standard Fitness" required>
-            </div>
-            <div class="form-group col-6">
-              <label for="input-plan-price">Price (NPR) <span class="text-rose">*</span></label>
-              <input type="number" id="input-plan-price" class="form-control" placeholder="2500" min="0" step="0.01" required>
-            </div>
-          </div>
-
-          <div class="form-row">
-            <div class="form-group col-6">
-              <label for="input-plan-duration">Duration</label>
-              <select id="input-plan-duration" class="form-select">
-                <option value="Monthly">Monthly</option>
-                <option value="Quarterly">Quarterly</option>
-                <option value="Yearly">Yearly</option>
-              </select>
-            </div>
-            <div class="form-group col-6">
-              <label for="input-plan-popular">Featured Plan</label>
-              <select id="input-plan-popular" class="form-select">
-                <option value="0">No</option>
-                <option value="1">Yes (Most Popular)</option>
-              </select>
-            </div>
-          </div>
-
+          <input type="hidden" id="product-id">
           <div class="form-group">
-            <label for="input-plan-features">Features (one per line)</label>
-            <textarea id="input-plan-features" class="form-control" rows="5" placeholder="Full gym floor access&#10;Unlimited group classes&#10;Locker room + showers"></textarea>
+            <label for="product-name">Product Name <span class="text-rose">*</span></label>
+            <input type="text" id="product-name" class="form-control" required>
+          </div>
+          <div class="form-row">
+            <div class="form-group col-6">
+              <label for="product-category">Category</label>
+              <select id="product-category" class="form-select">
+                <option>Supplement</option>
+                <option>Merchandise</option>
+                <option>Membership</option>
+                <option>Service</option>
+              </select>
+            </div>
+            <div class="form-group col-6">
+              <label for="product-price">Price (NPR) <span class="text-rose">*</span></label>
+              <input type="number" id="product-price" class="form-control" min="0" step="0.01" required>
+            </div>
+          </div>
+          <div class="form-row">
+            <div class="form-group col-6">
+              <label for="product-stock">Stock / Qty</label>
+              <input type="number" id="product-stock" class="form-control" min="0" value="1">
+            </div>
+            <div class="form-group col-6">
+              <label for="product-status">Status</label>
+              <select id="product-status" class="form-select">
+                <option value="active">Active</option>
+                <option value="inactive">Inactive</option>
+              </select>
+            </div>
+          </div>
+          <div class="form-group">
+            <label for="product-image">Image URL (optional)</label>
+            <input type="text" id="product-image" class="form-control" placeholder="https://...">
+          </div>
+          <div class="form-group">
+            <label for="product-desc">Description</label>
+            <textarea id="product-desc" class="form-control" rows="3"></textarea>
           </div>
         </div>
         <div class="modal-footer">
-          <button type="button" class="btn btn-outline" data-close="modal-plan">Cancel</button>
-          <button type="submit" class="btn btn-primary">Save Plan</button>
+          <button type="button" class="btn btn-outline" data-close="modal-product">Cancel</button>
+          <button type="submit" class="btn btn-primary">Save Product</button>
         </div>
       </form>
     </div>
   </div>
 
-  <!-- ====================================================================
-       MODAL: RECORD TRAINER SALARY (ADMIN)
-       ==================================================================== -->
-  <div class="modal-overlay" id="modal-salary">
+  <!-- ======================================================================
+       MODAL: USER (admin creates users for their gym)
+       ====================================================================== -->
+  <div class="modal-overlay" id="modal-user">
     <div class="modal">
       <div class="modal-header">
-        <h3>Record Trainer Salary</h3>
-        <button class="modal-close" data-close="modal-salary">&times;</button>
+        <h3 id="modal-user-title">Add User</h3>
+        <button class="modal-close" data-close="modal-user">&times;</button>
       </div>
-      <form id="form-salary">
+      <form id="form-user">
         <div class="modal-body">
+          <input type="hidden" id="user-id">
           <div class="form-group">
-            <label for="input-salary-trainer">Trainer <span class="text-rose">*</span></label>
-            <select id="input-salary-trainer" class="form-select" required>
-              <!-- Populated dynamically from approved trainers -->
-            </select>
+            <label for="user-name">Full Name <span class="text-rose">*</span></label>
+            <input type="text" id="user-name" class="form-control" required>
           </div>
-
           <div class="form-row">
             <div class="form-group col-6">
-              <label for="input-salary-amount">Amount (NPR) <span class="text-rose">*</span></label>
-              <input type="number" id="input-salary-amount" class="form-control" placeholder="40000" min="0" step="0.01" required>
+              <label for="user-email">Email <span class="text-rose">*</span></label>
+              <input type="email" id="user-email" class="form-control" required>
             </div>
             <div class="form-group col-6">
-              <label for="input-salary-month">Salary Month <span class="text-rose">*</span></label>
-              <input type="month" id="input-salary-month" class="form-control" required>
+              <label for="user-pass">Password <span class="text-rose">*</span></label>
+              <input type="password" id="user-pass" class="form-control" placeholder="Min. 6 characters" required>
             </div>
           </div>
-
           <div class="form-row">
             <div class="form-group col-6">
-              <label for="input-salary-status">Status</label>
-              <select id="input-salary-status" class="form-select">
-                <option value="Paid">Paid</option>
-                <option value="Pending">Pending</option>
-              </select>
+              <label for="user-phone">Phone</label>
+              <input type="text" id="user-phone" class="form-control">
             </div>
             <div class="form-group col-6">
-              <label for="input-salary-method">Payment Method</label>
-              <select id="input-salary-method" class="form-select">
-                <option value="Cash">Cash</option>
-                <option value="Bank Transfer">Bank Transfer</option>
-                <option value="eSewa Wallet">eSewa Wallet</option>
-                <option value="Khalti">Khalti</option>
-                <option value="Credit Card">Credit Card</option>
-              </select>
+              <label for="user-goal">Goal</label>
+              <input type="text" id="user-goal" class="form-control" placeholder="e.g. Muscle Hypertrophy">
             </div>
-          </div>
-
-          <div class="form-group">
-            <label for="input-salary-notes">Notes</label>
-            <input type="text" id="input-salary-notes" class="form-control" placeholder="e.g. Monthly salary">
           </div>
         </div>
         <div class="modal-footer">
-          <button type="button" class="btn btn-outline" data-close="modal-salary">Cancel</button>
-          <button type="submit" class="btn btn-primary">Record Payment</button>
+          <button type="button" class="btn btn-outline" data-close="modal-user">Cancel</button>
+          <button type="submit" class="btn btn-primary">Save User</button>
         </div>
       </form>
     </div>
   </div>
 
-  <!-- Toast Notification Container -->
-  <div id="toast-container" class="toast-container"></div>
+  <div class="toast-stack" id="toast-stack"></div>
 
-  <!-- Application Script -->
-  <script src="script.js?v=5"></script>
+  <script src="script.js?v=4"></script>
 </body>
 </html>
