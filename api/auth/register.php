@@ -53,8 +53,8 @@ if ($existing) {
         }
     }
     $token = bin2hex(random_bytes(32));
-    $stmt = db()->prepare('INSERT INTO users (name, email, password, phone, goal, admin_id, verification_token, verification_sent_at) VALUES (?, ?, ?, ?, ?, ?, ?, NOW())');
-    $stmt->execute([$name, $email, password_hash($password, PASSWORD_BCRYPT), $phone, $goal, $adminId, $token]);
+    $stmt = db()->prepare('INSERT INTO users (name, email, password, phone, goal, admin_id, member_code, verification_token, verification_sent_at) VALUES (?, ?, ?, ?, ?, ?, ?, ?, NOW())');
+    $stmt->execute([$name, $email, password_hash($password, PASSWORD_BCRYPT), $phone, $goal, $adminId, 'FP-' . strtoupper(substr(bin2hex(random_bytes(4)), 0, 6)), $token]);
     $id = (int)db()->lastInsertId();
 }
 

@@ -12,7 +12,7 @@
   <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.1/css/all.min.css">
   <link rel="icon" type="image/svg+xml" href="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24'%3E%3Crect width='24' height='24' rx='6' fill='%23ea580c'/%3E%3Cpath d='M6.5 6.5v11M17.5 6.5v11M4 9v6M20 9v6' stroke='white' stroke-width='1.8' stroke-linecap='round'/%3E%3C/svg%3E">
 
-  <link rel="stylesheet" href="style.css?v=6">
+  <link rel="stylesheet" href="style.css?v=7">
 </head>
 <body>
 
@@ -43,29 +43,16 @@
           <form id="form-login" class="auth-form-step active" novalidate>
             <div class="form-group">
               <label for="login-email">Email Address <span class="text-rose">*</span></label>
-              <input type="email" id="login-email" class="form-control" placeholder="e.g. admin@peakfitness.com" required>
+              <input type="email" id="login-email" class="form-control" placeholder="you@example.com" autocomplete="email" required>
             </div>
             <div class="form-group">
               <label for="login-password">Password <span class="text-rose">*</span></label>
-              <input type="password" id="login-password" class="form-control" placeholder="Enter your password" required>
+              <input type="password" id="login-password" class="form-control" placeholder="Enter your password" autocomplete="current-password" required>
             </div>
             <div class="auth-links-row">
               <a href="#" id="link-forgot">Forgot password?</a>
-              <a href="#" id="link-resend">Resend verification</a>
             </div>
-            <p class="auth-hint">
-              <i class="fa-solid fa-shield-halved"></i>
-              Your portal (Superadmin, Admin, Trainer or User) is detected automatically from your account.
-            </p>
-            <button type="submit" class="btn btn-primary btn-block">Log In</button>
-            <div class="demo-hint">
-              <i class="fa-solid fa-circle-info"></i>
-              <span><strong>Demo:</strong> superadmin / rijanpokhrel@superadmin.com &middot; Rijan@123</span>
-            </div>
-            <div class="demo-hint">
-              <i class="fa-solid fa-user-ninja"></i>
-              <span><strong>Trainer:</strong> alex@peakfitness.com &middot; Trainer@123</span>
-            </div>
+            <button type="submit" class="btn btn-primary btn-block">Sign In</button>
           </form>
 
           <form id="form-register" class="auth-form-step" novalidate>
@@ -107,14 +94,27 @@
           </form>
 
           <form id="form-forgot" class="auth-form-step" novalidate>
-            <h3 class="auth-step-title">Reset your password</h3>
-            <p class="auth-step-sub">Enter your account email and we'll send you a reset link (valid for 1 hour).</p>
-            <div class="form-group">
-              <label for="forgot-email">Email Address <span class="text-rose">*</span></label>
-              <input type="email" id="forgot-email" class="form-control" placeholder="you@example.com" required>
+            <h3 class="auth-step-title">Forgot your password?</h3>
+            <p class="auth-step-sub">Password resets are handled by the Superadmin. Contact them directly to reset your password.</p>
+            <div class="auth-info-box" id="forgot-info">
+              <i class="fa-solid fa-user-shield"></i>
+              <div>
+                <strong>Superadmin contact</strong>
+                <br><span id="forgot-sa-email">Loading...</span>
+              </div>
             </div>
-            <button type="submit" class="btn btn-primary btn-block">Send Reset Link</button>
             <button type="button" class="btn btn-ghost btn-block" id="back-to-login-forgot"><i class="fa-solid fa-arrow-left"></i> Back to Sign In</button>
+          </form>
+
+          <form id="form-verify" class="auth-form-step" novalidate>
+            <h3 class="auth-step-title">Verify your email</h3>
+            <p class="auth-step-sub">Please verify your email address before signing in. We'll send a verification link to your inbox.</p>
+            <div class="form-group">
+              <label for="verify-email">Email Address <span class="text-rose">*</span></label>
+              <input type="email" id="verify-email" class="form-control" placeholder="you@example.com" required>
+            </div>
+            <button type="submit" class="btn btn-primary btn-block">Send Verification Link</button>
+            <button type="button" class="btn btn-ghost btn-block" id="back-to-login-verify"><i class="fa-solid fa-arrow-left"></i> Back to Sign In</button>
           </form>
 
           <form id="form-reset" class="auth-form-step" novalidate>
@@ -376,6 +376,239 @@
           </div>
         </section>
 
+        <section id="tab-admin-equipment" class="tab-content">
+          <div class="page-header">
+            <div>
+              <h1 class="page-title">Gym Equipment</h1>
+              <p class="page-subtitle">Machines, tools and facilities at your gym. These are shown to users who browse or follow your gym.</p>
+            </div>
+            <div class="header-actions">
+              <button class="btn btn-primary" id="btn-add-equipment"><i class="fa-solid fa-plus"></i> Add Equipment</button>
+            </div>
+          </div>
+          <div class="panel">
+            <div class="panel-header">
+              <div class="panel-title-group">
+                <h3><i class="fa-solid fa-dumbbell text-orange"></i> Your Equipment</h3>
+              </div>
+            </div>
+            <div class="panel-body p-0">
+              <div class="table-responsive">
+                <table class="data-table">
+                  <thead>
+                    <tr>
+                      <th>Equipment</th>
+                      <th>Category</th>
+                      <th>Qty</th>
+                      <th>Status</th>
+                      <th>Added</th>
+                      <th class="text-right">Actions</th>
+                    </tr>
+                  </thead>
+                  <tbody id="admin-equipment-tbody"></tbody>
+                </table>
+              </div>
+            </div>
+          </div>
+        </section>
+
+        <section id="tab-admin-attendance" class="tab-content">
+          <div class="page-header">
+            <div>
+              <h1 class="page-title">Member Attendance</h1>
+              <p class="page-subtitle">Daily check-ins and attendance log for your gym.</p>
+            </div>
+            <div class="header-actions">
+              <button class="btn btn-primary" id="btn-admin-checkin"><i class="fa-solid fa-fingerprint"></i> Check In Member</button>
+            </div>
+          </div>
+          <div class="metrics-grid" id="admin-att-stats-grid"></div>
+          <div class="panel">
+            <div class="panel-header">
+              <div class="panel-title-group">
+                <h3><i class="fa-solid fa-calendar-check text-orange"></i> Check-in Log</h3>
+              </div>
+              <div style="display:flex;gap:8px;flex-wrap:wrap;">
+                <input type="date" id="admin-att-date" class="form-control filter-input">
+                <select id="admin-att-user" class="form-select filter-select"></select>
+              </div>
+            </div>
+            <div class="panel-body p-0">
+              <div class="table-responsive">
+                <table class="data-table">
+                  <thead>
+                    <tr>
+                      <th>Member</th>
+                      <th>Member Code</th>
+                      <th>Checked In</th>
+                      <th>Via</th>
+                    </tr>
+                  </thead>
+                  <tbody id="admin-attendance-tbody"></tbody>
+                </table>
+              </div>
+            </div>
+          </div>
+        </section>
+
+        <section id="tab-admin-progress" class="tab-content">
+          <div class="page-header">
+            <div>
+              <h1 class="page-title">Fitness Progress</h1>
+              <p class="page-subtitle">Track weight, body fat and measurements for each member.</p>
+            </div>
+            <div class="header-actions">
+              <button class="btn btn-primary" id="btn-add-progress"><i class="fa-solid fa-plus"></i> Add Record</button>
+            </div>
+          </div>
+          <div class="panel">
+            <div class="panel-header">
+              <div class="panel-title-group">
+                <h3><i class="fa-solid fa-heart-pulse text-orange"></i> Select Member</h3>
+              </div>
+              <select id="admin-progress-user" class="form-select filter-select"></select>
+            </div>
+            <div class="panel-body">
+              <div class="metrics-grid" id="admin-progress-summary"></div>
+            </div>
+            <div class="panel-body p-0">
+              <div class="table-responsive">
+                <table class="data-table">
+                  <thead>
+                    <tr>
+                      <th>Date</th><th>Weight</th><th>Body Fat</th><th>BMI</th><th>Chest</th><th>Waist</th><th>Arms</th><th>Notes</th><th class="text-right">Actions</th>
+                    </tr>
+                  </thead>
+                  <tbody id="admin-progress-tbody"></tbody>
+                </table>
+              </div>
+            </div>
+          </div>
+        </section>
+
+        <section id="tab-admin-workouts" class="tab-content">
+          <div class="page-header">
+            <div>
+              <h1 class="page-title">Workout Plans</h1>
+              <p class="page-subtitle">Build routines with exercises and assign them to members.</p>
+            </div>
+            <div class="header-actions">
+              <button class="btn btn-primary" id="btn-add-workout"><i class="fa-solid fa-plus"></i> New Workout Plan</button>
+            </div>
+          </div>
+          <div class="plans-grid admin-plans-grid" id="admin-workouts-grid"></div>
+        </section>
+
+        <section id="tab-admin-diets" class="tab-content">
+          <div class="page-header">
+            <div>
+              <h1 class="page-title">Diet / Nutrition Plans</h1>
+              <p class="page-subtitle">Create meal plans and assign them to members.</p>
+            </div>
+            <div class="header-actions">
+              <button class="btn btn-primary" id="btn-add-diet"><i class="fa-solid fa-plus"></i> New Diet Plan</button>
+            </div>
+          </div>
+          <div class="plans-grid admin-plans-grid" id="admin-diets-grid"></div>
+        </section>
+
+        <section id="tab-admin-classes" class="tab-content">
+          <div class="page-header">
+            <div>
+              <h1 class="page-title">Group Classes</h1>
+              <p class="page-subtitle">Schedule classes, set capacity and manage bookings.</p>
+            </div>
+            <div class="header-actions">
+              <button class="btn btn-primary" id="btn-add-class"><i class="fa-solid fa-plus"></i> New Class</button>
+            </div>
+          </div>
+          <div class="plans-grid admin-plans-grid" id="admin-classes-grid"></div>
+        </section>
+
+        <section id="tab-admin-invoices" class="tab-content">
+          <div class="page-header">
+            <div>
+              <h1 class="page-title">Billing &amp; Invoices</h1>
+              <p class="page-subtitle">Issue invoices to members and record payments.</p>
+            </div>
+            <div class="header-actions">
+              <button class="btn btn-primary" id="btn-add-invoice"><i class="fa-solid fa-plus"></i> New Invoice</button>
+            </div>
+          </div>
+          <div class="metrics-grid" id="admin-invoice-stats"></div>
+          <div class="panel">
+            <div class="panel-header">
+              <div class="panel-title-group">
+                <h3><i class="fa-solid fa-file-invoice text-orange"></i> All Invoices</h3>
+              </div>
+            </div>
+            <div class="panel-body p-0">
+              <div class="table-responsive">
+                <table class="data-table">
+                  <thead>
+                    <tr>
+                      <th>Invoice No</th><th>Member</th><th>Title</th><th>Amount</th><th>Paid</th><th>Status</th><th>Due</th><th class="text-right">Actions</th>
+                    </tr>
+                  </thead>
+                  <tbody id="admin-invoices-tbody"></tbody>
+                </table>
+              </div>
+            </div>
+          </div>
+        </section>
+
+        <section id="tab-admin-announcements" class="tab-content">
+          <div class="page-header">
+            <div>
+              <h1 class="page-title">Announcements</h1>
+              <p class="page-subtitle">Post gym-wide news. Members following your gym get notified.</p>
+            </div>
+            <div class="header-actions">
+              <button class="btn btn-primary" id="btn-add-announcement"><i class="fa-solid fa-bullhorn"></i> New Announcement</button>
+            </div>
+          </div>
+          <div class="announcements-list" id="admin-announcements-list"></div>
+        </section>
+
+        <section id="tab-admin-reports" class="tab-content">
+          <div class="page-header">
+            <div>
+              <h1 class="page-title">Reports &amp; Analytics</h1>
+              <p class="page-subtitle">Revenue, member growth, attendance and class occupancy.</p>
+            </div>
+            <div class="header-actions">
+              <button class="btn btn-outline" id="btn-csv-revenue"><i class="fa-solid fa-download"></i> Revenue CSV</button>
+              <button class="btn btn-outline" id="btn-csv-attendance"><i class="fa-solid fa-download"></i> Attendance CSV</button>
+            </div>
+          </div>
+          <div class="metrics-grid" id="admin-reports-kpis"></div>
+          <div class="charts-grid">
+            <div class="panel">
+              <div class="panel-header"><h3><i class="fa-solid fa-chart-line text-orange"></i> Monthly Revenue</h3></div>
+              <div class="panel-body"><canvas id="chart-revenue" height="220"></canvas></div>
+            </div>
+            <div class="panel">
+              <div class="panel-header"><h3><i class="fa-solid fa-chart-column text-orange"></i> Attendance (last 14 days)</h3></div>
+              <div class="panel-body"><canvas id="chart-attendance" height="220"></canvas></div>
+            </div>
+            <div class="panel">
+              <div class="panel-header"><h3><i class="fa-solid fa-chart-bar text-orange"></i> Member Growth</h3></div>
+              <div class="panel-body"><canvas id="chart-members" height="220"></canvas></div>
+            </div>
+            <div class="panel">
+              <div class="panel-header"><h3><i class="fa-solid fa-table text-orange"></i> Class Occupancy</h3></div>
+              <div class="panel-body p-0">
+                <div class="table-responsive">
+                  <table class="data-table">
+                    <thead><tr><th>Class</th><th>Schedule</th><th>Capacity</th><th>Booked</th><th>Fill</th></tr></thead>
+                    <tbody id="admin-reports-classes-tbody"></tbody>
+                  </table>
+                </div>
+              </div>
+            </div>
+          </div>
+        </section>
+
         <!-- ============================================================
              TRAINER PORTAL
              ============================================================ -->
@@ -418,6 +651,101 @@
           </div>
         </section>
 
+        <section id="tab-trainer-attendance" class="tab-content">
+          <div class="page-header">
+            <div>
+              <h1 class="page-title">Attendance</h1>
+              <p class="page-subtitle">Check in members and review the gym's attendance log.</p>
+            </div>
+            <div class="header-actions">
+              <button class="btn btn-primary" id="btn-trainer-checkin"><i class="fa-solid fa-fingerprint"></i> Check In Member</button>
+            </div>
+          </div>
+          <div class="panel">
+            <div class="panel-header">
+              <div class="panel-title-group">
+                <h3><i class="fa-solid fa-calendar-check text-amber"></i> Check-in Log</h3>
+              </div>
+              <input type="date" id="trainer-att-date" class="form-control filter-input">
+            </div>
+            <div class="panel-body p-0">
+              <div class="table-responsive">
+                <table class="data-table">
+                  <thead>
+                    <tr><th>Member</th><th>Member Code</th><th>Checked In</th><th>Via</th></tr>
+                  </thead>
+                  <tbody id="trainer-attendance-tbody"></tbody>
+                </table>
+              </div>
+            </div>
+          </div>
+        </section>
+
+        <section id="tab-trainer-members" class="tab-content">
+          <div class="page-header">
+            <div>
+              <h1 class="page-title">My Members</h1>
+              <p class="page-subtitle">Members of your gym and their member codes.</p>
+            </div>
+          </div>
+          <div class="panel">
+            <div class="panel-header">
+              <div class="panel-title-group">
+                <h3><i class="fa-solid fa-users text-amber"></i> Members</h3>
+              </div>
+            </div>
+            <div class="panel-body p-0">
+              <div class="table-responsive">
+                <table class="data-table">
+                  <thead>
+                    <tr><th>Member</th><th>Email</th><th>Phone</th><th>Goal</th><th>Member Code</th><th>Joined</th></tr>
+                  </thead>
+                  <tbody id="trainer-members-list-tbody"></tbody>
+                </table>
+              </div>
+            </div>
+          </div>
+        </section>
+
+        <section id="tab-trainer-workouts" class="tab-content">
+          <div class="page-header">
+            <div>
+              <h1 class="page-title">Workout Plans</h1>
+              <p class="page-subtitle">Create routines with exercises and assign them to members.</p>
+            </div>
+            <div class="header-actions">
+              <button class="btn btn-primary" id="btn-trainer-add-workout"><i class="fa-solid fa-plus"></i> New Workout Plan</button>
+            </div>
+          </div>
+          <div class="plans-grid admin-plans-grid" id="trainer-workouts-grid"></div>
+        </section>
+
+        <section id="tab-trainer-diets" class="tab-content">
+          <div class="page-header">
+            <div>
+              <h1 class="page-title">Diet Plans</h1>
+              <p class="page-subtitle">Create meal plans and assign them to members.</p>
+            </div>
+            <div class="header-actions">
+              <button class="btn btn-primary" id="btn-trainer-add-diet"><i class="fa-solid fa-plus"></i> New Diet Plan</button>
+            </div>
+          </div>
+          <div class="plans-grid admin-plans-grid" id="trainer-diets-grid"></div>
+        </section>
+
+        <section id="tab-trainer-classes" class="tab-content">
+          <div class="page-header">
+            <div>
+              <h1 class="page-title">Group Classes</h1>
+              <p class="page-subtitle">Schedule classes, set capacity and view rosters.</p>
+            </div>
+            <div class="header-actions">
+              <button class="btn btn-primary" id="btn-trainer-add-class"><i class="fa-solid fa-plus"></i> New Class</button>
+            </div>
+          </div>
+          <div class="plans-grid admin-plans-grid" id="trainer-classes-grid"></div>
+        </section>
+
         <!-- ============================================================
              USER PORTAL
              ============================================================ -->
@@ -425,16 +753,32 @@
           <div class="page-header">
             <div>
               <h1 class="page-title" id="user-dash-title">Member Dashboard</h1>
-              <p class="page-subtitle">Track your selected gyms and browse products.</p>
+              <p class="page-subtitle">Your selected gyms, their products and your account.</p>
+            </div>
+            <div class="header-actions">
+              <button class="btn btn-outline" id="btn-user-changepass"><i class="fa-solid fa-key"></i> Change Password</button>
             </div>
           </div>
           <div class="metrics-grid" id="user-metrics-grid"></div>
           <div class="panel" style="margin-top:24px;">
             <div class="panel-header">
-              <h3><i class="fa-solid fa-house text-amber"></i> Home Gym</h3>
+              <div class="panel-title-group">
+                <h3><i class="fa-solid fa-house text-amber"></i> Home Gym</h3>
+              </div>
             </div>
             <div class="panel-body" id="user-home-gym-box">
               <p class="text-muted">No home gym assigned.</p>
+            </div>
+          </div>
+          <div class="panel" style="margin-top:24px;">
+            <div class="panel-header">
+              <div class="panel-title-group">
+                <h3><i class="fa-solid fa-heart text-amber"></i> My Gyms</h3>
+              </div>
+              <a href="#" class="btn btn-ghost btn-sm" id="link-user-browse-gyms"><i class="fa-solid fa-magnifying-glass"></i> Browse More Gyms</a>
+            </div>
+            <div class="panel-body">
+              <div class="gyms-grid" id="user-my-gyms-grid"></div>
             </div>
           </div>
         </section>
@@ -488,6 +832,181 @@
             </div>
           </div>
         </section>
+
+        <section id="tab-user-equipment" class="tab-content">
+          <div class="page-header">
+            <div>
+              <h1 class="page-title">Gym Equipment</h1>
+              <p class="page-subtitle">Machines, tools and facilities available at the selected gym.</p>
+            </div>
+          </div>
+          <div class="panel">
+            <div class="panel-header">
+              <div class="panel-title-group">
+                <h3><i class="fa-solid fa-dumbbell text-amber"></i> Select a Gym</h3>
+              </div>
+              <select id="user-equipment-gym-select" class="form-select filter-select"></select>
+            </div>
+            <div class="panel-body">
+              <div class="equipment-grid" id="user-equipment-grid"></div>
+            </div>
+          </div>
+        </section>
+
+        <section id="tab-user-attendance" class="tab-content">
+          <div class="page-header">
+            <div>
+              <h1 class="page-title">My Attendance</h1>
+              <p class="page-subtitle">Check in when you arrive. Your member code is shown below.</p>
+            </div>
+            <div class="header-actions">
+              <button class="btn btn-primary" id="btn-user-checkin"><i class="fa-solid fa-fingerprint"></i> Check In Now</button>
+            </div>
+          </div>
+          <div class="panel" id="user-member-code-panel">
+            <div class="panel-header">
+              <div class="panel-title-group">
+                <h3><i class="fa-solid fa-id-card text-amber"></i> Your Member Code</h3>
+              </div>
+            </div>
+            <div class="panel-body" id="user-member-code-box"></div>
+          </div>
+          <div class="panel" style="margin-top:24px;">
+            <div class="panel-header">
+              <div class="panel-title-group">
+                <h3><i class="fa-solid fa-calendar-check text-amber"></i> Check-in History</h3>
+              </div>
+            </div>
+            <div class="panel-body p-0">
+              <div class="table-responsive">
+                <table class="data-table">
+                  <thead>
+                    <tr><th>Gym</th><th>Checked In</th><th>Via</th></tr>
+                  </thead>
+                  <tbody id="user-attendance-tbody"></tbody>
+                </table>
+              </div>
+            </div>
+          </div>
+        </section>
+
+        <section id="tab-user-progress" class="tab-content">
+          <div class="page-header">
+            <div>
+              <h1 class="page-title">My Progress</h1>
+              <p class="page-subtitle">Log your weight, body fat and measurements to track gains.</p>
+            </div>
+            <div class="header-actions">
+              <button class="btn btn-primary" id="btn-add-my-progress"><i class="fa-solid fa-plus"></i> Log Entry</button>
+            </div>
+          </div>
+          <div class="metrics-grid" id="user-progress-summary"></div>
+          <div class="panel" style="margin-top:24px;">
+            <div class="panel-header">
+              <div class="panel-title-group">
+                <h3><i class="fa-solid fa-chart-line text-amber"></i> Weight Trend</h3>
+              </div>
+            </div>
+            <div class="panel-body"><canvas id="chart-user-progress" height="200"></canvas></div>
+          </div>
+          <div class="panel" style="margin-top:24px;">
+            <div class="panel-header">
+              <div class="panel-title-group">
+                <h3><i class="fa-solid fa-table text-amber"></i> Entries</h3>
+              </div>
+            </div>
+            <div class="panel-body p-0">
+              <div class="table-responsive">
+                <table class="data-table">
+                  <thead>
+                    <tr><th>Date</th><th>Weight</th><th>Body Fat</th><th>BMI</th><th>Chest</th><th>Waist</th><th>Arms</th><th>Notes</th></tr>
+                  </thead>
+                  <tbody id="user-progress-tbody"></tbody>
+                </table>
+              </div>
+            </div>
+          </div>
+        </section>
+
+        <section id="tab-user-workouts" class="tab-content">
+          <div class="page-header">
+            <div>
+              <h1 class="page-title">My Workout Plans</h1>
+              <p class="page-subtitle">Routines assigned to you by your gym's trainers.</p>
+            </div>
+          </div>
+          <div id="user-workouts-grid"></div>
+        </section>
+
+        <section id="tab-user-diets" class="tab-content">
+          <div class="page-header">
+            <div>
+              <h1 class="page-title">My Diet Plans</h1>
+              <p class="page-subtitle">Nutrition plans assigned to you by your gym.</p>
+            </div>
+          </div>
+          <div id="user-diets-grid"></div>
+        </section>
+
+        <section id="tab-user-classes" class="tab-content">
+          <div class="page-header">
+            <div>
+              <h1 class="page-title">Class Booking</h1>
+              <p class="page-subtitle">Book slots in group classes at the gyms you follow.</p>
+            </div>
+          </div>
+          <div class="panel">
+            <div class="panel-header">
+              <div class="panel-title-group">
+                <h3><i class="fa-solid fa-calendar-day text-amber"></i> Select a Gym</h3>
+              </div>
+              <select id="user-class-gym-select" class="form-select filter-select"></select>
+            </div>
+            <div class="panel-body">
+              <div class="plans-grid" id="user-classes-grid"></div>
+            </div>
+          </div>
+        </section>
+
+        <section id="tab-user-invoices" class="tab-content">
+          <div class="page-header">
+            <div>
+              <h1 class="page-title">My Invoices</h1>
+              <p class="page-subtitle">Membership and service bills from the gyms you follow.</p>
+            </div>
+          </div>
+          <div class="metrics-grid" id="user-invoice-stats"></div>
+          <div class="panel" style="margin-top:24px;">
+            <div class="panel-header">
+              <div class="panel-title-group">
+                <h3><i class="fa-solid fa-file-invoice text-amber"></i> Billing History</h3>
+              </div>
+            </div>
+            <div class="panel-body p-0">
+              <div class="table-responsive">
+                <table class="data-table">
+                  <thead>
+                    <tr><th>Invoice No</th><th>Gym</th><th>Title</th><th>Amount</th><th>Paid</th><th>Status</th><th>Due Date</th><th>Paid At</th></tr>
+                  </thead>
+                  <tbody id="user-invoices-tbody"></tbody>
+                </table>
+              </div>
+            </div>
+          </div>
+        </section>
+
+        <section id="tab-user-notifications" class="tab-content">
+          <div class="page-header">
+            <div>
+              <h1 class="page-title">Notifications</h1>
+              <p class="page-subtitle">Announcements, class bookings and billing updates.</p>
+            </div>
+            <div class="header-actions">
+              <button class="btn btn-outline" id="btn-mark-all-read"><i class="fa-solid fa-check-double"></i> Mark All Read</button>
+            </div>
+          </div>
+          <div class="notifications-list" id="user-notifications-list"></div>
+        </section>
       </main>
     </div>
   </div>
@@ -540,8 +1059,10 @@
             <input type="text" id="sa-admin-address" class="form-control">
           </div>
           <div class="form-group">
-            <label for="sa-admin-logo">Gym Logo URL (optional)</label>
-            <input type="text" id="sa-admin-logo" class="form-control" placeholder="https://...">
+            <label for="sa-admin-logo-file">Gym Logo <span class="text-rose">*</span></label>
+            <input type="file" id="sa-admin-logo-file" class="form-control" accept="image/*">
+            <input type="hidden" id="sa-admin-logo">
+            <div class="logo-upload-preview" id="sa-admin-logo-preview"><span class="text-muted">Upload the gym logo (PNG, JPG or WEBP, max 2 MB).</span></div>
           </div>
           <div class="form-group">
             <label for="sa-admin-desc">Description</label>
@@ -638,8 +1159,9 @@
             <input type="text" id="ap-gym-name" class="form-control" required>
           </div>
           <div class="form-group">
-            <label for="ap-logo">Gym Logo URL</label>
-            <input type="text" id="ap-logo" class="form-control" placeholder="https://...">
+            <label for="ap-logo-file">Gym Logo</label>
+            <input type="file" id="ap-logo-file" class="form-control" accept="image/*">
+            <input type="hidden" id="ap-logo">
             <p class="form-hint" id="ap-logo-preview-label"></p>
           </div>
           <div class="form-group">
@@ -769,8 +1291,546 @@
     </div>
   </div>
 
+  <!-- ======================================================================
+       MODAL: EQUIPMENT (admin)
+       ====================================================================== -->
+  <div class="modal-overlay" id="modal-equipment">
+    <div class="modal">
+      <div class="modal-header">
+        <h3 id="modal-equipment-title">Add Equipment</h3>
+        <button class="modal-close" data-close="modal-equipment">&times;</button>
+      </div>
+      <form id="form-equipment">
+        <div class="modal-body">
+          <input type="hidden" id="equipment-id">
+          <div class="form-group">
+            <label for="equipment-name">Equipment Name <span class="text-rose">*</span></label>
+            <input type="text" id="equipment-name" class="form-control" placeholder="e.g. Treadmill, Smith Machine" required>
+          </div>
+          <div class="form-row">
+            <div class="form-group col-6">
+              <label for="equipment-category">Category</label>
+              <input type="text" id="equipment-category" class="form-control" list="equipment-categories" placeholder="e.g. Cardio">
+              <datalist id="equipment-categories">
+                <option value="Cardio"></option>
+                <option value="Strength"></option>
+                <option value="Functional"></option>
+                <option value="Flexibility"></option>
+                <option value="Machines"></option>
+                <option value="Recovery"></option>
+              </datalist>
+            </div>
+            <div class="form-group col-6">
+              <label for="equipment-quantity">Quantity</label>
+              <input type="number" id="equipment-quantity" class="form-control" min="1" value="1">
+            </div>
+          </div>
+          <div class="form-group">
+            <label for="equipment-status">Status</label>
+            <select id="equipment-status" class="form-select">
+              <option value="active">Active</option>
+              <option value="inactive">Inactive</option>
+            </select>
+          </div>
+          <div class="form-group">
+            <label for="equipment-desc">Description</label>
+            <textarea id="equipment-desc" class="form-control" rows="3"></textarea>
+          </div>
+        </div>
+        <div class="modal-footer">
+          <button type="button" class="btn btn-outline" data-close="modal-equipment">Cancel</button>
+          <button type="submit" class="btn btn-primary">Save Equipment</button>
+        </div>
+      </form>
+    </div>
+  </div>
+
+  <!-- ======================================================================
+       MODAL: CHANGE PASSWORD (user, verified through Gmail)
+       ====================================================================== -->
+  <div class="modal-overlay" id="modal-user-changepass">
+    <div class="modal">
+      <div class="modal-header">
+        <h3>Change Password</h3>
+        <button class="modal-close" data-close="modal-user-changepass">&times;</button>
+      </div>
+      <div class="modal-body">
+        <p class="text-muted">A verification link will be sent to <strong id="cp-email-display"></strong>. Open it in your email to set a new password. The link is valid for 1 hour.</p>
+      </div>
+      <div class="modal-footer">
+        <button type="button" class="btn btn-outline" data-close="modal-user-changepass">Cancel</button>
+        <button type="button" class="btn btn-primary" id="btn-cp-send"><i class="fa-solid fa-paper-plane"></i> Send Verification Link</button>
+      </div>
+    </div>
+  </div>
+
+  <!-- ======================================================================
+       MODAL: CHECK-IN MEMBER (admin / trainer)
+       ====================================================================== -->
+  <div class="modal-overlay" id="modal-checkin">
+    <div class="modal">
+      <div class="modal-header">
+        <h3><i class="fa-solid fa-fingerprint"></i> Check In Member</h3>
+        <button class="modal-close" data-close="modal-checkin">&times;</button>
+      </div>
+      <div class="modal-body">
+        <p class="text-muted">Enter the member's code (e.g. <strong>FP-A6BAD2</strong>) and press check in. One check-in per member per day.</p>
+        <div class="form-group">
+          <label for="checkin-code">Member Code <span class="text-rose">*</span></label>
+          <input type="text" id="checkin-code" class="form-control" placeholder="FP-XXXXXX" style="text-transform:uppercase;">
+        </div>
+        <div class="auth-divider"><span>or pick a member</span></div>
+        <div class="form-group">
+          <label for="checkin-user">Member</label>
+          <select id="checkin-user" class="form-select">
+            <option value="">-- Select member --</option>
+          </select>
+        </div>
+      </div>
+      <div class="modal-footer">
+        <button type="button" class="btn btn-outline" data-close="modal-checkin">Cancel</button>
+        <button type="button" class="btn btn-primary" id="btn-do-checkin"><i class="fa-solid fa-fingerprint"></i> Check In</button>
+      </div>
+    </div>
+  </div>
+
+  <!-- ======================================================================
+       MODAL: PROGRESS RECORD (admin adds/edits a member's progress)
+       ====================================================================== -->
+  <div class="modal-overlay" id="modal-progress">
+    <div class="modal">
+      <div class="modal-header">
+        <h3 id="modal-progress-title">Add Progress Record</h3>
+        <button class="modal-close" data-close="modal-progress">&times;</button>
+      </div>
+      <form id="form-progress">
+        <div class="modal-body">
+          <input type="hidden" id="progress-id">
+          <div class="form-group">
+            <label for="progress-user">Member <span class="text-rose">*</span></label>
+            <select id="progress-user" class="form-select"></select>
+          </div>
+          <div class="form-group">
+            <label for="progress-date">Date <span class="text-rose">*</span></label>
+            <input type="date" id="progress-date" class="form-control" required>
+          </div>
+          <div class="form-row">
+            <div class="form-group col-6"><label for="progress-weight">Weight (kg)</label><input type="number" step="0.1" id="progress-weight" class="form-control"></div>
+            <div class="form-group col-6"><label for="progress-bodyfat">Body Fat (%)</label><input type="number" step="0.1" id="progress-bodyfat" class="form-control"></div>
+          </div>
+          <div class="form-row">
+            <div class="form-group col-6"><label for="progress-bmi">BMI</label><input type="number" step="0.1" id="progress-bmi" class="form-control"></div>
+            <div class="form-group col-6"><label for="progress-chest">Chest (cm)</label><input type="number" step="0.1" id="progress-chest" class="form-control"></div>
+          </div>
+          <div class="form-row">
+            <div class="form-group col-6"><label for="progress-waist">Waist (cm)</label><input type="number" step="0.1" id="progress-waist" class="form-control"></div>
+            <div class="form-group col-6"><label for="progress-arms">Arms (cm)</label><input type="number" step="0.1" id="progress-arms" class="form-control"></div>
+          </div>
+          <div class="form-group">
+            <label for="progress-notes">Notes</label>
+            <textarea id="progress-notes" class="form-control" rows="2"></textarea>
+          </div>
+        </div>
+        <div class="modal-footer">
+          <button type="button" class="btn btn-outline" data-close="modal-progress">Cancel</button>
+          <button type="submit" class="btn btn-primary">Save Record</button>
+        </div>
+      </form>
+    </div>
+  </div>
+
+  <!-- ======================================================================
+       MODAL: USER LOGS OWN PROGRESS
+       ====================================================================== -->
+  <div class="modal-overlay" id="modal-my-progress">
+    <div class="modal">
+      <div class="modal-header">
+        <h3>Log Progress</h3>
+        <button class="modal-close" data-close="modal-my-progress">&times;</button>
+      </div>
+      <form id="form-my-progress">
+        <div class="modal-body">
+          <div class="form-group">
+            <label for="myprogress-date">Date <span class="text-rose">*</span></label>
+            <input type="date" id="myprogress-date" class="form-control" required>
+          </div>
+          <div class="form-row">
+            <div class="form-group col-6"><label for="myprogress-weight">Weight (kg)</label><input type="number" step="0.1" id="myprogress-weight" class="form-control"></div>
+            <div class="form-group col-6"><label for="myprogress-bodyfat">Body Fat (%)</label><input type="number" step="0.1" id="myprogress-bodyfat" class="form-control"></div>
+          </div>
+          <div class="form-row">
+            <div class="form-group col-6"><label for="myprogress-bmi">BMI</label><input type="number" step="0.1" id="myprogress-bmi" class="form-control"></div>
+            <div class="form-group col-6"><label for="myprogress-chest">Chest (cm)</label><input type="number" step="0.1" id="myprogress-chest" class="form-control"></div>
+          </div>
+          <div class="form-row">
+            <div class="form-group col-6"><label for="myprogress-waist">Waist (cm)</label><input type="number" step="0.1" id="myprogress-waist" class="form-control"></div>
+            <div class="form-group col-6"><label for="myprogress-arms">Arms (cm)</label><input type="number" step="0.1" id="myprogress-arms" class="form-control"></div>
+          </div>
+          <div class="form-group">
+            <label for="myprogress-notes">Notes</label>
+            <textarea id="myprogress-notes" class="form-control" rows="2"></textarea>
+          </div>
+        </div>
+        <div class="modal-footer">
+          <button type="button" class="btn btn-outline" data-close="modal-my-progress">Cancel</button>
+          <button type="submit" class="btn btn-primary">Save Entry</button>
+        </div>
+      </form>
+    </div>
+  </div>
+
+  <!-- ======================================================================
+       MODAL: WORKOUT PLAN EDITOR (admin / trainer)
+       ====================================================================== -->
+  <div class="modal-overlay" id="modal-workout">
+    <div class="modal modal-lg">
+      <div class="modal-header">
+        <h3 id="modal-workout-title">New Workout Plan</h3>
+        <button class="modal-close" data-close="modal-workout">&times;</button>
+      </div>
+      <form id="form-workout">
+        <div class="modal-body">
+          <input type="hidden" id="workout-id">
+          <div class="form-row">
+            <div class="form-group col-8">
+              <label for="workout-title">Plan Title <span class="text-rose">*</span></label>
+              <input type="text" id="workout-title" class="form-control" required>
+            </div>
+            <div class="form-group col-4">
+              <label for="workout-days">Days / Week</label>
+              <input type="number" id="workout-days" class="form-control" min="1" max="7" value="3">
+            </div>
+          </div>
+          <div class="form-row">
+            <div class="form-group col-6">
+              <label for="workout-difficulty">Difficulty</label>
+              <select id="workout-difficulty" class="form-select">
+                <option>Beginner</option><option>Intermediate</option><option>Advanced</option>
+              </select>
+            </div>
+            <div class="form-group col-6">
+              <label for="workout-status">Status</label>
+              <select id="workout-status" class="form-select">
+                <option value="active">Active</option><option value="inactive">Inactive</option>
+              </select>
+            </div>
+          </div>
+          <div class="form-group">
+            <label for="workout-desc">Description</label>
+            <textarea id="workout-desc" class="form-control" rows="2"></textarea>
+          </div>
+          <div class="form-group">
+            <label>Exercises <span class="text-muted">(day, name, sets, reps, rest)</span></label>
+            <div id="workout-exercises-rows"></div>
+            <button type="button" class="btn btn-ghost btn-sm" id="btn-add-exercise-row"><i class="fa-solid fa-plus"></i> Add Exercise</button>
+          </div>
+        </div>
+        <div class="modal-footer">
+          <button type="button" class="btn btn-outline" data-close="modal-workout">Cancel</button>
+          <button type="submit" class="btn btn-primary">Save Plan</button>
+        </div>
+      </form>
+    </div>
+  </div>
+
+  <!-- ======================================================================
+       MODAL: ASSIGN WORKOUT PLAN TO MEMBERS
+       ====================================================================== -->
+  <div class="modal-overlay" id="modal-assign-workout">
+    <div class="modal">
+      <div class="modal-header">
+        <h3>Assign Workout Plan</h3>
+        <button class="modal-close" data-close="modal-assign-workout">&times;</button>
+      </div>
+      <form id="form-assign-workout">
+        <div class="modal-body">
+          <input type="hidden" id="assign-workout-id">
+          <p class="text-muted">Assign <strong id="assign-workout-title"></strong> to members:</p>
+          <div id="assign-workout-members" class="checkbox-group"></div>
+        </div>
+        <div class="modal-footer">
+          <button type="button" class="btn btn-outline" data-close="modal-assign-workout">Cancel</button>
+          <button type="submit" class="btn btn-primary">Assign Members</button>
+        </div>
+      </form>
+    </div>
+  </div>
+
+  <!-- ======================================================================
+       MODAL: DIET PLAN EDITOR (admin / trainer)
+       ====================================================================== -->
+  <div class="modal-overlay" id="modal-diet">
+    <div class="modal modal-lg">
+      <div class="modal-header">
+        <h3 id="modal-diet-title">New Diet Plan</h3>
+        <button class="modal-close" data-close="modal-diet">&times;</button>
+      </div>
+      <form id="form-diet">
+        <div class="modal-body">
+          <input type="hidden" id="diet-id">
+          <div class="form-row">
+            <div class="form-group col-8">
+              <label for="diet-title">Plan Title <span class="text-rose">*</span></label>
+              <input type="text" id="diet-title" class="form-control" required>
+            </div>
+            <div class="form-group col-4">
+              <label for="diet-calories">Target Calories</label>
+              <input type="number" id="diet-calories" class="form-control" min="0" value="2000">
+            </div>
+          </div>
+          <div class="form-row">
+            <div class="form-group col-6">
+              <label for="diet-goal">Goal</label>
+              <input type="text" id="diet-goal" class="form-control" placeholder="e.g. Muscle Hypertrophy">
+            </div>
+            <div class="form-group col-6">
+              <label for="diet-status">Status</label>
+              <select id="diet-status" class="form-select">
+                <option value="active">Active</option><option value="inactive">Inactive</option>
+              </select>
+            </div>
+          </div>
+          <div class="form-group">
+            <label for="diet-desc">Description</label>
+            <textarea id="diet-desc" class="form-control" rows="2"></textarea>
+          </div>
+          <div class="form-group">
+            <label>Meals <span class="text-muted">(day, meal type, name, cals, P/C/F)</span></label>
+            <div id="diet-meals-rows"></div>
+            <button type="button" class="btn btn-ghost btn-sm" id="btn-add-meal-row"><i class="fa-solid fa-plus"></i> Add Meal</button>
+          </div>
+        </div>
+        <div class="modal-footer">
+          <button type="button" class="btn btn-outline" data-close="modal-diet">Cancel</button>
+          <button type="submit" class="btn btn-primary">Save Plan</button>
+        </div>
+      </form>
+    </div>
+  </div>
+
+  <!-- ======================================================================
+       MODAL: ASSIGN DIET PLAN TO MEMBERS
+       ====================================================================== -->
+  <div class="modal-overlay" id="modal-assign-diet">
+    <div class="modal">
+      <div class="modal-header">
+        <h3>Assign Diet Plan</h3>
+        <button class="modal-close" data-close="modal-assign-diet">&times;</button>
+      </div>
+      <form id="form-assign-diet">
+        <div class="modal-body">
+          <input type="hidden" id="assign-diet-id">
+          <p class="text-muted">Assign <strong id="assign-diet-title"></strong> to members:</p>
+          <div id="assign-diet-members" class="checkbox-group"></div>
+        </div>
+        <div class="modal-footer">
+          <button type="button" class="btn btn-outline" data-close="modal-assign-diet">Cancel</button>
+          <button type="submit" class="btn btn-primary">Assign Members</button>
+        </div>
+      </form>
+    </div>
+  </div>
+
+  <!-- ======================================================================
+       MODAL: CLASS EDITOR (admin / trainer)
+       ====================================================================== -->
+  <div class="modal-overlay" id="modal-class">
+    <div class="modal">
+      <div class="modal-header">
+        <h3 id="modal-class-title">New Class</h3>
+        <button class="modal-close" data-close="modal-class">&times;</button>
+      </div>
+      <form id="form-class">
+        <div class="modal-body">
+          <input type="hidden" id="class-id">
+          <div class="form-group">
+            <label for="class-name">Class Name <span class="text-rose">*</span></label>
+            <input type="text" id="class-name" class="form-control" required>
+          </div>
+          <div class="form-row">
+            <div class="form-group col-6">
+              <label for="class-day">Day</label>
+              <select id="class-day" class="form-select">
+                <option>Monday</option><option>Tuesday</option><option>Wednesday</option><option>Thursday</option><option>Friday</option><option>Saturday</option><option>Sunday</option>
+              </select>
+            </div>
+            <div class="form-group col-6">
+              <label for="class-location">Location</label>
+              <input type="text" id="class-location" class="form-control" placeholder="e.g. Studio 1">
+            </div>
+          </div>
+          <div class="form-row">
+            <div class="form-group col-6"><label for="class-start">Start Time</label><input type="time" id="class-start" class="form-control"></div>
+            <div class="form-group col-6"><label for="class-end">End Time</label><input type="time" id="class-end" class="form-control"></div>
+          </div>
+          <div class="form-row">
+            <div class="form-group col-6"><label for="class-capacity">Capacity</label><input type="number" id="class-capacity" class="form-control" min="1" value="15"></div>
+            <div class="form-group col-6"><label for="class-trainer">Trainer</label><select id="class-trainer" class="form-select"></select></div>
+          </div>
+          <div class="form-group">
+            <label for="class-status">Status</label>
+            <select id="class-status" class="form-select">
+              <option value="active">Active</option><option value="inactive">Inactive</option>
+            </select>
+          </div>
+          <div class="form-group">
+            <label for="class-desc">Description</label>
+            <textarea id="class-desc" class="form-control" rows="2"></textarea>
+          </div>
+        </div>
+        <div class="modal-footer">
+          <button type="button" class="btn btn-outline" data-close="modal-class">Cancel</button>
+          <button type="submit" class="btn btn-primary">Save Class</button>
+        </div>
+      </form>
+    </div>
+  </div>
+
+  <!-- ======================================================================
+       MODAL: CLASS ROSTER (admin / trainer)
+       ====================================================================== -->
+  <div class="modal-overlay" id="modal-roster">
+    <div class="modal">
+      <div class="modal-header">
+        <h3 id="modal-roster-title">Class Roster</h3>
+        <button class="modal-close" data-close="modal-roster">&times;</button>
+      </div>
+      <div class="modal-body">
+        <div class="form-group">
+          <label for="roster-add-user">Add a member to this class</label>
+          <div style="display:flex;gap:8px;">
+            <select id="roster-add-user" class="form-select"></select>
+            <button type="button" class="btn btn-primary" id="btn-roster-add"><i class="fa-solid fa-plus"></i> Add</button>
+          </div>
+        </div>
+        <div class="table-responsive">
+          <table class="data-table">
+            <thead><tr><th>Member</th><th>Code</th><th class="text-right">Action</th></tr></thead>
+            <tbody id="roster-tbody"></tbody>
+          </table>
+        </div>
+      </div>
+      <div class="modal-footer">
+        <button type="button" class="btn btn-outline" data-close="modal-roster">Close</button>
+      </div>
+    </div>
+  </div>
+
+  <!-- ======================================================================
+       MODAL: INVOICE EDITOR (admin)
+       ====================================================================== -->
+  <div class="modal-overlay" id="modal-invoice">
+    <div class="modal">
+      <div class="modal-header">
+        <h3 id="modal-invoice-title">New Invoice</h3>
+        <button class="modal-close" data-close="modal-invoice">&times;</button>
+      </div>
+      <form id="form-invoice">
+        <div class="modal-body">
+          <input type="hidden" id="invoice-id">
+          <div class="form-group">
+            <label for="invoice-user">Member <span class="text-rose">*</span></label>
+            <select id="invoice-user" class="form-select"></select>
+          </div>
+          <div class="form-group">
+            <label for="invoice-title">Title <span class="text-rose">*</span></label>
+            <input type="text" id="invoice-title" class="form-control" placeholder="e.g. Monthly Membership - August">
+          </div>
+          <div class="form-row">
+            <div class="form-group col-6"><label for="invoice-amount">Amount (NPR) <span class="text-rose">*</span></label><input type="number" step="0.01" id="invoice-amount" class="form-control" required></div>
+            <div class="form-group col-6"><label for="invoice-due">Due Date</label><input type="date" id="invoice-due" class="form-control"></div>
+          </div>
+          <div class="form-group">
+            <label for="invoice-desc">Description</label>
+            <textarea id="invoice-desc" class="form-control" rows="2"></textarea>
+          </div>
+        </div>
+        <div class="modal-footer">
+          <button type="button" class="btn btn-outline" data-close="modal-invoice">Cancel</button>
+          <button type="submit" class="btn btn-primary">Save Invoice</button>
+        </div>
+      </form>
+    </div>
+  </div>
+
+  <!-- ======================================================================
+       MODAL: RECORD PAYMENT (admin)
+       ====================================================================== -->
+  <div class="modal-overlay" id="modal-pay-invoice">
+    <div class="modal">
+      <div class="modal-header">
+        <h3>Record Payment</h3>
+        <button class="modal-close" data-close="modal-pay-invoice">&times;</button>
+      </div>
+      <form id="form-pay-invoice">
+        <div class="modal-body">
+          <input type="hidden" id="pay-invoice-id">
+          <p class="text-muted">Invoice <strong id="pay-invoice-no"></strong> — total <strong id="pay-invoice-total"></strong>, already paid <strong id="pay-invoice-paid"></strong>.</p>
+          <div class="form-row">
+            <div class="form-group col-6">
+              <label for="pay-amount">Amount (NPR)</label>
+              <input type="number" step="0.01" id="pay-amount" class="form-control" required>
+            </div>
+            <div class="form-group col-6">
+              <label for="pay-method">Method</label>
+              <select id="pay-method" class="form-select">
+                <option value="">-- Select --</option><option>Cash</option><option>eSewa</option><option>Khalti</option><option>Bank Transfer</option><option>Card</option>
+              </select>
+            </div>
+          </div>
+        </div>
+        <div class="modal-footer">
+          <button type="button" class="btn btn-outline" data-close="modal-pay-invoice">Cancel</button>
+          <button type="submit" class="btn btn-success">Record Payment</button>
+        </div>
+      </form>
+    </div>
+  </div>
+
+  <!-- ======================================================================
+       MODAL: ANNOUNCEMENT EDITOR (admin)
+       ====================================================================== -->
+  <div class="modal-overlay" id="modal-announcement">
+    <div class="modal">
+      <div class="modal-header">
+        <h3>New Announcement</h3>
+        <button class="modal-close" data-close="modal-announcement">&times;</button>
+      </div>
+      <form id="form-announcement">
+        <div class="modal-body">
+          <div class="form-group">
+            <label for="ann-title">Title <span class="text-rose">*</span></label>
+            <input type="text" id="ann-title" class="form-control" required>
+          </div>
+          <div class="form-row">
+            <div class="form-group col-6">
+              <label for="ann-priority">Priority</label>
+              <select id="ann-priority" class="form-select">
+                <option value="normal">Normal</option><option value="important">Important</option><option value="urgent">Urgent</option>
+              </select>
+            </div>
+            <div class="form-group col-6">
+              <label for="ann-status">Status</label>
+              <select id="ann-status" class="form-select">
+                <option value="active">Active</option><option value="inactive">Inactive</option>
+              </select>
+            </div>
+          </div>
+          <div class="form-group">
+            <label for="ann-body">Message</label>
+            <textarea id="ann-body" class="form-control" rows="3"></textarea>
+          </div>
+        </div>
+        <div class="modal-footer">
+          <button type="button" class="btn btn-outline" data-close="modal-announcement">Cancel</button>
+          <button type="submit" class="btn btn-primary"><i class="fa-solid fa-bullhorn"></i> Post &amp; Notify Members</button>
+        </div>
+      </form>
+    </div>
+  </div>
+
   <div class="toast-stack" id="toast-stack"></div>
 
-  <script src="script.js?v=4"></script>
+  <script src="script.js?v=6"></script>
 </body>
 </html>

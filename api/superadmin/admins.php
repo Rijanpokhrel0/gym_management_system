@@ -25,8 +25,12 @@ switch ($method) {
         $name  = trim((string)($d['name'] ?? ''));
         $email = strtolower(trim((string)($d['email'] ?? '')));
         $pass  = (string)($d['password'] ?? '');
+        $logo  = trim((string)($d['logo_url'] ?? ''));
         if ($name === '' || $email === '' || $pass === '') {
             fail('Name, email and password are required.');
+        }
+        if ($logo === '') {
+            fail('A gym logo is required. Upload the gym logo image.');
         }
         if (strlen($pass) < 6) {
             fail('Password must be at least 6 characters.');

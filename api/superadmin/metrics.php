@@ -15,4 +15,5 @@ ok([
     'products'        => $count('SELECT COUNT(*) FROM products'),
     'trainers'        => $count('SELECT COUNT(*) FROM trainers'),
     'users'           => $count('SELECT COUNT(*) FROM users'),
+    'equipment'       => $count('SELECT COUNT(*) FROM equipment'),
 ]);

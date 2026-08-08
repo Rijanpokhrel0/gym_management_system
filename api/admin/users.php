@@ -13,7 +13,7 @@ $d      = body();
 
 switch ($method) {
     case 'GET':
-        $stmt = db()->prepare('SELECT id, name, email, phone, goal, created_at FROM users WHERE admin_id = ? ORDER BY created_at DESC');
+        $stmt = db()->prepare('SELECT id, name, email, phone, goal, member_code, created_at FROM users WHERE admin_id = ? ORDER BY created_at DESC');
         $stmt->execute([$adminId]);
         ok(['users' => $stmt->fetchAll()]);
         break;
@@ -33,7 +33,7 @@ switch ($method) {
         if ($stmt->fetch()) {
             fail('A user with that email already exists.', 409);
         }
-        $stmt = db()->prepare('INSERT INTO users (admin_id, name, email, password, phone, goal) VALUES (?, ?, ?, ?, ?, ?)');
+        $stmt = db()->prepare('INSERT INTO users (admin_id, name, email, password, phone, goal, member_code) VALUES (?, ?, ?, ?, ?, ?, ?)');
         $stmt->execute([
             $adminId,
             $name,
@@ -41,6 +41,7 @@ switch ($method) {
             $pass !== '' ? password_hash($pass, PASSWORD_BCRYPT) : password_hash(bin2hex(random_bytes(4)), PASSWORD_BCRYPT),
             trim((string)($d['phone'] ?? '')),
             trim((string)($d['goal'] ?? '')) ?: null,
+            'FP-' . strtoupper(substr(bin2hex(random_bytes(4)), 0, 6)),
         ]);
         ok(['id' => (int)db()->lastInsertId(), 'message' => 'User created.']);
         break;

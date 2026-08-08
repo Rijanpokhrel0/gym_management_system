@@ -1,0 +1,11 @@
+# FitPulse uploads directory: serve images only, never execute scripts.
+php_flag engine off
+
+<FilesMatch "\.(php|phtml|php[0-9]|phar|pl|py|cgi)$">
+  Require all denied
+</FilesMatch>
+
+AddType image/png .png
+AddType image/jpeg .jpg
+AddType image/webp .webp
+AddType image/gif .gif

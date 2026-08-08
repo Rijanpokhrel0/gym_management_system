@@ -20,5 +20,7 @@ ok([
     'users'           => $cnt('SELECT COUNT(*) FROM users WHERE admin_id = ?', [$adminId]),
     'trainers'        => $cnt('SELECT COUNT(*) FROM trainers WHERE admin_id = ?', [$adminId]),
     'active_trainers' => $cnt('SELECT COUNT(*) FROM trainers WHERE admin_id = ? AND status = "active"', [$adminId]),
+    'equipment'       => $cnt('SELECT COUNT(*) FROM equipment WHERE admin_id = ?', [$adminId]),
+    'active_equipment'=> $cnt('SELECT COUNT(*) FROM equipment WHERE admin_id = ? AND status = "active"', [$adminId]),
     'inventory_value' => (float)$cnt('SELECT COALESCE(SUM(price * stock), 0) FROM products WHERE admin_id = ?', [$adminId]),
 ]);
