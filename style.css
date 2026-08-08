@@ -7,37 +7,38 @@
    1. DESIGN TOKENS & CSS VARIABLES
    -------------------------------------------------------------------------- */
 :root {
-  --bg-app: #fafaf9;
-  --bg-sidebar: #1c1917;
-  --bg-card: #ffffff;
-  --bg-card-hover: #f5f5f4;
+  color-scheme: dark;
+  --bg-app: #0D0D0D;
+  --bg-sidebar: #1A1A1A;
+  --bg-card: #1A1A1A;
+  --bg-card-hover: #242424;
   
-  --text-main: #1c1917;
-  --text-muted: #78716c;
-  --text-light: #a8a29e;
-  --text-white: #ffffff;
+  --text-main: #FFFFFF;
+  --text-muted: #B3B3B3;
+  --text-light: #8f8f8f;
+  --text-white: #FFFFFF;
 
-  --border-color: #e7e5e4;
-  --border-focus: #f97316;
+  --border-color: #2A2A2A;
+  --border-focus: #E63946;
 
-  --orange-50: #fff7ed;
-  --orange-100: #ffedd5;
-  --orange-400: #fb923c;
-  --orange-500: #f97316;
-  --orange-600: #ea580c;
-  --orange-700: #c2410c;
+  --orange-50: #2B1114;
+  --orange-100: #351517;
+  --orange-400: #FF4D5A;
+  --orange-500: #E63946;
+  --orange-600: #E63946;
+  --orange-700: #FF4D5A;
 
-  --blue-500: #0ea5e9;
-  --blue-600: #0284c7;
+  --blue-500: #38bdf8;
+  --blue-600: #0ea5e9;
   
-  --emerald-50: #ecfdf5;
-  --emerald-600: #059669;
-  --emerald-700: #047857;
+  --emerald-50: #0D2B21;
+  --emerald-600: #10B981;
+  --emerald-700: #34D399;
 
-  --amber-50: #fffbeb;
-  --amber-600: #d97706;
+  --amber-50: #2B230D;
+  --amber-600: #F59E0B;
 
-  --rose-50: #fff1f2;
+  --rose-50: #2B1117;
   --rose-600: #e11d48;
 
   --shadow-sm: 0 1px 2px 0 rgba(0, 0, 0, 0.05);
@@ -139,14 +140,14 @@ button, input, select, textarea {
 .brand-logo {
   width: 40px;
   height: 40px;
-  background: linear-gradient(135deg, #f97316, #fb923c);
+  background: linear-gradient(135deg, #E63946, #FF4D5A);
   border-radius: var(--radius-md);
   display: flex;
   align-items: center;
   justify-content: center;
   font-size: 1.2rem;
   color: var(--text-white);
-  box-shadow: 0 4px 10px rgba(249, 115, 22, 0.35);
+  box-shadow: 0 4px 10px rgba(230, 57, 70, 0.4);
 }
 
 .brand-info h2 {
@@ -157,8 +158,8 @@ button, input, select, textarea {
 
 .brand-info span {
   font-size: 0.725rem;
-  color: var(--orange-100);
-  background-color: rgba(249, 115, 22, 0.25);
+  color: var(--orange-400);
+  background-color: rgba(230, 57, 70, 0.25);
   padding: 2px 8px;
   border-radius: 4px;
   font-weight: 600;
@@ -206,7 +207,7 @@ button, input, select, textarea {
 .nav-item.active {
   color: var(--text-white);
   background: linear-gradient(90deg, var(--orange-600), var(--orange-400));
-  box-shadow: 0 4px 12px rgba(234, 88, 12, 0.35);
+  box-shadow: 0 4px 12px rgba(230, 57, 70, 0.4);
 }
 
 .sidebar-user {
@@ -334,7 +335,7 @@ button, input, select, textarea {
 
 .search-bar input:focus {
   border-color: var(--orange-500);
-  background-color: #ffffff;
+  background-color: var(--bg-card);
   box-shadow: 0 0 0 3px var(--orange-100);
 }
 
@@ -445,9 +446,9 @@ button, input, select, textarea {
 }
 
 .badge-orange { background-color: var(--orange-100); color: var(--orange-700); }
-.badge-emerald { background-color: var(--emerald-50); color: var(--emerald-700); border: 1px solid rgba(5, 150, 105, 0.2); }
-.badge-amber { background-color: var(--amber-50); color: var(--amber-600); border: 1px solid rgba(217, 119, 6, 0.2); }
-.badge-rose { background-color: var(--rose-50); color: var(--rose-600); border: 1px solid rgba(225, 29, 72, 0.2); }
+.badge-emerald { background-color: var(--emerald-50); color: var(--emerald-700); border: 1px solid rgba(52, 211, 153, 0.25); }
+.badge-amber { background-color: var(--amber-50); color: var(--amber-600); border: 1px solid rgba(245, 158, 11, 0.25); }
+.badge-rose { background-color: var(--rose-50); color: var(--rose-600); border: 1px solid rgba(225, 29, 72, 0.35); }
 
 /* --------------------------------------------------------------------------
    6. TAB CONTENT & PAGE HEADERS
@@ -526,10 +527,10 @@ button, input, select, textarea {
   font-size: 1.15rem;
 }
 
-.icon-blue { background-color: #eff6ff; color: var(--blue-600); }
+.icon-blue { background-color: #10242E; color: var(--blue-600); }
 .icon-emerald { background-color: var(--emerald-50); color: var(--emerald-600); }
 .icon-orange { background-color: var(--orange-100); color: var(--orange-600); }
-.icon-purple { background-color: #faf5ff; color: #9333ea; }
+.icon-purple { background-color: #271A33; color: #C084FC; }
 
 .trend {
   font-size: 0.75rem;
@@ -596,7 +597,7 @@ button, input, select, textarea {
 }
 
 .data-table th {
-  background-color: #f8fafc;
+  background-color: #151515;
   color: var(--text-muted);
   font-weight: 600;
   text-transform: uppercase;
@@ -621,7 +622,7 @@ button, input, select, textarea {
    -------------------------------------------------------------------------- */
 .user-booking-banner {
   padding: 20px 24px;
-  background: linear-gradient(135deg, #ea580c, #f97316);
+  background: linear-gradient(135deg, #E63946, #FF4D5A);
   color: white;
   border-radius: var(--radius-lg);
   margin-bottom: 28px;
@@ -697,7 +698,7 @@ button, input, select, textarea {
 
 .shift-tag {
   display: inline-block;
-  background-color: white;
+  background-color: var(--bg-card);
   border: 1px solid var(--border-color);
   padding: 4px 10px;
   border-radius: var(--radius-full);
@@ -716,7 +717,7 @@ button, input, select, textarea {
   left: 0;
   right: 0;
   bottom: 0;
-  background-color: rgba(15, 23, 42, 0.5);
+  background-color: rgba(0, 0, 0, 0.65);
   backdrop-filter: blur(4px);
   display: flex;
   align-items: center;
@@ -815,7 +816,7 @@ button, input, select, textarea {
 
 .auth-tab-btn.active {
   color: var(--orange-600);
-  background-color: white;
+  background-color: var(--bg-card);
   border-bottom-color: var(--orange-600);
 }
 
@@ -838,9 +839,9 @@ button, input, select, textarea {
 }
 
 .alert-info { background-color: var(--orange-50); color: var(--orange-700); border: 1px solid var(--orange-100); }
-.alert-warning { background-color: var(--amber-50); color: var(--amber-600); border: 1px solid rgba(217, 119, 6, 0.2); }
-.alert-success { background-color: var(--emerald-50); color: var(--emerald-700); border: 1px solid rgba(5, 150, 105, 0.2); }
-.alert-danger { background-color: var(--rose-50); color: var(--rose-600); border: 1px solid #fecdd3; }
+.alert-warning { background-color: var(--amber-50); color: var(--amber-600); border: 1px solid rgba(245, 158, 11, 0.25); }
+.alert-success { background-color: var(--emerald-50); color: var(--emerald-700); border: 1px solid rgba(52, 211, 153, 0.25); }
+.alert-danger { background-color: var(--rose-50); color: var(--rose-600); border: 1px solid rgba(225, 29, 72, 0.35); }
 
 .form-group {
   margin-bottom: 18px;
@@ -1177,7 +1178,7 @@ body.authed .app-layout {
   justify-content: center;
   padding: 24px;
   overflow-y: auto;
-  background: linear-gradient(135deg, #1c1917 0%, #431407 48%, #7c2d12 100%);
+  background: linear-gradient(135deg, #0D0D0D 0%, #170D0E 48%, #241012 100%);
 }
 
 body.authed .auth-screen {
@@ -1189,7 +1190,7 @@ body.authed .auth-screen {
   inset: 0;
   pointer-events: none;
   background:
-    radial-gradient(700px 420px at 12% 8%, rgba(249, 115, 22, 0.3), transparent 60%),
+    radial-gradient(700px 420px at 12% 8%, rgba(230, 57, 70, 0.35), transparent 60%),
     radial-gradient(600px 400px at 88% 92%, rgba(14, 165, 233, 0.18), transparent 60%);
 }
 
@@ -1229,7 +1230,7 @@ body.authed .auth-screen {
   display: flex;
   align-items: center;
   justify-content: center;
-  box-shadow: 0 8px 20px -6px rgba(234, 88, 12, 0.5);
+  box-shadow: 0 8px 20px -6px rgba(230, 57, 70, 0.5);
 }
 
 .auth-card-brand h1 {
@@ -1328,10 +1329,10 @@ body.authed .auth-screen {
   gap: 12px;
   margin-bottom: 16px;
   padding: 14px 16px;
-  background: #eff6ff;
-  border: 1px solid #bfdbfe;
+  background: #0F2332;
+  border: 1px solid #1E3A5A;
   border-radius: var(--radius-md);
-  color: #1d4ed8;
+  color: #7DD3FC;
   font-size: 0.85rem;
   line-height: 1.55;
 }
@@ -1855,6 +1856,40 @@ body.authed .auth-screen {
   font-size: 0.8rem;
 }
 .gym-card-stats i { color: var(--orange-500); }
+.gym-card-actions { display: flex; gap: 8px; flex-wrap: wrap; }
+
+/* Read-only gym dashboard (user) sub navigation */
+.gym-sub-nav {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 8px;
+  margin-bottom: 20px;
+  padding: 6px;
+  background: var(--bg-card);
+  border: 1px solid var(--border-color);
+  border-radius: var(--radius-lg);
+}
+.gym-sub-tab {
+  display: inline-flex;
+  align-items: center;
+  gap: 7px;
+  padding: 8px 14px;
+  border: none;
+  background: transparent;
+  color: var(--text-muted);
+  font-size: 0.85rem;
+  font-weight: 600;
+  border-radius: var(--radius-md);
+  cursor: pointer;
+  transition: background 0.2s ease, color 0.2s ease;
+}
+.gym-sub-tab:hover { background: var(--bg-card-hover); color: var(--text-main); }
+.gym-sub-tab.active {
+  background: var(--orange-50);
+  color: var(--orange-600);
+}
+.gym-sub-view { display: none; }
+.gym-sub-view.active { display: block; }
 
 /* Equipment cards (user portal) */
 .equipment-grid {
@@ -2208,7 +2243,7 @@ body.authed .auth-screen {
   align-items: center;
   gap: 16px;
   padding: 18px 22px;
-  background: linear-gradient(135deg, var(--orange-50), #fff);
+  background: linear-gradient(135deg, var(--orange-50), #242424);
   border: 1px dashed var(--orange-500);
   border-radius: var(--radius-md);
 }

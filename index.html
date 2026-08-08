@@ -10,9 +10,9 @@
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
   <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&family=Plus+Jakarta+Sans:wght@500;600;700;800&display=swap" rel="stylesheet">
   <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.1/css/all.min.css">
-  <link rel="icon" type="image/svg+xml" href="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24'%3E%3Crect width='24' height='24' rx='6' fill='%23ea580c'/%3E%3Cpath d='M6.5 6.5v11M17.5 6.5v11M4 9v6M20 9v6' stroke='white' stroke-width='1.8' stroke-linecap='round'/%3E%3C/svg%3E">
+  <link rel="icon" type="image/svg+xml" href="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24'%3E%3Crect width='24' height='24' rx='6' fill='%23E63946'/%3E%3Cpath d='M6.5 6.5v11M17.5 6.5v11M4 9v6M20 9v6' stroke='white' stroke-width='1.8' stroke-linecap='round'/%3E%3C/svg%3E">
 
-  <link rel="stylesheet" href="style.css?v=7">
+  <link rel="stylesheet" href="style.css?v=8">
 </head>
 <body>
 
@@ -90,6 +90,12 @@
                 </select>
               </div>
             </div>
+            <div class="form-group">
+              <label for="reg-gym">Select Your Gym <span class="text-rose">*</span></label>
+              <select id="reg-gym" class="form-select" required>
+                <option value="">Choose a gym...</option>
+              </select>
+            </div>
             <button type="submit" class="btn btn-primary btn-block">Create Account</button>
           </form>
 
@@ -133,7 +139,7 @@
 
           <div class="auth-divider"><span>or</span></div>
           <button type="button" class="btn btn-outline btn-block" id="btn-browse-guest">
-            <i class="fa-solid fa-dumbbell"></i> Browse Gyms Without Logging In
+            <i class="fa-solid fa-user-plus"></i> Create Member Account
           </button>
         </div>
       </div>
@@ -765,32 +771,12 @@
               <div class="panel-title-group">
                 <h3><i class="fa-solid fa-house text-amber"></i> Home Gym</h3>
               </div>
+              <a href="#" class="btn btn-ghost btn-sm" id="link-view-gym-dashboard"><i class="fa-solid fa-chart-pie"></i> View Dashboard</a>
             </div>
             <div class="panel-body" id="user-home-gym-box">
               <p class="text-muted">No home gym assigned.</p>
             </div>
           </div>
-          <div class="panel" style="margin-top:24px;">
-            <div class="panel-header">
-              <div class="panel-title-group">
-                <h3><i class="fa-solid fa-heart text-amber"></i> My Gyms</h3>
-              </div>
-              <a href="#" class="btn btn-ghost btn-sm" id="link-user-browse-gyms"><i class="fa-solid fa-magnifying-glass"></i> Browse More Gyms</a>
-            </div>
-            <div class="panel-body">
-              <div class="gyms-grid" id="user-my-gyms-grid"></div>
-            </div>
-          </div>
-        </section>
-
-        <section id="tab-user-gyms" class="tab-content">
-          <div class="page-header">
-            <div>
-              <h1 class="page-title">Browse Gyms</h1>
-              <p class="page-subtitle">Select gyms managed by different admins to follow them.</p>
-            </div>
-          </div>
-          <div class="gyms-grid" id="user-gyms-grid"></div>
         </section>
 
         <section id="tab-user-products" class="tab-content">
@@ -803,9 +789,8 @@
           <div class="panel">
             <div class="panel-header">
               <div class="panel-title-group">
-                <h3><i class="fa-solid fa-box-open text-amber"></i> Select a Gym</h3>
+                <h3><i class="fa-solid fa-box-open text-amber"></i> Products at Your Gym</h3>
               </div>
-              <select id="user-product-gym-select" class="form-select filter-select"></select>
             </div>
             <div class="panel-body">
               <div class="products-grid" id="user-products-grid"></div>
@@ -823,9 +808,8 @@
           <div class="panel">
             <div class="panel-header">
               <div class="panel-title-group">
-                <h3><i class="fa-solid fa-users text-amber"></i> Select a Gym</h3>
+                <h3><i class="fa-solid fa-users text-amber"></i> Trainers at Your Gym</h3>
               </div>
-              <select id="user-trainer-gym-select" class="form-select filter-select"></select>
             </div>
             <div class="panel-body">
               <div class="trainers-grid" id="user-trainers-grid"></div>
@@ -843,9 +827,8 @@
           <div class="panel">
             <div class="panel-header">
               <div class="panel-title-group">
-                <h3><i class="fa-solid fa-dumbbell text-amber"></i> Select a Gym</h3>
+                <h3><i class="fa-solid fa-dumbbell text-amber"></i> Equipment at Your Gym</h3>
               </div>
-              <select id="user-equipment-gym-select" class="form-select filter-select"></select>
             </div>
             <div class="panel-body">
               <div class="equipment-grid" id="user-equipment-grid"></div>
@@ -952,15 +935,14 @@
           <div class="page-header">
             <div>
               <h1 class="page-title">Class Booking</h1>
-              <p class="page-subtitle">Book slots in group classes at the gyms you follow.</p>
+              <p class="page-subtitle">Book slots in group classes at your gym.</p>
             </div>
           </div>
           <div class="panel">
             <div class="panel-header">
               <div class="panel-title-group">
-                <h3><i class="fa-solid fa-calendar-day text-amber"></i> Select a Gym</h3>
+                <h3><i class="fa-solid fa-calendar-day text-amber"></i> Classes at Your Gym</h3>
               </div>
-              <select id="user-class-gym-select" class="form-select filter-select"></select>
             </div>
             <div class="panel-body">
               <div class="plans-grid" id="user-classes-grid"></div>
@@ -972,7 +954,7 @@
           <div class="page-header">
             <div>
               <h1 class="page-title">My Invoices</h1>
-              <p class="page-subtitle">Membership and service bills from the gyms you follow.</p>
+              <p class="page-subtitle">Membership and service bills from your gym.</p>
             </div>
           </div>
           <div class="metrics-grid" id="user-invoice-stats"></div>
@@ -1006,6 +988,66 @@
             </div>
           </div>
           <div class="notifications-list" id="user-notifications-list"></div>
+        </section>
+
+        <!-- ============================================================
+             GYM DASHBOARD (read-only, view like the admin dashboard)
+             ============================================================ -->
+        <section id="tab-gym-dashboard" class="tab-content">
+          <div class="page-header">
+            <div>
+              <h1 class="page-title" id="gym-dash-title">Gym Dashboard</h1>
+              <p class="page-subtitle" id="gym-dash-sub">Read-only view of this gym.</p>
+            </div>
+            <div class="header-actions">
+              <button class="btn btn-outline" data-goto="tab-user-dashboard"><i class="fa-solid fa-arrow-left"></i> Back to Dashboard</button>
+            </div>
+          </div>
+          <div class="gym-sub-nav" id="gym-sub-nav">
+            <button type="button" class="gym-sub-tab active" data-gym-tab="gym-overview"><i class="fa-solid fa-chart-pie"></i> Overview</button>
+            <button type="button" class="gym-sub-tab" data-gym-tab="gym-classes"><i class="fa-solid fa-calendar-day"></i> Classes</button>
+            <button type="button" class="gym-sub-tab" data-gym-tab="gym-workouts"><i class="fa-solid fa-person-running"></i> Workouts</button>
+            <button type="button" class="gym-sub-tab" data-gym-tab="gym-diets"><i class="fa-solid fa-utensils"></i> Diet Plans</button>
+            <button type="button" class="gym-sub-tab" data-gym-tab="gym-equipment"><i class="fa-solid fa-dumbbell"></i> Equipment</button>
+            <button type="button" class="gym-sub-tab" data-gym-tab="gym-trainers"><i class="fa-solid fa-user-ninja"></i> Trainers</button>
+            <button type="button" class="gym-sub-tab" data-gym-tab="gym-products"><i class="fa-solid fa-box-open"></i> Products</button>
+            <button type="button" class="gym-sub-tab" data-gym-tab="gym-announcements"><i class="fa-solid fa-bullhorn"></i> Announcements</button>
+          </div>
+
+          <div class="gym-sub-view active" id="gym-overview">
+            <div class="panel" style="margin-top:4px;">
+              <div class="panel-body" id="gym-overview-info"></div>
+            </div>
+            <div class="metrics-grid" id="gym-overview-metrics"></div>
+          </div>
+
+          <div class="gym-sub-view" id="gym-classes">
+            <div class="plans-grid admin-plans-grid" id="gym-classes-grid"></div>
+          </div>
+
+          <div class="gym-sub-view" id="gym-workouts">
+            <div class="plans-grid admin-plans-grid" id="gym-workouts-grid"></div>
+          </div>
+
+          <div class="gym-sub-view" id="gym-diets">
+            <div class="plans-grid admin-plans-grid" id="gym-diets-grid"></div>
+          </div>
+
+          <div class="gym-sub-view" id="gym-equipment">
+            <div class="equipment-grid" id="gym-equipment-grid"></div>
+          </div>
+
+          <div class="gym-sub-view" id="gym-trainers">
+            <div class="trainers-grid" id="gym-trainers-grid"></div>
+          </div>
+
+          <div class="gym-sub-view" id="gym-products">
+            <div class="products-grid" id="gym-products-grid"></div>
+          </div>
+
+          <div class="gym-sub-view" id="gym-announcements">
+            <div class="announcements-list" id="gym-announcements-list"></div>
+          </div>
         </section>
       </main>
     </div>
@@ -1831,6 +1873,6 @@
 
   <div class="toast-stack" id="toast-stack"></div>
 
-  <script src="script.js?v=6"></script>
+  <script src="script.js?v=7"></script>
 </body>
 </html>

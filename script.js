@@ -13,7 +13,7 @@
   const money = (n) => 'NPR ' + Number(n || 0).toLocaleString('en-IN', { maximumFractionDigits: 2 });
   const fmtDate = (d) => d ? String(d).slice(0, 10) : '-';
 
-  const state = { user: null, portal: null, gyms: [], gymMap: {}, selected: new Set(), resetToken: null };
+  const state = { user: null, portal: null, gyms: [], gymMap: {}, resetToken: null, viewGym: null, gym: null };
 
   /* ----------------------------- toasts ------------------------------- */
   function toast(msg, type = 'success') {
@@ -151,7 +151,6 @@
     user: [
       { tab: 'tab-user-dashboard', icon: 'fa-chart-pie',    label: 'Dashboard' },
       { tab: 'tab-user-notifications', icon: 'fa-bell',     label: 'Notifications' },
-      { tab: 'tab-user-gyms',      icon: 'fa-dumbbell',     label: 'Browse Gyms' },
       { tab: 'tab-user-products',  icon: 'fa-box-open',     label: 'Gym Products' },
       { tab: 'tab-user-trainers',  icon: 'fa-user-ninja',   label: 'Gym Trainers' },
       { tab: 'tab-user-equipment', icon: 'fa-dumbbell',     label: 'Gym Equipment' },
@@ -161,12 +160,6 @@
       { tab: 'tab-user-diets',     icon: 'fa-utensils',     label: 'My Diet' },
       { tab: 'tab-user-classes',   icon: 'fa-calendar-day', label: 'Classes' },
       { tab: 'tab-user-invoices',  icon: 'fa-file-invoice', label: 'My Invoices' },
-    ],
-    guest: [
-      { tab: 'tab-user-gyms',      icon: 'fa-dumbbell',  label: 'Browse Gyms' },
-      { tab: 'tab-user-products',  icon: 'fa-box-open',  label: 'Gym Products' },
-      { tab: 'tab-user-trainers',  icon: 'fa-user-ninja', label: 'Gym Trainers' },
-      { tab: 'tab-user-equipment', icon: 'fa-dumbbell',  label: 'Gym Equipment' },
     ],
   };
 
@@ -193,7 +186,6 @@
     'tab-trainer-diets':    loadTrainerDiets,
     'tab-trainer-classes':  loadTrainerClasses,
     'tab-user-dashboard':   loadUserDashboard,
-    'tab-user-gyms':        loadUserGyms,
     'tab-user-products':    loadUserProducts,
     'tab-user-trainers':    loadUserTrainers,
     'tab-user-equipment':   loadUserEquipment,
@@ -251,23 +243,7 @@
     buildMenu();
     showApp();
     showSection(NAV[state.portal][0].tab);
-  }
-
-  function applyGuest() {
-    state.portal = 'guest';
-    state.user = null;
-    state.selected = new Set();
-    $('current-user-name').textContent = 'Guest';
-    $('current-user-role-label').textContent = 'Browsing';
-    $('role-badge-display').textContent = 'Guest';
-    $('active-role-label').textContent = 'Guest';
-    $('current-user-avatar').textContent = 'GU';
-    $('btn-logout').style.display = 'none';
-    $('btn-signin').style.display = '';
-    $('sidebar-user-box').style.display = 'flex';
-    buildMenu();
-    showApp();
-    showSection('tab-user-gyms');
+    setupUserGym();
   }
 
   function portalLabel(p) {
@@ -314,6 +290,8 @@
 
   $('form-register').addEventListener('submit', async (e) => {
     e.preventDefault();
+    const gymId = $('reg-gym').value;
+    if (!gymId) { toast('Please select your gym.', 'error'); return; }
     try {
       const d = await api('api/auth/register.php', {
         method: 'POST',
@@ -323,6 +301,7 @@
           password: $('reg-password').value,
           phone: $('reg-phone').value.trim(),
           goal: $('reg-goal').value,
+          admin_id: gymId,
         },
       });
       if (d.portal) {
@@ -355,8 +334,9 @@
   });
 
   $('btn-browse-guest').addEventListener('click', () => {
-    applyGuest();
-    toast('Browsing as guest. Sign in to follow gyms.');
+    showAuthScreen();
+    switchAuthStep('form-register');
+    toast('Create an account to pick your gym and start training.');
   });
 
   /* auth tab switching */
@@ -429,6 +409,8 @@
   document.addEventListener('click', (e) => {
     const goto = e.target.closest('[data-goto]');
     if (goto) { e.preventDefault(); showSection(goto.dataset.goto); }
+    const gymTab = e.target.closest('[data-gym-tab]');
+    if (gymTab) { e.preventDefault(); showGymSub(gymTab.dataset.gymTab); }
   });
 
   /* ======================================================================
@@ -895,11 +877,11 @@
   async function loadUserDashboard() {
     try {
       const d = await api('api/user/dashboard.php');
-      $('user-dash-title').textContent = 'Member Dashboard - ' + state.user.name;
+      $('user-dash-title').textContent = 'Member Dashboard - ' + state.user.name + (state.gym ? ' (' + state.gym.gym_name + ')' : '');
       const cards = [
-        ['fa-dumbbell', 'icon-orange', d.selected_gyms, 'Selected Gyms', 'You follow these'],
-        ['fa-box-open', 'icon-blue', d.products_count, 'Products Available', 'From your gyms'],
-        ['fa-building', 'icon-emerald', d.gyms_available, 'Gyms Online', 'Active on the platform'],
+        ['fa-building', 'icon-orange', '1', 'My Gym', 'Your registered gym'],
+        ['fa-box-open', 'icon-blue', d.products_count, 'Products Available', 'At your gym'],
+        ['fa-dumbbell', 'icon-emerald', d.gyms_available, 'Gyms Online', 'Active on the platform'],
       ];
       $('user-metrics-grid').innerHTML = cards.map(([icon, color, val, label, sub]) => `
         <div class="metric-card">
@@ -909,39 +891,16 @@
           </div>
           <div class="metric-body"><h3>${Number(val || 0)}</h3><p>${esc(label)}</p></div>
         </div>`).join('');
-      const h = d.home_gym;
+      const h = state.gym || d.home_gym;
       $('user-home-gym-box').innerHTML = h
         ? `<div class="cell-user">
              ${logoImg(h.logo_url, h.gym_name)}
              <div>
-               <p><strong>${esc(h.gym_name)}</strong> &mdash; managed by ${esc(h.admin_name)}</p>
+               <p><strong>${esc(h.gym_name)}</strong> &mdash; your gym</p>
                <span class="text-muted text-sm">${esc(h.address || '')}</span>
              </div>
            </div>`
-        : '<p class="text-muted">No home gym assigned. Browse gyms and select one.</p>';
-
-      const mine = d.selected_gyms_list || [];
-      $('user-my-gyms-grid').innerHTML = mine.map((g) => `
-        <div class="gym-card">
-          <div class="gym-card-head">
-            <div class="cell-user">
-              ${logoImg(g.logo_url, g.gym_name)}
-              <h3>${esc(g.gym_name)}</h3>
-            </div>
-            <span class="badge badge-emerald">Selected</span>
-          </div>
-          <div class="gym-card-loc"><i class="fa-solid fa-location-dot"></i>${esc(g.address || 'N/A')}</div>
-          <div class="gym-card-desc">${esc(g.description || 'No description yet.')}</div>
-          <div class="gym-card-meta">
-            <span><i class="fa-solid fa-user-shield"></i> ${esc(g.admin_name)}</span>
-            <span><i class="fa-solid fa-phone"></i> ${esc(g.phone || '-')}</span>
-          </div>
-          <div class="gym-card-stats">
-            <span><i class="fa-solid fa-box-open"></i> ${Number(g.product_count || 0)} products</span>
-            <span><i class="fa-solid fa-user-ninja"></i> ${Number(g.trainer_count || 0)} trainers</span>
-            <span><i class="fa-solid fa-dumbbell"></i> ${Number(g.equipment_count || 0)} equipment</span>
-          </div>
-        </div>`).join('') || emptyState('You have not selected any gyms yet. Browse gyms and choose the ones you need.');
+        : '<p class="text-muted">No gym is linked to your account. Contact your gym admin.</p>';
     } catch (err) { $('user-metrics-grid').innerHTML = '<p class="text-muted">' + esc(err.message) + '</p>'; }
   }
 
@@ -960,84 +919,43 @@
     } catch (err) { toast(err.message, 'error'); }
     btn.disabled = false;
   });
-  $('link-user-browse-gyms').addEventListener('click', (e) => {
+  $('link-view-gym-dashboard').addEventListener('click', (e) => {
     e.preventDefault();
-    showSection('tab-user-gyms');
+    if (state.gym) viewGym(state.gym.id); else toast('No gym is linked to your account.', 'error');
   });
 
-  async function loadUserGyms() {
-    try {
-      const d = await api('api/public/gyms.php');
-      state.gyms = d.gyms;
-      state.selected = new Set((d.selected || []).map(String));
-      $('user-gyms-grid').innerHTML = d.gyms.map((g) => {
-        const followed = state.selected.has(String(g.id));
-        const isGuest = state.portal === 'guest';
-        return `
-        <div class="gym-card">
-          <div class="gym-card-head">
-            <div class="cell-user">
-              ${logoImg(g.logo_url, g.gym_name)}
-              <h3>${esc(g.gym_name)}</h3>
-            </div>
-            ${followed ? '<span class="badge badge-emerald">Following</span>' : '<span class="badge badge-neutral">Available</span>'}
-          </div>
-          <div class="gym-card-loc"><i class="fa-solid fa-location-dot"></i>${esc(g.address || 'N/A')}</div>
-          <div class="gym-card-desc">${esc(g.description || 'No description yet.')}</div>
-          <div class="gym-card-meta">
-            <span><i class="fa-solid fa-user-shield"></i> ${esc(g.name)}</span>
-            <span><i class="fa-solid fa-phone"></i> ${esc(g.phone || '-')}</span>
-          </div>
-          <button class="btn ${followed ? 'btn-outline' : 'btn-primary'} btn-sm" onclick="window.gm.toggleGym(${g.id}, ${followed})">
-            ${followed ? '<i class="fa-solid fa-minus"></i> Unfollow' : '<i class="fa-solid fa-plus"></i> Select Gym'}
-          </button>
-          ${isGuest ? '<p class="text-muted text-sm" style="margin-top:8px;">Sign in to follow this gym.</p>' : ''}
-        </div>`;
-      }).join('') || emptyState('No gyms available yet.');
-    } catch (err) { $('user-gyms-grid').innerHTML = emptyState(err.message); }
+  async function loadGymData() {
+    const d = await api('api/public/gyms.php');
+    state.gyms = d.gyms;
   }
 
   function emptyState(msg) {
     return '<div class="empty-state" style="grid-column:1/-1;"><i class="fa-solid fa-circle-info"></i>' + esc(msg) + '</div>';
   }
 
-  async function toggleGym(adminId, currentlyFollowing) {
-    if (state.portal === 'guest') {
-      toast('Please sign in or create a member account to follow gyms.', 'info');
-      showAuthScreen();
-      return;
+  /* ------------------ active gym = home gym (chosen at registration) --- */
+  async function setupUserGym() {
+    if (state.portal !== 'user') { state.gym = null; return; }
+    if (!state.gyms.length) {
+      try { await loadGymData(); } catch (err) {}
     }
-    try {
-      await api('api/user/gyms.php', { method: currentlyFollowing ? 'DELETE' : 'POST', body: { admin_id: adminId } });
-      toast(currentlyFollowing ? 'Gym removed from selection.' : 'Gym selected.');
-      loadUserGyms();
-    } catch (err) { toast(err.message, 'error'); }
-  }
-
-  async function refreshGymSelects(keepValue) {
-    try {
-      const d = await api('api/public/gyms.php');
-      state.gyms = d.gyms;
-      [['user-product-gym-select'], ['user-trainer-gym-select'], ['user-equipment-gym-select'], ['user-class-gym-select']].forEach(([id]) => {
-        const sel = $(id);
-        if (!sel) return;
-        const prev = keepValue || sel.value;
-        sel.innerHTML = '<option value="">Choose a gym...</option>' + d.gyms.map((g) =>
-          `<option value="${g.id}">${esc(g.gym_name)}</option>`).join('');
-        sel.value = d.gyms.some((g) => String(g.id) === String(prev)) ? prev : '';
-      });
-    } catch (err) { toast(err.message, 'error'); }
+    const homeId = String(state.user.admin_id || '');
+    state.gym = state.gyms.find((g) => String(g.id) === homeId) || null;
+    const active = document.querySelector('.tab-content.active');
+    if (active && active.id && LOADERS[active.id] &&
+        ['tab-user-dashboard', 'tab-user-products', 'tab-user-trainers', 'tab-user-equipment', 'tab-user-classes'].includes(active.id)) {
+      LOADERS[active.id]();
+    }
   }
 
   async function loadUserProducts() {
     try {
-      if (!state.gyms.length) { await refreshGymSelects(); }
-      const gymId = $('user-product-gym-select').value;
-      if (!gymId) {
-        $('user-products-grid').innerHTML = emptyState('Select a gym to view its products.');
+      const gym = state.gym;
+      if (!gym) {
+        $('user-products-grid').innerHTML = emptyState('No gym is linked to your account. Contact your gym admin.');
         return;
       }
-      const d = await api(apiQuery('api/public/products.php', { gym_id: gymId }));
+      const d = await api(apiQuery('api/public/products.php', { gym_id: gym.id }));
       const catIcon = { Supplement: 'fa-capsules', Merchandise: 'fa-shirt', Membership: 'fa-id-card', Service: 'fa-handshake' };
       $('user-products-grid').innerHTML = d.products.map((p) => `
         <div class="product-card">
@@ -1057,13 +975,12 @@
 
   async function loadUserTrainers() {
     try {
-      if (!state.gyms.length) { await refreshGymSelects(); }
-      const gymId = $('user-trainer-gym-select').value;
-      if (!gymId) {
-        $('user-trainers-grid').innerHTML = emptyState('Select a gym to view its trainers.');
+      const gym = state.gym;
+      if (!gym) {
+        $('user-trainers-grid').innerHTML = emptyState('No gym is linked to your account. Contact your gym admin.');
         return;
       }
-      const d = await api(apiQuery('api/public/trainers.php', { gym_id: gymId }));
+      const d = await api(apiQuery('api/public/trainers.php', { gym_id: gym.id }));
       $('user-trainers-grid').innerHTML = d.trainers.map((t) => `
         <div class="gym-card">
           <div class="gym-card-head">
@@ -1082,13 +999,12 @@
 
   async function loadUserEquipment() {
     try {
-      if (!state.gyms.length) { await refreshGymSelects(); }
-      const gymId = $('user-equipment-gym-select').value;
-      if (!gymId) {
-        $('user-equipment-grid').innerHTML = emptyState('Select a gym to view its equipment.');
+      const gym = state.gym;
+      if (!gym) {
+        $('user-equipment-grid').innerHTML = emptyState('No gym is linked to your account. Contact your gym admin.');
         return;
       }
-      const d = await api(apiQuery('api/public/equipment.php', { gym_id: gymId }));
+      const d = await api(apiQuery('api/public/equipment.php', { gym_id: gym.id }));
       const catIcon = { Cardio: 'fa-heart-pulse', Strength: 'fa-dumbbell', Functional: 'fa-bolt', Flexibility: 'fa-person-walking', Machines: 'fa-gears', Recovery: 'fa-spa' };
       $('user-equipment-grid').innerHTML = d.equipment.map((e) => `
         <div class="product-card">
@@ -1102,7 +1018,235 @@
             </div>
           </div>
         </div>`).join('') || emptyState('No equipment at this gym yet.');
-    } catch (err) { $('user-equipment-grid').innerHTML = emptyState(err.message); }
+    } catch (err) {       $('user-equipment-grid').innerHTML = emptyState(err.message); }
+  }
+
+  /* ======================================================================
+     GYM DASHBOARD (read-only, view like the admin dashboard)
+     ====================================================================== */
+  const GYM_SUB_LOADERS = {
+    'gym-overview':      loadGymOverview,
+    'gym-classes':       loadGymClasses,
+    'gym-workouts':      loadGymWorkouts,
+    'gym-diets':         loadGymDiets,
+    'gym-equipment':     loadGymEquipment,
+    'gym-trainers':      loadGymTrainers,
+    'gym-products':      loadGymProducts,
+    'gym-announcements': loadGymAnnouncements,
+  };
+
+  function showGymSub(id) {
+    document.querySelectorAll('.gym-sub-view').forEach((s) => s.classList.remove('active'));
+    const view = $(id);
+    if (!view) return;
+    view.classList.add('active');
+    document.querySelectorAll('.gym-sub-tab').forEach((b) => b.classList.toggle('active', b.dataset.gymTab === id));
+    if (GYM_SUB_LOADERS[id]) GYM_SUB_LOADERS[id]();
+  }
+
+  async function viewGym(adminId) {
+    state.viewGym = adminId;
+    if (!state.gyms.length) {
+      try {
+        const d = await api('api/public/gyms.php');
+        state.gyms = d.gyms;
+      } catch (e) { /* title fallback below */ }
+    }
+    const g = (state.gyms || []).find((x) => String(x.id) === String(adminId));
+    $('gym-dash-title').textContent = g ? g.gym_name : 'Gym Dashboard';
+    $('gym-dash-sub').textContent = g
+      ? 'Read-only view of ' + g.gym_name + ' &middot; managed by ' + g.name + '.'
+      : 'Read-only view of this gym.';
+    showSection('tab-gym-dashboard');
+    showGymSub('gym-overview');
+  }
+
+  async function loadGymOverview() {
+    try {
+      const d = await api(apiQuery('api/public/gym-dashboard.php', { gym_id: state.viewGym }));
+      const g = d.gym || {};
+      if (g.gym_name) {
+        $('gym-dash-title').textContent = g.gym_name;
+        $('gym-dash-sub').textContent = 'Read-only view of ' + g.gym_name + ' &middot; managed by ' + g.name + '.';
+      }
+      $('gym-overview-info').innerHTML = `
+        <div class="cell-user">
+          ${logoImg(g.logo_url, g.gym_name)}
+          <div>
+            <p><strong>${esc(g.gym_name)}</strong> &mdash; managed by ${esc(g.name)}</p>
+            <span class="text-muted text-sm">${esc(g.address || '')}${g.phone ? ' &middot; ' + esc(g.phone) : ''}</span>
+            ${g.description ? '<p class="text-muted text-sm" style="margin-top:6px;">' + esc(g.description) + '</p>' : ''}
+          </div>
+        </div>`;
+      const s = g.stats || {};
+      const cards = [
+        ['fa-calendar-day',   'icon-blue',     s.classes,        'Classes',        'Scheduled sessions'],
+        ['fa-person-running', 'icon-orange',   s.workout_plans,  'Workout Plans',  'Available routines'],
+        ['fa-utensils',       'icon-emerald',  s.diet_plans,     'Diet Plans',     'Nutrition programs'],
+        ['fa-dumbbell',       'icon-purple',   s.equipment,      'Equipment',      'Machines & tools'],
+        ['fa-user-ninja',     'icon-teal',     s.trainers,       'Trainers',       'Active coaches'],
+        ['fa-box-open',       'icon-orange',   s.products,       'Products',       'For sale'],
+        ['fa-bullhorn',       'icon-blue',     s.announcements,  'Announcements',  'Gym updates'],
+        ['fa-users',          'icon-emerald',  s.users,          'Members',        'Registered users'],
+      ];
+      $('gym-overview-metrics').innerHTML = cards.map(([icon, color, val, label, sub]) => `
+        <div class="metric-card">
+          <div class="metric-header">
+            <div class="metric-icon ${color}"><i class="fa-solid ${icon}"></i></div>
+            <span class="trend trend-neutral">${esc(sub)}</span>
+          </div>
+          <div class="metric-body"><h3>${Number(val || 0)}</h3><p>${esc(label)}</p></div>
+        </div>`).join('');
+    } catch (err) { $('gym-overview-metrics').innerHTML = emptyState(err.message); }
+  }
+
+  function gymClassCard(c) {
+    return `
+      <div class="class-card">
+        <div class="class-card-header">
+          <span class="class-category">${esc(c.day_of_week || '')}</span>
+          ${pill(c.status)}
+        </div>
+        <h4 class="class-card-title">${esc(c.name)}</h4>
+        ${c.description ? '<p class="text-muted text-sm">' + esc(c.description) + '</p>' : ''}
+        <div class="class-info-item"><i class="fa-solid fa-clock"></i> ${esc(c.start_time || '')} - ${esc(c.end_time || '')}</div>
+        <div class="class-info-item"><i class="fa-solid fa-location-dot"></i> ${esc(c.location || 'Studio')}</div>
+        <div class="class-info-item"><i class="fa-solid fa-user-ninja"></i> ${esc(c.trainer_name || 'Any trainer')}</div>
+        <div class="class-info-item"><i class="fa-solid fa-users"></i> ${c.booked_count || 0} / ${c.capacity || 15} booked</div>
+      </div>`;
+  }
+
+  async function loadGymClasses() {
+    try {
+      const d = await api(apiQuery('api/public/classes.php', { gym_id: state.viewGym }));
+      $('gym-classes-grid').innerHTML = (d.classes || []).map(gymClassCard).join('') || emptyState('No classes at this gym yet.');
+    } catch (err) { $('gym-classes-grid').innerHTML = emptyState(err.message); }
+  }
+
+  function gymPlanCard(p, kind) {
+    if (kind === 'diet') {
+      const meals = p.meals || [];
+      return `
+        <div class="admin-plan-card">
+          <div class="admin-plan-head">
+            <div>
+              <span class="plan-cat">${esc(p.goal || 'Nutrition')} &middot; ${Number(p.target_calories || 0)} kcal</span>
+              <h4 style="margin:4px 0 0;">${esc(p.title)}</h4>
+            </div>
+            ${pill(p.status)}
+          </div>
+          ${p.description ? '<p class="text-muted text-sm">' + esc(p.description) + '</p>' : ''}
+          <ul class="plan-ex-list">
+            ${meals.slice(0, 4).map((m) => '<li><i class="fa-solid fa-utensils"></i> <strong>' + esc(m.name) + '</strong> <span class="text-muted text-sm">' + esc(m.day_label || '') + ' &middot; ' + esc(m.meal_type || '') + ' &middot; ' + Number(m.calories || 0) + ' kcal</span></li>').join('')}
+            ${meals.length > 4 ? '<li class="text-muted text-sm"><i class="fa-solid fa-plus"></i> ' + (meals.length - 4) + ' more meals</li>' : ''}
+          </ul>
+        </div>`;
+    }
+    const exs = p.exercises || [];
+    return `
+      <div class="admin-plan-card">
+        <div class="admin-plan-head">
+          <div>
+            <span class="plan-cat">${esc(p.difficulty || 'General')} &middot; ${p.days_per_week || 0} days/wk</span>
+            <h4 style="margin:4px 0 0;">${esc(p.title)}</h4>
+          </div>
+          ${pill(p.status)}
+        </div>
+        ${p.description ? '<p class="text-muted text-sm">' + esc(p.description) + '</p>' : ''}
+        <ul class="plan-ex-list">
+          ${exs.slice(0, 4).map((e) => '<li><i class="fa-solid fa-dumbbell"></i> <strong>' + esc(e.name) + '</strong> <span class="text-muted text-sm">' + esc(e.day_label || '') + ' &middot; ' + (e.sets || 0) + 'x' + esc(e.reps || 0) + '</span></li>').join('')}
+          ${exs.length > 4 ? '<li class="text-muted text-sm"><i class="fa-solid fa-plus"></i> ' + (exs.length - 4) + ' more exercises</li>' : ''}
+        </ul>
+      </div>`;
+  }
+
+  async function loadGymWorkouts() {
+    try {
+      const d = await api(apiQuery('api/public/workouts.php', { gym_id: state.viewGym }));
+      $('gym-workouts-grid').innerHTML = (d.plans || []).map((p) => gymPlanCard(p, 'workout')).join('') || emptyState('No workout plans at this gym yet.');
+    } catch (err) { $('gym-workouts-grid').innerHTML = emptyState(err.message); }
+  }
+
+  async function loadGymDiets() {
+    try {
+      const d = await api(apiQuery('api/public/diets.php', { gym_id: state.viewGym }));
+      $('gym-diets-grid').innerHTML = (d.plans || []).map((p) => gymPlanCard(p, 'diet')).join('') || emptyState('No diet plans at this gym yet.');
+    } catch (err) { $('gym-diets-grid').innerHTML = emptyState(err.message); }
+  }
+
+  async function loadGymEquipment() {
+    try {
+      const d = await api(apiQuery('api/public/equipment.php', { gym_id: state.viewGym }));
+      const catIcon = { Cardio: 'fa-heart-pulse', Strength: 'fa-dumbbell', Functional: 'fa-bolt', Flexibility: 'fa-person-walking', Machines: 'fa-gears', Recovery: 'fa-spa' };
+      $('gym-equipment-grid').innerHTML = d.equipment.map((e) => `
+        <div class="product-card">
+          <div class="product-card-img"><i class="fa-solid ${catIcon[e.category] || 'fa-dumbbell'}"></i></div>
+          <div class="product-card-body">
+            <span class="product-card-cat">${esc(e.category) || 'Equipment'}</span>
+            <h4>${esc(e.name)}</h4>
+            <p class="product-card-desc">${esc(e.description || '')}</p>
+            <div class="product-card-foot">
+              <span class="product-price"><i class="fa-solid fa-layer-group"></i> ${Number(e.quantity || 1)} unit${Number(e.quantity || 1) > 1 ? 's' : ''}</span>
+            </div>
+          </div>
+        </div>`).join('') || emptyState('No equipment at this gym yet.');
+    } catch (err) { $('gym-equipment-grid').innerHTML = emptyState(err.message); }
+  }
+
+  async function loadGymTrainers() {
+    try {
+      const d = await api(apiQuery('api/public/trainers.php', { gym_id: state.viewGym }));
+      $('gym-trainers-grid').innerHTML = d.trainers.map((t) => `
+        <div class="gym-card">
+          <div class="gym-card-head">
+            <h3><i class="fa-solid fa-user-ninja text-orange"></i> ${esc(t.name)}</h3>
+            <span class="badge badge-emerald">Active</span>
+          </div>
+          <div class="gym-card-loc"><i class="fa-solid fa-bolt"></i>${esc(t.specialization || 'General Fitness')}</div>
+          <div class="gym-card-meta">
+            <span><i class="fa-solid fa-calendar-days"></i> ${t.experience} yrs exp</span>
+            <span><i class="fa-solid fa-phone"></i> ${esc(t.phone || '-')}</span>
+          </div>
+          <p class="text-muted text-sm">${esc(t.certifications || '')}</p>
+        </div>`).join('') || emptyState('No trainers at this gym.');
+    } catch (err) { $('gym-trainers-grid').innerHTML = emptyState(err.message); }
+  }
+
+  async function loadGymProducts() {
+    try {
+      const d = await api(apiQuery('api/public/products.php', { gym_id: state.viewGym }));
+      const catIcon = { Supplement: 'fa-capsules', Merchandise: 'fa-shirt', Membership: 'fa-id-card', Service: 'fa-handshake' };
+      $('gym-products-grid').innerHTML = d.products.map((p) => `
+        <div class="product-card">
+          <div class="product-card-img"><i class="fa-solid ${catIcon[p.category] || 'fa-box-open'}"></i></div>
+          <div class="product-card-body">
+            <span class="product-card-cat">${esc(p.category)}</span>
+            <h4>${esc(p.name)}</h4>
+            <p class="product-card-desc">${esc(p.description || '')}</p>
+            <div class="product-card-foot">
+              <span class="product-price">${money(p.price)}</span>
+              <span class="product-stock">Stock: ${p.stock}</span>
+            </div>
+          </div>
+        </div>`).join('') || emptyState('No products at this gym yet.');
+    } catch (err) { $('gym-products-grid').innerHTML = emptyState(err.message); }
+  }
+
+  async function loadGymAnnouncements() {
+    try {
+      const d = await api(apiQuery('api/public/announcements.php', { gym_id: state.viewGym }));
+      $('gym-announcements-list').innerHTML = (d.announcements || []).map((a) => `
+        <div class="announcement-card ${a.priority === 'urgent' ? 'ann-urgent' : a.priority === 'important' ? 'ann-important' : ''}">
+          <div class="announcement-head">
+            <h4>${esc(a.title)}</h4>
+            ${pill(a.priority)}
+          </div>
+          <p class="text-muted">${esc(a.body || '')}</p>
+          <div class="announcement-meta">
+            <span><i class="fa-solid fa-calendar-days"></i> ${fmtDate(a.created_at)}</span>
+          </div>
+        </div>`).join('') || emptyState('No announcements from this gym yet.');
+    } catch (err) { $('gym-announcements-list').innerHTML = emptyState(err.message); }
   }
 
   /* ======================================================================
@@ -1837,7 +1981,7 @@
       const billed = inv.reduce((s, i) => s + Number(i.amount || 0), 0);
       const paid = inv.reduce((s, i) => s + Number(i.paid_amount || 0), 0);
       $('user-invoice-stats').innerHTML =
-        metricCard('fa-file-invoice', 'icon-orange', money(billed), 'Total Billed', 'Across your gyms') +
+        metricCard('fa-file-invoice', 'icon-orange', money(billed), 'Total Billed', 'From your gym') +
         metricCard('fa-circle-check', 'icon-emerald', money(paid), 'Total Paid', 'Cleared') +
         metricCard('fa-hourglass-half', 'icon-blue', money(Math.max(billed - paid, 0)), 'Outstanding', 'Still due');
     } catch (err) { $('user-invoices-tbody').innerHTML = emptyRow(err.message); }
@@ -1909,7 +2053,7 @@
       ctx.fillText('No data yet', w / 2, h / 2);
       return;
     }
-    const colors = { orange: '#f97316', blue: '#3b82f6', emerald: '#10b981' };
+    const colors = { orange: '#E63946', blue: '#3b82f6', emerald: '#10b981' };
     const padL = 44, padB = 24, padT = 12, padR = 8;
     const plotW = w - padL - padR, plotH = h - padT - padB;
     const nums = values.map(Number);
@@ -1931,7 +2075,7 @@
       const bh = (v / max) * plotH;
       const x = padL + gap * i + (gap - bw) / 2;
       const y = padT + plotH - bh;
-      ctx.fillStyle = colors[hue] || '#f97316';
+      ctx.fillStyle = colors[hue] || '#E63946';
       ctx.fillRect(x, y, bw, Math.max(bh, 1));
       ctx.fillStyle = '#94a3b8'; ctx.font = '10px sans-serif';
       ctx.fillText(String(lb).slice(0, 8), padL + gap * i + gap / 2, h - 8);
@@ -1970,14 +2114,14 @@
       ctx.fillStyle = '#94a3b8'; ctx.textAlign = 'right';
       ctx.fillText(String(Math.round(min + (range * i / 4))), padL - 6, y + 4);
     }
-    ctx.strokeStyle = '#f97316'; ctx.lineWidth = 2.5; ctx.lineJoin = 'round';
+      ctx.strokeStyle = '#E63946'; ctx.lineWidth = 2.5; ctx.lineJoin = 'round';
     ctx.beginPath();
     nums.forEach((v, i) => { const X = px(i), Y = py(v); i === 0 ? ctx.moveTo(X, Y) : ctx.lineTo(X, Y); });
     ctx.stroke();
     ctx.lineWidth = 1;
     nums.forEach((v, i) => {
       const X = px(i), Y = py(v);
-      ctx.fillStyle = '#f97316';
+      ctx.fillStyle = '#E63946';
       ctx.beginPath(); ctx.arc(X, Y, 4, 0, Math.PI * 2); ctx.fill();
       ctx.fillStyle = '#94a3b8'; ctx.textAlign = 'center'; ctx.font = '10px sans-serif';
       ctx.fillText(String(labels[i]).slice(0, 8), X, h - 8);
@@ -2197,13 +2341,12 @@
 
   async function loadUserClasses() {
     try {
-      if (!state.gyms.length) { await refreshGymSelects(); }
-      const gymId = $('user-class-gym-select').value;
-      if (!gymId) {
-        $('user-classes-grid').innerHTML = emptyState('Select a gym to browse its classes.');
+      const gym = state.gym;
+      if (!gym) {
+        $('user-classes-grid').innerHTML = emptyState('No gym is linked to your account. Contact your gym admin.');
         return;
       }
-      const d = await api(apiQuery('api/user/classes.php', { admin_id: gymId }));
+      const d = await api(apiQuery('api/user/classes.php', { admin_id: gym.id }));
       $('user-classes-grid').innerHTML = (d.classes || []).map(userClassCard).join('') || emptyState('No classes at this gym yet.');
     } catch (err) { $('user-classes-grid').innerHTML = emptyState(err.message); }
   }
@@ -2234,6 +2377,7 @@
      EVENT WIRING (filters + buttons that use onclick)
      ====================================================================== */
   window.gm = {
+    viewGym,
     editAdmin: (id) => api('api/superadmin/admins.php').then((d) => openAdminModal(d.admins.find((a) => a.id === id))).catch((e) => toast(e.message, 'error')),
     toggleAdmin: async (id, status) => {
       if (!confirm(status === 'suspended' ? 'Suspend this admin?' : 'Reactivate this admin?')) return;
@@ -2271,7 +2415,6 @@
       try { await api('api/admin/equipment.php', { method: 'DELETE', body: { id } }); toast('Equipment removed.'); loadAdminEquipment(); }
       catch (err) { toast(err.message, 'error'); }
     },
-    toggleGym,
     /* ----------------- professional feature actions ------------------ */
     editWorkout: (id) => api(planApiBase() + '/workouts.php').then((d) => openWorkoutModal((d.plans || []).find((p) => String(p.id) === String(id)))).catch((e) => toast(e.message, 'error')),
     deleteWorkout: async (id) => {
@@ -2367,9 +2510,6 @@
 
   $('admin-product-cat-filter').addEventListener('change', loadAdminProducts);
   $('admin-user-search').addEventListener('input', loadAdminUsers);
-  $('user-product-gym-select').addEventListener('change', loadUserProducts);
-  $('user-trainer-gym-select').addEventListener('change', loadUserTrainers);
-  $('user-equipment-gym-select').addEventListener('change', loadUserEquipment);
 
   /* ----------------- professional feature wiring --------------------- */
   $('btn-admin-checkin').addEventListener('click', openCheckinModal);
@@ -2408,7 +2548,6 @@
   });
 
   $('btn-add-my-progress').addEventListener('click', openMyProgressModal);
-  $('user-class-gym-select').addEventListener('change', loadUserClasses);
 
   $('btn-mark-all-read').addEventListener('click', async () => {
     try {
@@ -2456,6 +2595,14 @@
       return;
     }
     if (handleUrlParams()) return;
+    api('api/public/gyms.php')
+      .then((d) => {
+        state.gyms = d.gyms;
+        const sel = $('reg-gym');
+        if (sel) sel.innerHTML = '<option value="">Choose a gym...</option>' + d.gyms.map((g) =>
+          `<option value="${g.id}">${esc(g.gym_name)}</option>`).join('');
+      })
+      .catch(() => {});
     try { restoreSession(); } catch (e) { showAuthScreen(); }
   });
 })();

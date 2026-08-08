@@ -1,10 +1,11 @@
 <?php
 /**
  * register - self-registration for gym members (User portal).
- * POST { name, email, password, phone, goal, admin_id? }
+ * POST { name, email, password, phone, goal, admin_id }
  *
- * Creates the account, then emails a verification link. The user must
- * verify their email before they can sign in.
+ * The member chooses their gym on sign-up; it becomes their active gym and
+ * is followed automatically. Creates the account, then emails a verification
+ * link. The user must verify their email before they can sign in.
  */
 declare(strict_types=1);
 require_once __DIR__ . '/../../config/init.php';
@@ -27,6 +28,14 @@ if (strlen($password) < 6) {
 if (!filter_var($email, FILTER_VALIDATE_EMAIL)) {
     fail('Please enter a valid email address.');
 }
+if (!$adminId) {
+    fail('Please select your gym.');
+}
+$stmt = db()->prepare('SELECT id FROM admins WHERE id = ?');
+$stmt->execute([$adminId]);
+if (!$stmt->fetch()) {
+    fail('The selected gym is invalid.');
+}
 
 $stmt = db()->prepare('SELECT id, email_verified_at, verification_sent_at FROM users WHERE email = ?');
 $stmt->execute([$email]);
@@ -45,18 +54,14 @@ if ($existing) {
         ->execute([$token, $name, password_hash($password, PASSWORD_BCRYPT), $phone, $goal, (int)$existing['id']]);
     $id = (int)$existing['id'];
 } else {
-    if ($adminId) {
-        $stmt = db()->prepare('SELECT id FROM admins WHERE id = ?');
-        $stmt->execute([$adminId]);
-        if (!$stmt->fetch()) {
-            fail('The selected gym is invalid.');
-        }
-    }
     $token = bin2hex(random_bytes(32));
     $stmt = db()->prepare('INSERT INTO users (name, email, password, phone, goal, admin_id, member_code, verification_token, verification_sent_at) VALUES (?, ?, ?, ?, ?, ?, ?, ?, NOW())');
     $stmt->execute([$name, $email, password_hash($password, PASSWORD_BCRYPT), $phone, $goal, $adminId, 'FP-' . strtoupper(substr(bin2hex(random_bytes(4)), 0, 6)), $token]);
     $id = (int)db()->lastInsertId();
 }
+
+// Follow the chosen gym so it appears in the member's selection immediately.
+db()->prepare('INSERT IGNORE INTO user_gyms (user_id, admin_id) VALUES (?, ?)')->execute([$id, $adminId]);
 
 $link = APP_URL . '/index.html?verify=' . $token;
 $sent = mail_send($email, 'Verify your FitPulse account', verification_email($link));
