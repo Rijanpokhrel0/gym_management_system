@@ -5,10 +5,12 @@
 (function () {
   'use strict';
 
-  const { $, esc, api, toast, openModal, closeModal, statusBadge, emptyRow } = window.Core;
+  const { $, esc, api, toast, openModal, closeModal, statusBadge, emptyRow, renderPagination } = window.Core;
 
   let allUsers = [];
   let allAdmins = [];
+  const PAGE_SIZE = 20;
+  let currentPage = 1;
 
   async function loadAllUsers() {
     try {
@@ -18,17 +20,23 @@
       ]);
       allUsers = uD.users || [];
       allAdmins = aD.admins || [];
-      renderUsers(allUsers);
+      currentPage = 1;
+      renderUsers();
     } catch (err) {
       const tbody = $('sa-users-tbody');
       if (tbody) tbody.innerHTML = emptyRow(err.message, 5);
     }
   }
 
-  function renderUsers(users) {
+  function renderUsers() {
     const tbody = $('sa-users-tbody');
     if (!tbody) return;
-    tbody.innerHTML = users.map((u) => `
+
+    const totalPages = Math.ceil(allUsers.length / PAGE_SIZE);
+    const start = (currentPage - 1) * PAGE_SIZE;
+    const pageItems = allUsers.slice(start, start + PAGE_SIZE);
+
+    tbody.innerHTML = pageItems.map((u) => `
       <tr>
         <td>
           <div class="cell-user">
@@ -46,6 +54,18 @@
           <button class="btn btn-outline btn-sm btn-danger" onclick="window.saUsers.remove(${u.id})" title="Delete"><i class="fa-solid fa-trash"></i></button>
         </td>
       </tr>`).join('') || emptyRow('No users found.', 5);
+
+    renderPagination('sa-users-pagination', currentPage, totalPages, (page) => {
+      currentPage = page;
+      renderUsers();
+    });
+
+    const info = $('sa-users-pagination-info');
+    if (info) {
+      info.textContent = allUsers.length > 0
+        ? `Showing ${start + 1}–${Math.min(start + PAGE_SIZE, allUsers.length)} of ${allUsers.length} users`
+        : '';
+    }
   }
 
   window.saUsers = window.saUsers || {};

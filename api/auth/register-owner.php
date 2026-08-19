@@ -10,6 +10,8 @@ declare(strict_types=1);
 require_once __DIR__ . '/../../config/init.php';
 require_once __DIR__ . '/../../config/mailer.php';
 
+rate_limit('register-owner', 5, 300);
+
 $d = body();
 $name     = trim((string)($d['name'] ?? ''));
 $email    = strtolower(trim((string)($d['email'] ?? '')));

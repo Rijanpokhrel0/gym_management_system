@@ -370,6 +370,99 @@
 
   document.addEventListener('DOMContentLoaded', initGlobalListeners);
 
+  /* ----------------------------- Loading Helpers --------------------------- */
+  function showLoading(containerId, message = 'Loading...') {
+    const el = document.getElementById(containerId);
+    if (!el) return;
+    el.innerHTML = '<div class="loading-row"><div class="spinner"></div> ' + esc(message) + '</div>';
+  }
+
+  function showFullLoading(message = 'Loading...') {
+    let overlay = document.getElementById('global-loading-overlay');
+    if (!overlay) {
+      overlay = document.createElement('div');
+      overlay.id = 'global-loading-overlay';
+      overlay.className = 'loading-overlay';
+      document.body.appendChild(overlay);
+    }
+    overlay.innerHTML = '<div class="spinner spinner-lg"></div>';
+    overlay.style.display = 'flex';
+  }
+
+  function hideFullLoading() {
+    const overlay = document.getElementById('global-loading-overlay');
+    if (overlay) overlay.style.display = 'none';
+  }
+
+  /* ----------------------------- Pagination Helper ------------------------ */
+  function renderPagination(containerId, currentPage, totalPages, onPageChange) {
+    const container = document.getElementById(containerId);
+    if (!container || totalPages <= 1) {
+      if (container) container.innerHTML = '';
+      return;
+    }
+    let html = '';
+    html += '<button data-page="' + (currentPage - 1) + '"' + (currentPage <= 1 ? ' disabled' : '') + '><i class="fa-solid fa-chevron-left"></i></button>';
+
+    const start = Math.max(1, currentPage - 2);
+    const end = Math.min(totalPages, currentPage + 2);
+
+    if (start > 1) {
+      html += '<button data-page="1">1</button>';
+      if (start > 2) html += '<button disabled>...</button>';
+    }
+    for (let i = start; i <= end; i++) {
+      html += '<button data-page="' + i + '"' + (i === currentPage ? ' class="active"' : '') + '>' + i + '</button>';
+    }
+    if (end < totalPages) {
+      if (end < totalPages - 1) html += '<button disabled>...</button>';
+      html += '<button data-page="' + totalPages + '">' + totalPages + '</button>';
+    }
+
+    html += '<button data-page="' + (currentPage + 1) + '"' + (currentPage >= totalPages ? ' disabled' : '') + '><i class="fa-solid fa-chevron-right"></i></button>';
+
+    container.innerHTML = html;
+    container.querySelectorAll('button[data-page]').forEach((btn) => {
+      btn.addEventListener('click', () => {
+        const page = parseInt(btn.dataset.page, 10);
+        if (page >= 1 && page <= totalPages) onPageChange(page);
+      });
+    });
+  }
+
+  /* ----------------------------- Theme Toggle ----------------------------- */
+  function initTheme() {
+    const saved = localStorage.getItem('fitpulse-theme') || 'dark';
+    document.documentElement.setAttribute('data-theme', saved);
+    updateThemeIcon(saved);
+  }
+
+  function updateThemeIcon(theme) {
+    document.querySelectorAll('.theme-toggle').forEach((btn) => {
+      const icon = btn.querySelector('i');
+      if (icon) {
+        icon.className = theme === 'dark' ? 'fa-solid fa-sun' : 'fa-solid fa-moon';
+      }
+    });
+  }
+
+  function toggleTheme() {
+    const current = document.documentElement.getAttribute('data-theme') || 'dark';
+    const next = current === 'dark' ? 'light' : 'dark';
+    document.documentElement.setAttribute('data-theme', next);
+    localStorage.setItem('fitpulse-theme', next);
+    updateThemeIcon(next);
+  }
+
+  document.addEventListener('DOMContentLoaded', () => {
+    initTheme();
+    document.querySelectorAll('.theme-toggle').forEach((btn) => {
+      btn.addEventListener('click', toggleTheme);
+    });
+  });
+
+  global.toggleTheme = toggleTheme;
+
   /* ----------------------------- Password Toggle ------------------------- */
   function togglePassword(inputId, btn) {
     const input = document.getElementById(inputId);
@@ -393,10 +486,12 @@
     openModal, closeModal, closeActiveModal,
     statusBadge, pill, invoiceStatus, metricCard, emptyRow, emptyState, portalLabel,
     getPathPrefix, redirectToPortal, checkSession, requireAuth, setupUserProfileUI, logout,
-    drawBarChart, drawLineChart, downloadReportCsv, togglePassword
+    drawBarChart, drawLineChart, downloadReportCsv, togglePassword, toggleTheme,
+    showLoading, showFullLoading, hideFullLoading, renderPagination
   };
 
-  /* Also expose togglePassword as a global function for inline onclick handlers */
+  /* Also expose togglePassword and toggleTheme as global functions for inline handlers */
   global.togglePassword = togglePassword;
+  global.toggleTheme = toggleTheme;
 
 })(window);

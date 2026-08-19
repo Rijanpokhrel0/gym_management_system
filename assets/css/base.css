@@ -1154,6 +1154,225 @@ button, input, select, textarea {
   color: var(--orange-500);
 }
 
+/* --------------------------------------------------------------------------
+   LOADING SPINNERS
+   -------------------------------------------------------------------------- */
+.spinner {
+  width: 24px;
+  height: 24px;
+  border: 3px solid var(--border-color);
+  border-top-color: var(--orange-500);
+  border-radius: 50%;
+  animation: spin 0.7s linear infinite;
+  display: inline-block;
+  vertical-align: middle;
+  margin-right: 8px;
+}
+
+.spinner-sm {
+  width: 16px;
+  height: 16px;
+  border-width: 2px;
+}
+
+.spinner-lg {
+  width: 40px;
+  height: 40px;
+  border-width: 4px;
+}
+
+@keyframes spin {
+  to { transform: rotate(360deg); }
+}
+
+.loading-overlay {
+  position: fixed;
+  top: 0;
+  left: 0;
+  right: 0;
+  bottom: 0;
+  background: rgba(0, 0, 0, 0.5);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  z-index: 10000;
+}
+
+.loading-overlay .spinner-lg {
+  border-color: rgba(255, 255, 255, 0.2);
+  border-top-color: var(--orange-500);
+}
+
+.loading-row {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  padding: 40px;
+  color: var(--text-muted);
+}
+
+.empty-state {
+  text-align: center;
+  padding: 60px 20px;
+  color: var(--text-muted);
+}
+
+.empty-state i {
+  font-size: 3rem;
+  margin-bottom: 16px;
+  opacity: 0.4;
+}
+
+/* --------------------------------------------------------------------------
+   PAGINATION
+   -------------------------------------------------------------------------- */
+.pagination {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 4px;
+  padding: 16px;
+}
+
+.pagination button {
+  min-width: 36px;
+  height: 36px;
+  padding: 0 10px;
+  border: 1px solid var(--border-color);
+  border-radius: var(--radius-sm);
+  background: var(--bg-card);
+  color: var(--text-main);
+  font-size: 0.875rem;
+  cursor: pointer;
+  transition: all var(--transition-fast);
+}
+
+.pagination button:hover:not(:disabled) {
+  background: var(--bg-card-hover);
+  border-color: var(--orange-500);
+}
+
+.pagination button.active {
+  background: var(--orange-500);
+  border-color: var(--orange-500);
+  color: #fff;
+}
+
+.pagination button:disabled {
+  opacity: 0.4;
+  cursor: not-allowed;
+}
+
+.pagination-info {
+  text-align: center;
+  padding: 8px;
+  font-size: 0.8125rem;
+  color: var(--text-muted);
+}
+
+/* --------------------------------------------------------------------------
+   THEME TOGGLE & LIGHT MODE
+   -------------------------------------------------------------------------- */
+[data-theme="light"] {
+  color-scheme: light;
+  --bg-app: #F8F9FA;
+  --bg-sidebar: #FFFFFF;
+  --bg-card: #FFFFFF;
+  --bg-card-hover: #F1F3F5;
+
+  --text-main: #1A1A2E;
+  --text-muted: #6C757D;
+  --text-light: #ADB5BD;
+  --text-white: #1A1A2E;
+
+  --border-color: #DEE2E6;
+  --border-focus: #E63946;
+
+  --orange-50: #FFF1F2;
+  --orange-100: #FFE4E6;
+  --orange-400: #E63946;
+  --orange-500: #E63946;
+  --orange-600: #D90429;
+  --orange-700: #E63946;
+
+  --blue-500: #0ea5e9;
+  --blue-600: #0284c7;
+
+  --emerald-50: #ECFDF5;
+  --emerald-600: #059669;
+  --emerald-700: #047857;
+
+  --amber-50: #FFFBEB;
+  --amber-600: #D97706;
+
+  --rose-50: #FFF1F2;
+  --rose-600: #BE123C;
+
+  --shadow-sm: 0 1px 2px 0 rgba(0, 0, 0, 0.05);
+  --shadow-md: 0 4px 6px -1px rgba(0, 0, 0, 0.1), 0 2px 4px -1px rgba(0, 0, 0, 0.06);
+  --shadow-lg: 0 10px 15px -3px rgba(0, 0, 0, 0.1), 0 4px 6px -2px rgba(0, 0, 0, 0.05);
+  --shadow-xl: 0 20px 25px -5px rgba(0, 0, 0, 0.1), 0 10px 10px -5px rgba(0, 0, 0, 0.04);
+}
+
+[data-theme="light"] body {
+  background-color: var(--bg-app);
+  color: var(--text-main);
+}
+
+[data-theme="light"] .sidebar {
+  background-color: var(--bg-sidebar);
+  border-right: 1px solid var(--border-color);
+}
+
+[data-theme="light"] .panel,
+[data-theme="light"] .card,
+[data-theme="light"] .modal-content {
+  background-color: var(--bg-card);
+  border-color: var(--border-color);
+}
+
+[data-theme="light"] .data-table th {
+  background-color: var(--bg-card-hover);
+}
+
+[data-theme="light"] .data-table tbody tr {
+  border-bottom-color: var(--border-color);
+}
+
+[data-theme="light"] .data-table tbody tr:hover {
+  background-color: var(--bg-card-hover);
+}
+
+[data-theme="light"] .form-control,
+[data-theme="light"] .form-select,
+[data-theme="light"] input,
+[data-theme="light"] select,
+[data-theme="light"] textarea {
+  background-color: var(--bg-card);
+  border-color: var(--border-color);
+  color: var(--text-main);
+}
+
+.theme-toggle {
+  width: 36px;
+  height: 36px;
+  border: none;
+  border-radius: var(--radius-full);
+  background: transparent;
+  color: var(--text-muted);
+  font-size: 1.1rem;
+  cursor: pointer;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  transition: all var(--transition-fast);
+}
+
+.theme-toggle:hover {
+  background-color: var(--bg-card-hover);
+  color: var(--orange-500);
+}
+
 /* Responsive */
 @media (max-width: 768px) {
   .sidebar { transform: translateX(-100%); }

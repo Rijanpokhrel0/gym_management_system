@@ -62,6 +62,7 @@
           </button>
         </div>
         <div class="topbar-right">
+          <button class="theme-toggle" title="Toggle theme"><i class="fa-solid fa-sun"></i></button>
           <div class="role-switcher-pill">
             <span class="role-label">Portal:</span>
             <span id="active-role-label" class="badge badge-blue">Admin</span>
@@ -96,6 +97,28 @@
             </div>
           </div>
           <div class="metrics-grid" id="admin-att-stats-grid"></div>
+
+          <!-- QR Scanner Panel -->
+          <div class="panel" style="margin-bottom:24px;">
+            <div class="panel-header">
+              <div class="panel-title-group">
+                <h3><i class="fa-solid fa-qrcode text-orange"></i> QR Code Scanner</h3>
+              </div>
+            </div>
+            <div class="panel-body">
+              <div class="scanner-container" id="qr-scanner-container">
+                <video id="qr-video" style="width:100%;max-width:400px;border-radius:8px;display:none;" autoplay playsinline></video>
+                <div id="qr-result" class="qr-result"></div>
+                <div style="display:flex;gap:8px;margin-top:12px;">
+                  <button class="btn btn-primary" id="btn-start-scanner"><i class="fa-solid fa-camera"></i> Start Scanner</button>
+                  <button class="btn btn-outline" id="btn-stop-scanner" style="display:none;"><i class="fa-solid fa-stop"></i> Stop Scanner</button>
+                  <input type="text" id="manual-member-code" class="form-control" placeholder="Or enter member code manually" style="max-width:250px;">
+                  <button class="btn btn-secondary" id="btn-manual-checkin"><i class="fa-solid fa-check"></i> Check In</button>
+                </div>
+              </div>
+            </div>
+          </div>
+
           <div class="panel">
             <div class="panel-header">
               <div class="panel-title-group">

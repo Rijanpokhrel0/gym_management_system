@@ -59,6 +59,7 @@
           </button>
         </div>
         <div class="topbar-right">
+          <button class="theme-toggle" title="Toggle theme"><i class="fa-solid fa-sun"></i></button>
           <div class="role-switcher-pill">
             <span class="role-label">Portal:</span>
             <span id="active-role-label" class="badge badge-blue">Member</span>
@@ -171,7 +172,7 @@
           <div class="page-header">
             <div>
               <h1 class="page-title">My Attendance</h1>
-              <p class="page-subtitle">Check in when you arrive at the gym. Show your member code at the desk.</p>
+              <p class="page-subtitle">Check in when you arrive at the gym. Show your QR code or member code at the desk.</p>
             </div>
             <div class="header-actions">
               <button class="btn btn-primary" id="btn-user-checkin"><i class="fa-solid fa-fingerprint"></i> Check In Now</button>
@@ -184,6 +185,16 @@
               </div>
             </div>
             <div class="panel-body" id="user-member-code-box"></div>
+          </div>
+          <div class="panel" style="margin-top:24px;" id="user-qr-panel">
+            <div class="panel-header">
+              <div class="panel-title-group">
+                <h3><i class="fa-solid fa-qrcode text-amber"></i> My Check-in QR Code</h3>
+              </div>
+            </div>
+            <div class="panel-body" style="text-align:center;" id="user-qr-box">
+              <button class="btn btn-outline" id="btn-load-qr"><i class="fa-solid fa-qrcode"></i> Generate QR Code</button>
+            </div>
           </div>
           <div class="panel" style="margin-top:24px;">
             <div class="panel-header">

@@ -6,6 +6,8 @@
 declare(strict_types=1);
 require_once __DIR__ . '/../../config/init.php';
 
+rate_limit('login', 10, 60);
+
 $d = body();
 $email    = trim((string)($d['email'] ?? ''));
 $password = (string)($d['password'] ?? '');

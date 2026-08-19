@@ -39,6 +39,27 @@
     }
   }
 
+  async function loadQRCode() {
+    const qrBox = $('user-qr-box');
+    if (!qrBox) return;
+    try {
+      qrBox.innerHTML = '<div class="loading-spinner" style="display:inline-block;"><div class="spinner"></div> Generating QR code...</div>';
+      const data = await api('api/user/qr-checkin.php');
+      if (data.qr_code) {
+        qrBox.innerHTML = `
+          <div style="display:flex;flex-direction:column;align-items:center;gap:12px;">
+            <img src="${data.qr_code}" alt="Check-in QR Code" style="width:220px;height:220px;border:3px solid var(--c-primary);border-radius:12px;">
+            <p class="text-muted text-sm">Show this QR code at the gym reception to check in</p>
+            <p style="font-size:13px;color:var(--c-muted);">Member Code: <strong>${esc(data.member_code || '')}</strong></p>
+          </div>`;
+      } else {
+        qrBox.innerHTML = '<p class="text-muted">Unable to generate QR code. Contact your gym administrator.</p>';
+      }
+    } catch (err) {
+      qrBox.innerHTML = '<p class="text-muted">Error loading QR code. Please try again.</p>';
+    }
+  }
+
   document.addEventListener('DOMContentLoaded', () => {
     const btnCheckin = $('btn-user-checkin');
     if (btnCheckin) {
@@ -49,6 +70,11 @@
           loadUserAttendance();
         } catch (err) { toast(err.message, 'error'); }
       });
+    }
+
+    const btnLoadQR = $('btn-load-qr');
+    if (btnLoadQR) {
+      btnLoadQR.addEventListener('click', loadQRCode);
     }
   });
 
