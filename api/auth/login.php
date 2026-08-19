@@ -17,7 +17,7 @@ if ($email === '' || $password === '') {
 // Portal order: superadmin -> admin -> trainer -> user
 $checks = [
     ['superadmins', 'superadmin', 'SELECT id, name, email, password, NULL AS status FROM superadmins WHERE email = ?'],
-    ['admins',      'admin',      'SELECT id, name, email, password, status FROM admins WHERE email = ?'],
+    ['admins',      'admin',      'SELECT id, name, email, password, status, verification_status, trial_ends_at FROM admins WHERE email = ?'],
     ['trainers',    'trainer',    'SELECT id, name, email, password, status FROM trainers WHERE email = ?'],
     ['users',       'user',       'SELECT id, name, email, password, email_verified_at, NULL AS status FROM users WHERE email = ?'],
 ];
@@ -37,6 +37,14 @@ foreach ($checks as [$table, $portal, $sql]) {
     }
     if (($row['status'] ?? '') === 'suspended' || ($row['status'] ?? '') === 'inactive') {
         fail('This account has been deactivated. Contact your gym administrator.', 403);
+    }
+    // Check trial expiry for self-registered owners
+    if ($portal === 'admin' && !empty($row['trial_ends_at'])) {
+        $trialEnd = new DateTime($row['trial_ends_at']);
+        $now = new DateTime();
+        if ($trialEnd < $now && ($row['verification_status'] ?? '') !== 'approved') {
+            fail('Your 14-day free trial has expired. Please submit payment to activate premium and continue using the platform.', 403);
+        }
     }
     sign_in($portal, (int)$row['id']);
     ok([

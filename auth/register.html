@@ -1,0 +1,129 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Register | FitPulse Gym Management System</title>
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&family=Plus+Jakarta+Sans:wght@500;600;700;800&display=swap" rel="stylesheet">
+  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.1/css/all.min.css">
+  <link rel="stylesheet" href="../assets/css/base.css">
+  <link rel="stylesheet" href="../assets/css/auth.css">
+</head>
+<body class="auth-page">
+  <div class="auth-screen-bg"></div>
+
+  <div class="auth-card-wrap" style="max-width: 520px;">
+    <div class="auth-card">
+      <div class="auth-card-brand">
+        <div class="auth-logo"><i class="fa-solid fa-dumbbell"></i></div>
+        <h1>FitPulse</h1>
+        <p class="auth-tagline">Create your account</p>
+      </div>
+
+      <div class="alert-box alert-danger" id="backend-error-box" style="display:none;margin:0 28px 16px;">
+        <i class="fa-solid fa-triangle-exclamation"></i>
+        <span><strong>Cannot reach backend at http://localhost/gym/.</strong> Ensure XAMPP Apache and MySQL are running.</span>
+      </div>
+
+      <div class="auth-tabs">
+        <a href="login.html" class="auth-tab-link">Sign In</a>
+        <a href="register.html" class="auth-tab-link active">Register</a>
+      </div>
+
+      <div class="auth-card-body">
+        <!-- Registration Type Toggle -->
+        <div style="display:flex;gap:8px;margin-bottom:16px;">
+          <button type="button" class="btn btn-sm btn-primary" id="btn-type-member" style="flex:1;">
+            <i class="fa-solid fa-user"></i> Member
+          </button>
+          <button type="button" class="btn btn-sm btn-outline" id="btn-type-owner" style="flex:1;">
+            <i class="fa-solid fa-dumbbell"></i> Gym Owner
+          </button>
+        </div>
+
+        <!-- Member Registration Info -->
+        <div id="info-member" class="alert-box alert-info">
+          <i class="fa-solid fa-circle-info"></i>
+          <span>Create a <strong>Member</strong> account to join your gym's community.</span>
+        </div>
+
+        <!-- Owner Registration Info -->
+        <div id="info-owner" class="alert-box alert-info" style="display:none;">
+          <i class="fa-solid fa-circle-info"></i>
+          <span>Create a <strong>Gym Owner</strong> account. Get a <strong>14-day free trial</strong> to set up your gym!</span>
+        </div>
+
+        <form id="form-register" novalidate>
+          <div class="form-group">
+            <label for="reg-name">Full Name <span class="text-rose">*</span></label>
+            <input type="text" id="reg-name" class="form-control" placeholder="e.g. Rijan Pokhrel" required>
+          </div>
+
+          <div class="form-row">
+            <div class="form-group col-6">
+              <label for="reg-email">Email Address <span class="text-rose">*</span></label>
+              <input type="email" id="reg-email" class="form-control" placeholder="e.g. user@example.com" required>
+            </div>
+            <div class="form-group col-6">
+              <label for="reg-password">Password <span class="text-rose">*</span></label>
+              <input type="password" id="reg-password" class="form-control" placeholder="Min. 6 characters" required>
+            </div>
+          </div>
+
+          <div class="form-row">
+            <div class="form-group col-6">
+              <label for="reg-phone">Phone Number</label>
+              <input type="text" id="reg-phone" class="form-control" placeholder="+977 98XXXXXXXX">
+            </div>
+            <div class="form-group col-6">
+              <label for="reg-goal">Fitness Goal</label>
+              <select id="reg-goal" class="form-select">
+                <option value="">Select goal...</option>
+                <option>Weight Loss &amp; Cardio</option>
+                <option>Muscle Hypertrophy</option>
+                <option>Flexibility &amp; Core</option>
+                <option>General Fitness</option>
+              </select>
+            </div>
+          </div>
+
+          <!-- Member-only: Gym Selection -->
+          <div id="member-gym-field" class="form-group">
+            <label for="reg-gym">Select Your Gym <span class="text-rose">*</span></label>
+            <select id="reg-gym" class="form-select" required>
+              <option value="">Loading gyms...</option>
+            </select>
+          </div>
+
+          <!-- Owner-only: Gym Details -->
+          <div id="owner-fields" style="display:none;">
+            <div class="form-group">
+              <label for="reg-gym-name">Gym Name <span class="text-rose">*</span></label>
+              <input type="text" id="reg-gym-name" class="form-control" placeholder="e.g. Peak Fitness Club">
+            </div>
+            <div class="form-group">
+              <label for="reg-address">Address</label>
+              <input type="text" id="reg-address" class="form-control" placeholder="e.g. New Baneshwor, Kathmandu">
+            </div>
+            <div class="form-group">
+              <label for="reg-description">Gym Description</label>
+              <textarea id="reg-description" class="form-control" rows="2" placeholder="Brief info about your gym..."></textarea>
+            </div>
+          </div>
+
+          <button type="submit" class="btn btn-primary btn-block" id="btn-submit-register">Create Account</button>
+        </form>
+
+        <div class="auth-footer-links">
+          Already have an account? <a href="login.html">Sign In</a>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <script src="../assets/js/core.js"></script>
+  <script src="register.js"></script>
+</body>
+</html>

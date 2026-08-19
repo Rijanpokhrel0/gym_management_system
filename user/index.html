@@ -1,0 +1,530 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Member Portal | FitPulse</title>
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&family=Plus+Jakarta+Sans:wght@500;600;700;800&display=swap" rel="stylesheet">
+  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.1/css/all.min.css">
+  <link rel="stylesheet" href="../assets/css/base.css">
+</head>
+<body>
+  <div class="app-layout">
+    <!-- SIDEBAR -->
+    <aside class="sidebar" id="sidebar">
+      <div class="sidebar-brand">
+        <div class="brand-logo"><i class="fa-solid fa-dumbbell"></i></div>
+        <div class="brand-info">
+          <h2>FitPulse</h2>
+          <span id="role-badge-display">Member Portal</span>
+        </div>
+      </div>
+
+      <nav class="sidebar-nav">
+        <ul id="sidebar-menu-list">
+          <li class="nav-item active" data-tab="tab-user-dashboard"><a href="#dashboard"><i class="fa-solid fa-chart-pie"></i><span>Dashboard</span></a></li>
+          <li class="nav-item" data-tab="tab-user-notifications"><a href="#notifications"><i class="fa-solid fa-bell"></i><span>Notifications</span></a></li>
+          <li class="nav-item" data-tab="tab-user-products"><a href="#products"><i class="fa-solid fa-box-open"></i><span>Gym Products</span></a></li>
+          <li class="nav-item" data-tab="tab-user-trainers"><a href="#trainers"><i class="fa-solid fa-user-ninja"></i><span>Gym Trainers</span></a></li>
+          <li class="nav-item" data-tab="tab-user-equipment"><a href="#equipment"><i class="fa-solid fa-dumbbell"></i><span>Gym Equipment</span></a></li>
+          <li class="nav-item" data-tab="tab-user-attendance"><a href="#attendance"><i class="fa-solid fa-calendar-check"></i><span>My Attendance</span></a></li>
+          <li class="nav-item" data-tab="tab-user-progress"><a href="#progress"><i class="fa-solid fa-heart-pulse"></i><span>My Progress</span></a></li>
+          <li class="nav-item" data-tab="tab-user-workouts"><a href="#workouts"><i class="fa-solid fa-person-running"></i><span>My Workouts</span></a></li>
+          <li class="nav-item" data-tab="tab-user-diets"><a href="#diets"><i class="fa-solid fa-utensils"></i><span>My Diet</span></a></li>
+          <li class="nav-item" data-tab="tab-user-classes"><a href="#classes"><i class="fa-solid fa-calendar-day"></i><span>Classes</span></a></li>
+          <li class="nav-item" data-tab="tab-user-invoices"><a href="#invoices"><i class="fa-solid fa-file-invoice"></i><span>My Invoices</span></a></li>
+        </ul>
+      </nav>
+
+      <div class="sidebar-user" id="sidebar-user-box" style="display:flex;">
+        <div class="user-avatar" id="current-user-avatar">US</div>
+        <div class="user-details">
+          <strong id="current-user-name">Member</strong>
+          <span id="current-user-role-label">Member Portal</span>
+        </div>
+        <button class="btn-icon-logout" id="btn-logout" title="Sign out">
+          <i class="fa-solid fa-right-from-bracket"></i>
+        </button>
+      </div>
+    </aside>
+
+    <!-- MAIN WRAPPER -->
+    <div class="main-wrapper">
+      <header class="topbar">
+        <div class="topbar-left">
+          <button class="menu-toggle" id="menu-toggle" aria-label="Toggle Navigation">
+            <i class="fa-solid fa-bars"></i>
+          </button>
+        </div>
+        <div class="topbar-right">
+          <div class="role-switcher-pill">
+            <span class="role-label">Portal:</span>
+            <span id="active-role-label" class="badge badge-blue">Member</span>
+          </div>
+        </div>
+      </header>
+
+      <main class="content-container">
+        <!-- 1. DASHBOARD -->
+        <section id="tab-user-dashboard" class="tab-content active">
+          <div class="page-header">
+            <div>
+              <h1 class="page-title" id="user-dash-title">Member Dashboard</h1>
+              <p class="page-subtitle">Your selected gyms, their products and your account.</p>
+            </div>
+            <div class="header-actions">
+              <button class="btn btn-outline" id="btn-user-changepass"><i class="fa-solid fa-key"></i> Change Password</button>
+            </div>
+          </div>
+          <div class="metrics-grid" id="user-metrics-grid"></div>
+          <div class="panel" style="margin-top:24px;">
+            <div class="panel-header">
+              <div class="panel-title-group">
+                <h3><i class="fa-solid fa-house text-amber"></i> Home Gym</h3>
+              </div>
+              <a href="#" class="btn btn-ghost btn-sm" id="link-view-gym-dashboard"><i class="fa-solid fa-chart-pie"></i> View Gym Dashboard</a>
+            </div>
+            <div class="panel-body" id="user-home-gym-box">
+              <p class="text-muted">Loading your home gym...</p>
+            </div>
+          </div>
+        </section>
+
+        <!-- 2. NOTIFICATIONS -->
+        <section id="tab-user-notifications" class="tab-content">
+          <div class="page-header">
+            <div>
+              <h1 class="page-title">Notifications</h1>
+              <p class="page-subtitle">Announcements, class bookings and billing updates.</p>
+            </div>
+            <div class="header-actions">
+              <button class="btn btn-outline" id="btn-mark-all-read"><i class="fa-solid fa-check-double"></i> Mark All Read</button>
+            </div>
+          </div>
+          <div class="notifications-list" id="user-notifications-list"></div>
+        </section>
+
+        <!-- 3. PRODUCTS -->
+        <section id="tab-user-products" class="tab-content">
+          <div class="page-header">
+            <div>
+              <h1 class="page-title">Gym Products</h1>
+              <p class="page-subtitle">Supplements, merchandise, memberships and services at your gym.</p>
+            </div>
+          </div>
+          <div class="panel">
+            <div class="panel-header">
+              <div class="panel-title-group">
+                <h3><i class="fa-solid fa-box-open text-amber"></i> Products at Your Gym</h3>
+              </div>
+            </div>
+            <div class="panel-body">
+              <div class="products-grid" id="user-products-grid"></div>
+            </div>
+          </div>
+        </section>
+
+        <!-- 4. TRAINERS -->
+        <section id="tab-user-trainers" class="tab-content">
+          <div class="page-header">
+            <div>
+              <h1 class="page-title">Gym Trainers</h1>
+              <p class="page-subtitle">Trainers and coaches available at your gym.</p>
+            </div>
+          </div>
+          <div class="panel">
+            <div class="panel-header">
+              <div class="panel-title-group">
+                <h3><i class="fa-solid fa-users text-amber"></i> Trainers at Your Gym</h3>
+              </div>
+            </div>
+            <div class="panel-body">
+              <div class="trainers-grid" id="user-trainers-grid"></div>
+            </div>
+          </div>
+        </section>
+
+        <!-- 5. EQUIPMENT -->
+        <section id="tab-user-equipment" class="tab-content">
+          <div class="page-header">
+            <div>
+              <h1 class="page-title">Gym Equipment</h1>
+              <p class="page-subtitle">Machines, tools and facilities available at your gym.</p>
+            </div>
+          </div>
+          <div class="panel">
+            <div class="panel-header">
+              <div class="panel-title-group">
+                <h3><i class="fa-solid fa-dumbbell text-amber"></i> Equipment at Your Gym</h3>
+              </div>
+            </div>
+            <div class="panel-body">
+              <div class="equipment-grid" id="user-equipment-grid"></div>
+            </div>
+          </div>
+        </section>
+
+        <!-- 6. ATTENDANCE -->
+        <section id="tab-user-attendance" class="tab-content">
+          <div class="page-header">
+            <div>
+              <h1 class="page-title">My Attendance</h1>
+              <p class="page-subtitle">Check in when you arrive at the gym. Show your member code at the desk.</p>
+            </div>
+            <div class="header-actions">
+              <button class="btn btn-primary" id="btn-user-checkin"><i class="fa-solid fa-fingerprint"></i> Check In Now</button>
+            </div>
+          </div>
+          <div class="panel" id="user-member-code-panel">
+            <div class="panel-header">
+              <div class="panel-title-group">
+                <h3><i class="fa-solid fa-id-card text-amber"></i> Your Member Code</h3>
+              </div>
+            </div>
+            <div class="panel-body" id="user-member-code-box"></div>
+          </div>
+          <div class="panel" style="margin-top:24px;">
+            <div class="panel-header">
+              <div class="panel-title-group">
+                <h3><i class="fa-solid fa-calendar-check text-amber"></i> Check-in History</h3>
+              </div>
+            </div>
+            <div class="panel-body p-0">
+              <div class="table-responsive">
+                <table class="data-table">
+                  <thead>
+                    <tr><th>Gym</th><th>Checked In</th><th>Via</th></tr>
+                  </thead>
+                  <tbody id="user-attendance-tbody"></tbody>
+                </table>
+              </div>
+            </div>
+          </div>
+        </section>
+
+        <!-- 7. PROGRESS -->
+        <section id="tab-user-progress" class="tab-content">
+          <div class="page-header">
+            <div>
+              <h1 class="page-title">My Progress</h1>
+              <p class="page-subtitle">Log your weight, body fat and measurements to track gains over time.</p>
+            </div>
+            <div class="header-actions">
+              <button class="btn btn-primary" id="btn-add-my-progress"><i class="fa-solid fa-plus"></i> Log Entry</button>
+            </div>
+          </div>
+          <div class="metrics-grid" id="user-progress-summary"></div>
+          <div class="panel" style="margin-top:24px;">
+            <div class="panel-header">
+              <div class="panel-title-group">
+                <h3><i class="fa-solid fa-chart-line text-amber"></i> Weight Trend</h3>
+              </div>
+            </div>
+            <div class="panel-body"><canvas id="chart-user-progress" height="200"></canvas></div>
+          </div>
+          <div class="panel" style="margin-top:24px;">
+            <div class="panel-header">
+              <div class="panel-title-group">
+                <h3><i class="fa-solid fa-table text-amber"></i> Entries</h3>
+              </div>
+            </div>
+            <div class="panel-body p-0">
+              <div class="table-responsive">
+                <table class="data-table">
+                  <thead>
+                    <tr><th>Date</th><th>Weight</th><th>Body Fat</th><th>BMI</th><th>Chest</th><th>Waist</th><th>Arms</th><th>Notes</th></tr>
+                  </thead>
+                  <tbody id="user-progress-tbody"></tbody>
+                </table>
+              </div>
+            </div>
+          </div>
+        </section>
+
+        <!-- 8. WORKOUTS -->
+        <section id="tab-user-workouts" class="tab-content">
+          <div class="page-header">
+            <div>
+              <h1 class="page-title">My Workout Plans</h1>
+              <p class="page-subtitle">Routines assigned to you by your gym trainers.</p>
+            </div>
+          </div>
+          <div class="plans-grid" id="user-workouts-grid"></div>
+        </section>
+
+        <!-- 9. DIET PLANS -->
+        <section id="tab-user-diets" class="tab-content">
+          <div class="page-header">
+            <div>
+              <h1 class="page-title">My Diet Plans</h1>
+              <p class="page-subtitle">Nutrition plans assigned to you by your gym.</p>
+            </div>
+          </div>
+          <div class="plans-grid" id="user-diets-grid"></div>
+        </section>
+
+        <!-- 10. CLASSES -->
+        <section id="tab-user-classes" class="tab-content">
+          <div class="page-header">
+            <div>
+              <h1 class="page-title">Class Booking</h1>
+              <p class="page-subtitle">Book slots in group fitness classes at your gym.</p>
+            </div>
+          </div>
+          <div class="panel">
+            <div class="panel-header">
+              <div class="panel-title-group">
+                <h3><i class="fa-solid fa-calendar-day text-amber"></i> Classes at Your Gym</h3>
+              </div>
+            </div>
+            <div class="panel-body">
+              <div class="plans-grid" id="user-classes-grid"></div>
+            </div>
+          </div>
+        </section>
+
+        <!-- 11. INVOICES -->
+        <section id="tab-user-invoices" class="tab-content">
+          <div class="page-header">
+            <div>
+              <h1 class="page-title">My Invoices</h1>
+              <p class="page-subtitle">Membership and service bills from your gym.</p>
+            </div>
+          </div>
+          <div class="metrics-grid" id="user-invoice-stats"></div>
+          <div class="panel" style="margin-top:24px;">
+            <div class="panel-header">
+              <div class="panel-title-group">
+                <h3><i class="fa-solid fa-file-invoice text-amber"></i> Billing History</h3>
+              </div>
+            </div>
+            <div class="panel-body p-0">
+              <div class="table-responsive">
+                <table class="data-table">
+                  <thead>
+                    <tr><th>Invoice No</th><th>Gym</th><th>Title</th><th>Amount</th><th>Paid</th><th>Status</th><th>Due Date</th><th>Paid At</th><th class="text-right">Action</th></tr>
+                  </thead>
+                  <tbody id="user-invoices-tbody"></tbody>
+                </table>
+              </div>
+            </div>
+          </div>
+        </section>
+
+        <!-- 12. GYM DASHBOARD (READ-ONLY VIEW) -->
+        <section id="tab-gym-dashboard" class="tab-content">
+          <div class="page-header">
+            <div>
+              <h1 class="page-title" id="gym-dash-title">Gym Dashboard</h1>
+              <p class="page-subtitle" id="gym-dash-sub">Read-only view of this gym.</p>
+            </div>
+            <div class="header-actions">
+              <button class="btn btn-outline" id="btn-back-to-dashboard"><i class="fa-solid fa-arrow-left"></i> Back to Dashboard</button>
+            </div>
+          </div>
+          <div class="gym-sub-nav" id="gym-sub-nav">
+            <button type="button" class="gym-sub-tab active" data-gym-tab="gym-overview"><i class="fa-solid fa-chart-pie"></i> Overview</button>
+            <button type="button" class="gym-sub-tab" data-gym-tab="gym-classes"><i class="fa-solid fa-calendar-day"></i> Classes</button>
+            <button type="button" class="gym-sub-tab" data-gym-tab="gym-workouts"><i class="fa-solid fa-person-running"></i> Workouts</button>
+            <button type="button" class="gym-sub-tab" data-gym-tab="gym-diets"><i class="fa-solid fa-utensils"></i> Diet Plans</button>
+            <button type="button" class="gym-sub-tab" data-gym-tab="gym-equipment"><i class="fa-solid fa-dumbbell"></i> Equipment</button>
+            <button type="button" class="gym-sub-tab" data-gym-tab="gym-trainers"><i class="fa-solid fa-user-ninja"></i> Trainers</button>
+            <button type="button" class="gym-sub-tab" data-gym-tab="gym-products"><i class="fa-solid fa-box-open"></i> Products</button>
+            <button type="button" class="gym-sub-tab" data-gym-tab="gym-announcements"><i class="fa-solid fa-bullhorn"></i> Announcements</button>
+          </div>
+
+          <div class="gym-sub-view active" id="gym-overview">
+            <div class="panel" style="margin-top:4px;">
+              <div class="panel-body" id="gym-overview-info"></div>
+            </div>
+            <div class="metrics-grid" id="gym-overview-metrics"></div>
+          </div>
+
+          <div class="gym-sub-view" id="gym-classes">
+            <div class="plans-grid admin-plans-grid" id="gym-classes-grid"></div>
+          </div>
+
+          <div class="gym-sub-view" id="gym-workouts">
+            <div class="plans-grid admin-plans-grid" id="gym-workouts-grid"></div>
+          </div>
+
+          <div class="gym-sub-view" id="gym-diets">
+            <div class="plans-grid admin-plans-grid" id="gym-diets-grid"></div>
+          </div>
+
+          <div class="gym-sub-view" id="gym-equipment">
+            <div class="equipment-grid" id="gym-equipment-grid"></div>
+          </div>
+
+          <div class="gym-sub-view" id="gym-trainers">
+            <div class="trainers-grid" id="gym-trainers-grid"></div>
+          </div>
+
+          <div class="gym-sub-view" id="gym-products">
+            <div class="products-grid" id="gym-products-grid"></div>
+          </div>
+
+          <div class="gym-sub-view" id="gym-announcements">
+            <div class="announcements-list" id="gym-announcements-list"></div>
+          </div>
+        </section>
+      </main>
+    </div>
+  </div>
+
+  <!-- ==================== MODALS ==================== -->
+
+  <!-- MODAL: CHANGE PASSWORD -->
+  <div class="modal-overlay" id="modal-user-changepass">
+    <div class="modal">
+      <div class="modal-header">
+        <h3>Change Password</h3>
+        <button class="modal-close" data-close="modal-user-changepass">&times;</button>
+      </div>
+      <div class="modal-body">
+        <p style="margin-bottom:14px;">To update your password securely, we will send a password change link to your registered email address:</p>
+        <div class="auth-info-box" style="margin-bottom:18px;">
+          <i class="fa-solid fa-envelope"></i>
+          <div>
+            <strong>Registered Email</strong>
+            <br><span id="cp-email-display">-</span>
+          </div>
+        </div>
+      </div>
+      <div class="modal-footer">
+        <button type="button" class="btn btn-outline" data-close="modal-user-changepass">Cancel</button>
+        <button type="button" class="btn btn-primary" id="btn-cp-send"><i class="fa-solid fa-paper-plane"></i> Send Link</button>
+      </div>
+    </div>
+  </div>
+
+  <!-- MODAL: LOG PROGRESS -->
+  <div class="modal-overlay" id="modal-my-progress">
+    <div class="modal modal-lg">
+      <div class="modal-header">
+        <h3>Log Fitness Progress</h3>
+        <button class="modal-close" data-close="modal-my-progress">&times;</button>
+      </div>
+      <form id="form-my-progress">
+        <div class="modal-body">
+          <div class="form-group">
+            <label for="myprogress-date">Date <span class="text-rose">*</span></label>
+            <input type="date" id="myprogress-date" class="form-control" required>
+          </div>
+          <div class="form-row">
+            <div class="form-group col-4">
+              <label for="myprogress-weight">Weight (kg)</label>
+              <input type="number" step="0.1" id="myprogress-weight" class="form-control" placeholder="e.g. 72.5">
+            </div>
+            <div class="form-group col-4">
+              <label for="myprogress-bodyfat">Body Fat (%)</label>
+              <input type="number" step="0.1" id="myprogress-bodyfat" class="form-control" placeholder="e.g. 15.2">
+            </div>
+            <div class="form-group col-4">
+              <label for="myprogress-bmi">BMI</label>
+              <input type="number" step="0.1" id="myprogress-bmi" class="form-control" placeholder="e.g. 22.4">
+            </div>
+          </div>
+          <div class="form-row">
+            <div class="form-group col-4">
+              <label for="myprogress-chest">Chest (cm)</label>
+              <input type="number" step="0.1" id="myprogress-chest" class="form-control">
+            </div>
+            <div class="form-group col-4">
+              <label for="myprogress-waist">Waist (cm)</label>
+              <input type="number" step="0.1" id="myprogress-waist" class="form-control">
+            </div>
+            <div class="form-group col-4">
+              <label for="myprogress-arms">Arms (cm)</label>
+              <input type="number" step="0.1" id="myprogress-arms" class="form-control">
+            </div>
+          </div>
+          <div class="form-group">
+            <label for="myprogress-notes">Notes / Workout Log</label>
+            <textarea id="myprogress-notes" class="form-control" rows="2" placeholder="Feeling energized, increased bench press..."></textarea>
+          </div>
+        </div>
+        <div class="modal-footer">
+          <button type="button" class="btn btn-outline" data-close="modal-my-progress">Cancel</button>
+          <button type="submit" class="btn btn-primary">Save Entry</button>
+        </div>
+      </form>
+    </div>
+  </div>
+
+  <!-- MODAL: PAY VIA QR (MEMBER) -->
+  <div class="modal-overlay" id="modal-user-pay-qr">
+    <div class="modal modal-lg">
+      <div class="modal-header">
+        <h3><i class="fa-solid fa-qrcode text-amber"></i> Pay Gym Fee via QR</h3>
+        <button class="modal-close" data-close="modal-user-pay-qr">&times;</button>
+      </div>
+      <form id="form-user-pay-qr">
+        <div class="modal-body">
+          <div class="form-row" style="background:#141414;padding:12px;border-radius:8px;margin-bottom:16px;border:1px solid #282828;">
+            <div class="col-4">
+              <span class="text-muted text-sm">Invoice No</span>
+              <h4 id="uqr-invoice-no" style="margin:2px 0;">-</h4>
+            </div>
+            <div class="col-4">
+              <span class="text-muted text-sm">Description</span>
+              <h4 id="uqr-invoice-title" style="margin:2px 0;">-</h4>
+            </div>
+            <div class="col-4">
+              <span class="text-muted text-sm">Remaining Due</span>
+              <h3 id="uqr-invoice-due" class="text-emerald" style="margin:2px 0;">NPR 0</h3>
+            </div>
+          </div>
+
+          <!-- QR container with provider tabs -->
+          <div class="form-group">
+            <label>Scan Gym QR Code with eSewa / Khalti / Fonepay / Mobile Banking</label>
+            <div id="uqr-qr-container" style="margin-top:6px;"></div>
+          </div>
+
+          <input type="hidden" id="uqr-selected-provider" value="esewa">
+
+          <div class="form-row" style="margin-top:16px;">
+            <div class="form-group col-6">
+              <label for="uqr-amount">Amount Paid (NPR) <span class="text-rose">*</span></label>
+              <input type="number" step="0.01" id="uqr-amount" class="form-control" required>
+            </div>
+            <div class="form-group col-6">
+              <label for="uqr-txn-id">Transaction ID / Ref Code <span class="text-rose">*</span></label>
+              <input type="text" id="uqr-txn-id" class="form-control" placeholder="e.g. 20240819123456" required>
+            </div>
+          </div>
+
+          <div class="form-group">
+            <label for="uqr-proof-file">Upload Payment Screenshot / Transfer Slip</label>
+            <input type="file" id="uqr-proof-file" class="form-control" accept="image/*">
+            <input type="hidden" id="uqr-proof-url">
+            <div id="uqr-proof-preview"></div>
+          </div>
+        </div>
+        <div class="modal-footer">
+          <button type="button" class="btn btn-outline" data-close="modal-user-pay-qr">Cancel</button>
+          <button type="submit" class="btn btn-primary" id="btn-submit-uqr-payment"><i class="fa-solid fa-paper-plane"></i> Submit Payment Proof</button>
+        </div>
+      </form>
+    </div>
+  </div>
+
+  <script src="../assets/js/core.js"></script>
+  <script src="js/main.js"></script>
+  <script src="js/dashboard.js"></script>
+  <script src="js/notifications.js"></script>
+  <script src="js/products.js"></script>
+  <script src="js/trainers.js"></script>
+  <script src="js/equipment.js"></script>
+  <script src="js/attendance.js"></script>
+  <script src="js/progress.js"></script>
+  <script src="js/workouts.js"></script>
+  <script src="js/diets.js"></script>
+  <script src="js/classes.js"></script>
+  <script src="js/invoices.js"></script>
+  <script src="js/gym-view.js"></script>
+</body>
+</html>

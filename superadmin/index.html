@@ -1,0 +1,491 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Superadmin Portal | FitPulse</title>
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&family=Plus+Jakarta+Sans:wght@500;600;700;800&display=swap" rel="stylesheet">
+  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.1/css/all.min.css">
+  <link rel="stylesheet" href="../assets/css/base.css">
+</head>
+<body>
+  <div class="app-layout">
+    <!-- SIDEBAR -->
+    <aside class="sidebar" id="sidebar">
+      <div class="sidebar-brand">
+        <div class="brand-logo"><i class="fa-solid fa-dumbbell"></i></div>
+        <div class="brand-info">
+          <h2>FitPulse</h2>
+          <span id="role-badge-display">Superadmin</span>
+        </div>
+      </div>
+
+      <nav class="sidebar-nav">
+        <ul id="sidebar-menu-list">
+          <li class="nav-item active" data-tab="tab-sa-dashboard">
+            <a href="#dashboard"><i class="fa-solid fa-chart-pie"></i><span>Dashboard</span></a>
+          </li>
+          <li class="nav-item" data-tab="tab-sa-admins">
+            <a href="#admins"><i class="fa-solid fa-user-shield"></i><span>Admins</span></a>
+          </li>
+          <li class="nav-item" data-tab="tab-sa-registrations">
+            <a href="#registrations"><i class="fa-solid fa-user-plus"></i><span>Registrations</span></a>
+          </li>
+          <li class="nav-item" data-tab="tab-sa-users">
+            <a href="#users"><i class="fa-solid fa-users"></i><span>Users</span></a>
+          </li>
+          <li class="nav-item" data-tab="tab-sa-trainers">
+            <a href="#trainers"><i class="fa-solid fa-user-ninja"></i><span>Trainers</span></a>
+          </li>
+          <li class="nav-item" data-tab="tab-sa-payments">
+            <a href="#payments"><i class="fa-solid fa-credit-card"></i><span>Payments</span></a>
+          </li>
+          <li class="nav-item" data-tab="tab-sa-reports">
+            <a href="#reports"><i class="fa-solid fa-chart-bar"></i><span>Reports</span></a>
+          </li>
+        </ul>
+      </nav>
+
+      <div class="sidebar-user" id="sidebar-user-box" style="display:flex;">
+        <div class="user-avatar" id="current-user-avatar">SA</div>
+        <div class="user-details">
+          <strong id="current-user-name">Superadmin</strong>
+          <span id="current-user-role-label">Superadmin Portal</span>
+        </div>
+        <button class="btn-icon-logout" id="btn-logout" title="Sign out">
+          <i class="fa-solid fa-right-from-bracket"></i>
+        </button>
+      </div>
+    </aside>
+
+    <!-- MAIN WRAPPER -->
+    <div class="main-wrapper">
+      <header class="topbar">
+        <div class="topbar-left">
+          <button class="menu-toggle" id="menu-toggle" aria-label="Toggle Navigation">
+            <i class="fa-solid fa-bars"></i>
+          </button>
+        </div>
+        <div class="topbar-right">
+          <div class="role-switcher-pill">
+            <span class="role-label">Portal:</span>
+            <span id="active-role-label" class="badge badge-blue">Superadmin</span>
+          </div>
+        </div>
+      </header>
+
+      <main class="content-container">
+        <!-- ============ DASHBOARD ============ -->
+        <section id="tab-sa-dashboard" class="tab-content active">
+          <div class="page-header">
+            <div>
+              <h1 class="page-title">Superadmin Dashboard</h1>
+              <p class="page-subtitle">System-wide oversight of admins, products, users and trainers.</p>
+            </div>
+          </div>
+          <div class="metrics-grid" id="sa-metrics-grid">
+            <p class="text-muted">Loading metrics...</p>
+          </div>
+        </section>
+
+        <!-- ============ ADMINS ============ -->
+        <section id="tab-sa-admins" class="tab-content">
+          <div class="page-header">
+            <div>
+              <h1 class="page-title">Admin Portals</h1>
+              <p class="page-subtitle">Create and manage independent gym-admin accounts.</p>
+            </div>
+            <div class="header-actions">
+              <button class="btn btn-primary" id="btn-add-admin"><i class="fa-solid fa-user-shield"></i> Add Admin</button>
+            </div>
+          </div>
+          <div class="panel">
+            <div class="panel-header">
+              <div class="panel-title-group">
+                <h3><i class="fa-solid fa-building text-orange"></i> All Admins &amp; Gyms</h3>
+              </div>
+            </div>
+            <div class="panel-body p-0">
+              <div class="table-responsive">
+                <table class="data-table">
+                  <thead>
+                    <tr>
+                      <th>Admin</th>
+                      <th>Gym Name</th>
+                      <th>Contact</th>
+                      <th>Status</th>
+                      <th class="text-right">Actions</th>
+                    </tr>
+                  </thead>
+                  <tbody id="sa-admins-tbody">
+                    <tr><td colspan="5" class="text-muted" style="text-align:center;">Loading admins...</td></tr>
+                  </tbody>
+                </table>
+              </div>
+            </div>
+          </div>
+        </section>
+
+        <!-- ============ REGISTRATIONS ============ -->
+        <section id="tab-sa-registrations" class="tab-content">
+          <div class="page-header">
+            <div>
+              <h1 class="page-title">Owner Registrations</h1>
+              <p class="page-subtitle">Review and approve gym owner registration requests.</p>
+            </div>
+          </div>
+          <div class="panel">
+            <div class="panel-header">
+              <div class="panel-title-group">
+                <h3><i class="fa-solid fa-user-plus text-blue"></i> Pending Registrations</h3>
+              </div>
+            </div>
+            <div class="panel-body p-0">
+              <div class="table-responsive">
+                <table class="data-table">
+                  <thead>
+                    <tr>
+                      <th>Owner</th>
+                      <th>Gym Name</th>
+                      <th>Contact</th>
+                      <th>Amount</th>
+                      <th>Registered</th>
+                      <th class="text-right">Actions</th>
+                    </tr>
+                  </thead>
+                  <tbody id="sa-registrations-tbody">
+                    <tr><td colspan="6" class="text-muted" style="text-align:center;">Loading registrations...</td></tr>
+                  </tbody>
+                </table>
+              </div>
+            </div>
+          </div>
+        </section>
+
+        <!-- ============ USERS ============ -->
+        <section id="tab-sa-users" class="tab-content">
+          <div class="page-header">
+            <div>
+              <h1 class="page-title">All Users</h1>
+              <p class="page-subtitle">View and manage all gym members across every admin.</p>
+            </div>
+          </div>
+          <div class="panel">
+            <div class="panel-header">
+              <div class="panel-title-group">
+                <h3><i class="fa-solid fa-users text-emerald"></i> Members</h3>
+              </div>
+            </div>
+            <div class="panel-body p-0">
+              <div class="table-responsive">
+                <table class="data-table">
+                  <thead>
+                    <tr>
+                      <th>User</th>
+                      <th>Gym</th>
+                      <th>Contact</th>
+                      <th>Goal</th>
+                      <th class="text-right">Actions</th>
+                    </tr>
+                  </thead>
+                  <tbody id="sa-users-tbody">
+                    <tr><td colspan="5" class="text-muted" style="text-align:center;">Loading users...</td></tr>
+                  </tbody>
+                </table>
+              </div>
+            </div>
+          </div>
+        </section>
+
+        <!-- ============ TRAINERS ============ -->
+        <section id="tab-sa-trainers" class="tab-content">
+          <div class="page-header">
+            <div>
+              <h1 class="page-title">All Trainers</h1>
+              <p class="page-subtitle">View and manage all trainers across every gym.</p>
+            </div>
+          </div>
+          <div class="panel">
+            <div class="panel-header">
+              <div class="panel-title-group">
+                <h3><i class="fa-solid fa-user-ninja text-purple"></i> Trainers</h3>
+              </div>
+            </div>
+            <div class="panel-body p-0">
+              <div class="table-responsive">
+                <table class="data-table">
+                  <thead>
+                    <tr>
+                      <th>Trainer</th>
+                      <th>Gym</th>
+                      <th>Specialization</th>
+                      <th>Status</th>
+                      <th class="text-right">Actions</th>
+                    </tr>
+                  </thead>
+                  <tbody id="sa-trainers-tbody">
+                    <tr><td colspan="5" class="text-muted" style="text-align:center;">Loading trainers...</td></tr>
+                  </tbody>
+                </table>
+              </div>
+            </div>
+          </div>
+        </section>
+
+        <!-- ============ PAYMENTS ============ -->
+        <section id="tab-sa-payments" class="tab-content">
+          <div class="page-header">
+            <div>
+              <h1 class="page-title">Payment Oversight</h1>
+              <p class="page-subtitle">View and verify all payments across every gym.</p>
+            </div>
+          </div>
+          <div class="metrics-grid" id="sa-pay-stats" style="margin-bottom:20px;">
+            <p class="text-muted">Loading payment stats...</p>
+          </div>
+          <div style="display:flex;gap:8px;margin-bottom:16px;">
+            <button class="btn btn-sm btn-primary sa-pay-filter" data-status="">All</button>
+            <button class="btn btn-sm btn-outline sa-pay-filter" data-status="pending">Pending</button>
+            <button class="btn btn-sm btn-outline sa-pay-filter" data-status="verified">Verified</button>
+            <button class="btn btn-sm btn-outline sa-pay-filter" data-status="rejected">Rejected</button>
+          </div>
+          <div class="panel">
+            <div class="panel-body p-0">
+              <div class="table-responsive">
+                <table class="data-table">
+                  <thead>
+                    <tr>
+                      <th>User</th>
+                      <th>Gym</th>
+                      <th>Invoice</th>
+                      <th>Amount</th>
+                      <th>Method</th>
+                      <th>Status</th>
+                      <th>Date</th>
+                      <th class="text-right">Actions</th>
+                    </tr>
+                  </thead>
+                  <tbody id="sa-payments-tbody">
+                    <tr><td colspan="8" class="text-muted" style="text-align:center;">Loading payments...</td></tr>
+                  </tbody>
+                </table>
+              </div>
+            </div>
+          </div>
+        </section>
+
+        <!-- ============ REPORTS ============ -->
+        <section id="tab-sa-reports" class="tab-content">
+          <div class="page-header">
+            <div>
+              <h1 class="page-title">System Reports</h1>
+              <p class="page-subtitle">Analytics and insights across the entire platform.</p>
+            </div>
+          </div>
+          <div class="metrics-grid" id="sa-report-metrics" style="margin-bottom:20px;">
+            <p class="text-muted">Loading report metrics...</p>
+          </div>
+          <div style="display:grid;grid-template-columns:1fr 1fr;gap:20px;">
+            <div class="panel">
+              <div class="panel-header">
+                <h3><i class="fa-solid fa-chart-line text-emerald"></i> Monthly Revenue</h3>
+              </div>
+              <div class="panel-body">
+                <canvas id="sa-revenue-chart" style="width:100%;"></canvas>
+              </div>
+            </div>
+            <div class="panel">
+              <div class="panel-header">
+                <h3><i class="fa-solid fa-chart-line text-blue"></i> Member Growth</h3>
+              </div>
+              <div class="panel-body">
+                <canvas id="sa-members-chart" style="width:100%;"></canvas>
+              </div>
+            </div>
+          </div>
+        </section>
+      </main>
+    </div>
+  </div>
+
+  <!-- ============ MODALS ============ -->
+
+  <!-- MODAL: ADD / EDIT ADMIN -->
+  <div class="modal-overlay" id="modal-sa-admin">
+    <div class="modal modal-lg">
+      <div class="modal-header">
+        <h3 id="modal-sa-admin-title">Add Admin</h3>
+        <button class="modal-close" data-close="modal-sa-admin">&times;</button>
+      </div>
+      <form id="form-sa-admin">
+        <div class="modal-body">
+          <input type="hidden" id="sa-admin-id">
+          <div class="form-group">
+            <label for="sa-admin-name">Owner Name <span class="text-rose">*</span></label>
+            <input type="text" id="sa-admin-name" class="form-control" required>
+          </div>
+          <div class="form-group">
+            <label for="sa-admin-gym">Gym Name</label>
+            <input type="text" id="sa-admin-gym" class="form-control" placeholder="e.g. Peak Fitness Club">
+          </div>
+          <div class="form-row">
+            <div class="form-group col-6">
+              <label for="sa-admin-email">Email <span class="text-rose">*</span></label>
+              <input type="email" id="sa-admin-email" class="form-control" required>
+            </div>
+            <div class="form-group col-6">
+              <label for="sa-admin-pass">Password <span class="text-rose">*</span></label>
+              <input type="password" id="sa-admin-pass" class="form-control" placeholder="Min. 6 characters">
+            </div>
+          </div>
+          <div class="form-row">
+            <div class="form-group col-6">
+              <label for="sa-admin-phone">Phone</label>
+              <input type="text" id="sa-admin-phone" class="form-control" placeholder="+977 98XXXXXXXX">
+            </div>
+            <div class="form-group col-6">
+              <label for="sa-admin-status">Status</label>
+              <select id="sa-admin-status" class="form-select">
+                <option value="active">Active</option>
+                <option value="suspended">Suspended</option>
+              </select>
+            </div>
+          </div>
+          <div class="form-group">
+            <label for="sa-admin-address">Address</label>
+            <input type="text" id="sa-admin-address" class="form-control" placeholder="e.g. New Baneshwor, Kathmandu">
+          </div>
+          <div class="form-group">
+            <label>Gym Logo <span class="text-rose">*</span></label>
+            <input type="file" id="sa-admin-logo-file" class="form-control" accept="image/*">
+            <input type="hidden" id="sa-admin-logo">
+            <div id="sa-admin-logo-preview" class="cell-user" style="margin-top:10px;"></div>
+          </div>
+          <div class="form-group">
+            <label for="sa-admin-desc">Description</label>
+            <textarea id="sa-admin-desc" class="form-control" rows="2" placeholder="Brief info about this gym..."></textarea>
+          </div>
+        </div>
+        <div class="modal-footer">
+          <button type="button" class="btn btn-outline" data-close="modal-sa-admin">Cancel</button>
+          <button type="submit" class="btn btn-primary" id="btn-save-admin">Save Admin</button>
+        </div>
+      </form>
+    </div>
+  </div>
+
+  <!-- MODAL: EDIT USER -->
+  <div class="modal-overlay" id="modal-sa-user">
+    <div class="modal">
+      <div class="modal-header">
+        <h3>Edit User</h3>
+        <button class="modal-close" data-close="modal-sa-user">&times;</button>
+      </div>
+      <form id="form-sa-user">
+        <div class="modal-body">
+          <input type="hidden" id="sa-user-id">
+          <div class="form-group">
+            <label for="sa-user-name">Name <span class="text-rose">*</span></label>
+            <input type="text" id="sa-user-name" class="form-control" required>
+          </div>
+          <div class="form-row">
+            <div class="form-group col-6">
+              <label for="sa-user-email">Email <span class="text-rose">*</span></label>
+              <input type="email" id="sa-user-email" class="form-control" required>
+            </div>
+            <div class="form-group col-6">
+              <label for="sa-user-phone">Phone</label>
+              <input type="text" id="sa-user-phone" class="form-control">
+            </div>
+          </div>
+          <div class="form-group">
+            <label for="sa-user-goal">Fitness Goal</label>
+            <input type="text" id="sa-user-goal" class="form-control">
+          </div>
+          <div class="form-group">
+            <label for="sa-user-gym">Assign to Gym</label>
+            <select id="sa-user-gym" class="form-select"></select>
+          </div>
+          <div class="form-group">
+            <label for="sa-user-pass">Reset Password</label>
+            <input type="password" id="sa-user-pass" class="form-control" placeholder="Leave blank to keep current">
+          </div>
+        </div>
+        <div class="modal-footer">
+          <button type="button" class="btn btn-outline" data-close="modal-sa-user">Cancel</button>
+          <button type="submit" class="btn btn-primary">Save User</button>
+        </div>
+      </form>
+    </div>
+  </div>
+
+  <!-- MODAL: EDIT TRAINER -->
+  <div class="modal-overlay" id="modal-sa-trainer">
+    <div class="modal">
+      <div class="modal-header">
+        <h3>Edit Trainer</h3>
+        <button class="modal-close" data-close="modal-sa-trainer">&times;</button>
+      </div>
+      <form id="form-sa-trainer">
+        <div class="modal-body">
+          <input type="hidden" id="sa-trainer-id">
+          <div class="form-group">
+            <label for="sa-trainer-name">Name <span class="text-rose">*</span></label>
+            <input type="text" id="sa-trainer-name" class="form-control" required>
+          </div>
+          <div class="form-row">
+            <div class="form-group col-6">
+              <label for="sa-trainer-email">Email <span class="text-rose">*</span></label>
+              <input type="email" id="sa-trainer-email" class="form-control" required>
+            </div>
+            <div class="form-group col-6">
+              <label for="sa-trainer-phone">Phone</label>
+              <input type="text" id="sa-trainer-phone" class="form-control">
+            </div>
+          </div>
+          <div class="form-row">
+            <div class="form-group col-6">
+              <label for="sa-trainer-spec">Specialization</label>
+              <input type="text" id="sa-trainer-spec" class="form-control" placeholder="e.g. Strength Training">
+            </div>
+            <div class="form-group col-6">
+              <label for="sa-trainer-exp">Experience (yrs)</label>
+              <input type="number" id="sa-trainer-exp" class="form-control" min="0">
+            </div>
+          </div>
+          <div class="form-row">
+            <div class="form-group col-6">
+              <label for="sa-trainer-salary">Salary</label>
+              <input type="number" id="sa-trainer-salary" class="form-control" min="0" step="0.01">
+            </div>
+            <div class="form-group col-6">
+              <label for="sa-trainer-gym">Assign to Gym</label>
+              <select id="sa-trainer-gym" class="form-select"></select>
+            </div>
+          </div>
+          <div class="form-group">
+            <label for="sa-trainer-pass">Reset Password</label>
+            <input type="password" id="sa-trainer-pass" class="form-control" placeholder="Leave blank to keep current">
+          </div>
+        </div>
+        <div class="modal-footer">
+          <button type="button" class="btn btn-outline" data-close="modal-sa-trainer">Cancel</button>
+          <button type="submit" class="btn btn-primary">Save Trainer</button>
+        </div>
+      </form>
+    </div>
+  </div>
+
+  <script src="../assets/js/core.js"></script>
+  <script src="js/main.js"></script>
+  <script src="js/dashboard.js"></script>
+  <script src="js/admins.js"></script>
+  <script src="js/registrations.js"></script>
+  <script src="js/users.js"></script>
+  <script src="js/trainers.js"></script>
+  <script src="js/payments.js"></script>
+  <script src="js/reports.js"></script>
+</body>
+</html>

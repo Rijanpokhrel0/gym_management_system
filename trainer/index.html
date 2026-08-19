@@ -1,0 +1,480 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Trainer Portal | FitPulse</title>
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&family=Plus+Jakarta+Sans:wght@500;600;700;800&display=swap" rel="stylesheet">
+  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.1/css/all.min.css">
+  <link rel="stylesheet" href="../assets/css/base.css">
+</head>
+<body>
+  <div class="app-layout">
+    <!-- SIDEBAR -->
+    <aside class="sidebar" id="sidebar">
+      <div class="sidebar-brand">
+        <div class="brand-logo"><i class="fa-solid fa-dumbbell"></i></div>
+        <div class="brand-info">
+          <h2>FitPulse</h2>
+          <span id="role-badge-display">Trainer Portal</span>
+        </div>
+      </div>
+
+      <nav class="sidebar-nav">
+        <ul id="sidebar-menu-list">
+          <li class="nav-item active" data-tab="tab-trainer-dashboard"><a href="#dashboard"><i class="fa-solid fa-chart-pie"></i><span>My Dashboard</span></a></li>
+          <li class="nav-item" data-tab="tab-trainer-attendance"><a href="#attendance"><i class="fa-solid fa-calendar-check"></i><span>Attendance</span></a></li>
+          <li class="nav-item" data-tab="tab-trainer-members"><a href="#members"><i class="fa-solid fa-users"></i><span>My Members</span></a></li>
+          <li class="nav-item" data-tab="tab-trainer-workouts"><a href="#workouts"><i class="fa-solid fa-person-running"></i><span>Workouts</span></a></li>
+          <li class="nav-item" data-tab="tab-trainer-diets"><a href="#diets"><i class="fa-solid fa-utensils"></i><span>Diet Plans</span></a></li>
+          <li class="nav-item" data-tab="tab-trainer-classes"><a href="#classes"><i class="fa-solid fa-calendar-day"></i><span>Classes</span></a></li>
+        </ul>
+      </nav>
+
+      <div class="sidebar-user" id="sidebar-user-box" style="display:flex;">
+        <div class="user-avatar" id="current-user-avatar">TR</div>
+        <div class="user-details">
+          <strong id="current-user-name">Trainer</strong>
+          <span id="current-user-role-label">Trainer Portal</span>
+        </div>
+        <button class="btn-icon-logout" id="btn-logout" title="Sign out">
+          <i class="fa-solid fa-right-from-bracket"></i>
+        </button>
+      </div>
+    </aside>
+
+    <!-- MAIN WRAPPER -->
+    <div class="main-wrapper">
+      <header class="topbar">
+        <div class="topbar-left">
+          <button class="menu-toggle" id="menu-toggle" aria-label="Toggle Navigation">
+            <i class="fa-solid fa-bars"></i>
+          </button>
+        </div>
+        <div class="topbar-right">
+          <div class="role-switcher-pill">
+            <span class="role-label">Portal:</span>
+            <span id="active-role-label" class="badge badge-blue">Trainer</span>
+          </div>
+        </div>
+      </header>
+
+      <main class="content-container">
+        <!-- 1. TRAINER DASHBOARD -->
+        <section id="tab-trainer-dashboard" class="tab-content active">
+          <div class="page-header">
+            <div>
+              <h1 class="page-title" id="trainer-dash-title">Trainer Dashboard</h1>
+              <p class="page-subtitle">Your gym, your schedule and your members.</p>
+            </div>
+          </div>
+          <div class="panel" style="margin-top:20px;">
+            <div class="panel-header">
+              <h3><i class="fa-solid fa-building text-amber"></i> My Gym</h3>
+            </div>
+            <div class="panel-body" id="trainer-gym-box">
+              <p class="text-muted">Loading gym details...</p>
+            </div>
+          </div>
+          <div class="metrics-grid" id="trainer-metrics-grid"></div>
+          <div class="panel" style="margin-top:24px;">
+            <div class="panel-header">
+              <h3><i class="fa-solid fa-users text-amber"></i> My Members</h3>
+            </div>
+            <div class="panel-body p-0">
+              <div class="table-responsive">
+                <table class="data-table">
+                  <thead>
+                    <tr>
+                      <th>Member</th>
+                      <th>Email</th>
+                      <th>Phone</th>
+                      <th>Goal</th>
+                      <th>Joined</th>
+                    </tr>
+                  </thead>
+                  <tbody id="trainer-members-tbody"></tbody>
+                </table>
+              </div>
+            </div>
+          </div>
+        </section>
+
+        <!-- 2. ATTENDANCE -->
+        <section id="tab-trainer-attendance" class="tab-content">
+          <div class="page-header">
+            <div>
+              <h1 class="page-title">Attendance</h1>
+              <p class="page-subtitle">Check in members and review gym attendance.</p>
+            </div>
+            <div class="header-actions">
+              <button class="btn btn-primary" id="btn-trainer-checkin"><i class="fa-solid fa-fingerprint"></i> Check In Member</button>
+            </div>
+          </div>
+          <div class="panel">
+            <div class="panel-header">
+              <div class="panel-title-group">
+                <h3><i class="fa-solid fa-calendar-check text-amber"></i> Check-in Log</h3>
+              </div>
+              <input type="date" id="trainer-att-date" class="form-control filter-input">
+            </div>
+            <div class="panel-body p-0">
+              <div class="table-responsive">
+                <table class="data-table">
+                  <thead>
+                    <tr><th>Member</th><th>Member Code</th><th>Checked In</th><th>Via</th></tr>
+                  </thead>
+                  <tbody id="trainer-attendance-tbody"></tbody>
+                </table>
+              </div>
+            </div>
+          </div>
+        </section>
+
+        <!-- 3. MY MEMBERS -->
+        <section id="tab-trainer-members" class="tab-content">
+          <div class="page-header">
+            <div>
+              <h1 class="page-title">My Members</h1>
+              <p class="page-subtitle">Members of your gym and their member codes.</p>
+            </div>
+          </div>
+          <div class="panel">
+            <div class="panel-header">
+              <div class="panel-title-group">
+                <h3><i class="fa-solid fa-users text-amber"></i> Members</h3>
+              </div>
+            </div>
+            <div class="panel-body p-0">
+              <div class="table-responsive">
+                <table class="data-table">
+                  <thead>
+                    <tr><th>Member</th><th>Email</th><th>Phone</th><th>Goal</th><th>Member Code</th><th>Joined</th></tr>
+                  </thead>
+                  <tbody id="trainer-members-list-tbody"></tbody>
+                </table>
+              </div>
+            </div>
+          </div>
+        </section>
+
+        <!-- 4. WORKOUTS -->
+        <section id="tab-trainer-workouts" class="tab-content">
+          <div class="page-header">
+            <div>
+              <h1 class="page-title">Workout Plans</h1>
+              <p class="page-subtitle">Create routines with exercises and assign them to members.</p>
+            </div>
+            <div class="header-actions">
+              <button class="btn btn-primary" id="btn-trainer-add-workout"><i class="fa-solid fa-plus"></i> New Workout Plan</button>
+            </div>
+          </div>
+          <div class="plans-grid admin-plans-grid" id="trainer-workouts-grid"></div>
+        </section>
+
+        <!-- 5. DIET PLANS -->
+        <section id="tab-trainer-diets" class="tab-content">
+          <div class="page-header">
+            <div>
+              <h1 class="page-title">Diet Plans</h1>
+              <p class="page-subtitle">Create meal plans and assign them to members.</p>
+            </div>
+            <div class="header-actions">
+              <button class="btn btn-primary" id="btn-trainer-add-diet"><i class="fa-solid fa-plus"></i> New Diet Plan</button>
+            </div>
+          </div>
+          <div class="plans-grid admin-plans-grid" id="trainer-diets-grid"></div>
+        </section>
+
+        <!-- 6. CLASSES -->
+        <section id="tab-trainer-classes" class="tab-content">
+          <div class="page-header">
+            <div>
+              <h1 class="page-title">Group Classes</h1>
+              <p class="page-subtitle">Schedule classes, set capacity and view rosters.</p>
+            </div>
+            <div class="header-actions">
+              <button class="btn btn-primary" id="btn-trainer-add-class"><i class="fa-solid fa-plus"></i> New Class</button>
+            </div>
+          </div>
+          <div class="plans-grid admin-plans-grid" id="trainer-classes-grid"></div>
+        </section>
+      </main>
+    </div>
+  </div>
+
+  <!-- ==================== MODALS ==================== -->
+
+  <!-- MODAL: CHECK-IN -->
+  <div class="modal-overlay" id="modal-checkin">
+    <div class="modal">
+      <div class="modal-header">
+        <h3>Record Check-in</h3>
+        <button class="modal-close" data-close="modal-checkin">&times;</button>
+      </div>
+      <div class="modal-body">
+        <div class="form-group">
+          <label for="checkin-code">Member Code</label>
+          <input type="text" id="checkin-code" class="form-control" placeholder="Scan or type member code">
+        </div>
+        <div class="auth-divider"><span>or select member</span></div>
+        <div class="form-group">
+          <label for="checkin-user">Member</label>
+          <select id="checkin-user" class="form-select"></select>
+        </div>
+      </div>
+      <div class="modal-footer">
+        <button type="button" class="btn btn-outline" data-close="modal-checkin">Cancel</button>
+        <button type="button" class="btn btn-primary" id="btn-do-checkin"><i class="fa-solid fa-fingerprint"></i> Check In</button>
+      </div>
+    </div>
+  </div>
+
+  <!-- MODAL: WORKOUT PLAN -->
+  <div class="modal-overlay" id="modal-workout">
+    <div class="modal modal-lg">
+      <div class="modal-header">
+        <h3 id="modal-workout-title">New Workout Plan</h3>
+        <button class="modal-close" data-close="modal-workout">&times;</button>
+      </div>
+      <form id="form-workout">
+        <div class="modal-body">
+          <input type="hidden" id="workout-id">
+          <div class="form-group">
+            <label for="workout-title">Plan Title <span class="text-rose">*</span></label>
+            <input type="text" id="workout-title" class="form-control" placeholder="e.g. Upper Body Strength" required>
+          </div>
+          <div class="form-row">
+            <div class="form-group col-4">
+              <label for="workout-days">Days / Week</label>
+              <input type="number" id="workout-days" class="form-control" value="3" min="1" max="7">
+            </div>
+            <div class="form-group col-4">
+              <label for="workout-difficulty">Difficulty</label>
+              <select id="workout-difficulty" class="form-select">
+                <option>Beginner</option>
+                <option>Intermediate</option>
+                <option>Advanced</option>
+              </select>
+            </div>
+            <div class="form-group col-4">
+              <label for="workout-status">Status</label>
+              <select id="workout-status" class="form-select">
+                <option value="active">Active</option>
+                <option value="inactive">Inactive</option>
+              </select>
+            </div>
+          </div>
+          <div class="form-group">
+            <label for="workout-desc">Description</label>
+            <textarea id="workout-desc" class="form-control" rows="2"></textarea>
+          </div>
+
+          <div style="display:flex;justify-content:space-between;align-items:center;margin:16px 0 8px;">
+            <h4>Exercises</h4>
+            <button type="button" class="btn btn-outline btn-sm" id="btn-add-exercise-row"><i class="fa-solid fa-plus"></i> Add Exercise</button>
+          </div>
+          <div id="workout-exercises-rows"></div>
+        </div>
+        <div class="modal-footer">
+          <button type="button" class="btn btn-outline" data-close="modal-workout">Cancel</button>
+          <button type="submit" class="btn btn-primary">Save Plan</button>
+        </div>
+      </form>
+    </div>
+  </div>
+
+  <!-- MODAL: ASSIGN WORKOUT -->
+  <div class="modal-overlay" id="modal-assign-workout">
+    <div class="modal">
+      <div class="modal-header">
+        <h3>Assign Workout Plan</h3>
+        <button class="modal-close" data-close="modal-assign-workout">&times;</button>
+      </div>
+      <form id="form-assign-workout">
+        <div class="modal-body">
+          <input type="hidden" id="assign-workout-id">
+          <p style="margin-bottom:12px;">Assign <strong id="assign-workout-title">Plan</strong> to members:</p>
+          <div id="assign-workout-members" style="max-height:260px;overflow-y:auto;"></div>
+        </div>
+        <div class="modal-footer">
+          <button type="button" class="btn btn-outline" data-close="modal-assign-workout">Cancel</button>
+          <button type="submit" class="btn btn-primary">Save Assignments</button>
+        </div>
+      </form>
+    </div>
+  </div>
+
+  <!-- MODAL: DIET PLAN -->
+  <div class="modal-overlay" id="modal-diet">
+    <div class="modal modal-lg">
+      <div class="modal-header">
+        <h3 id="modal-diet-title">New Diet Plan</h3>
+        <button class="modal-close" data-close="modal-diet">&times;</button>
+      </div>
+      <form id="form-diet">
+        <div class="modal-body">
+          <input type="hidden" id="diet-id">
+          <div class="form-group">
+            <label for="diet-title">Plan Title <span class="text-rose">*</span></label>
+            <input type="text" id="diet-title" class="form-control" placeholder="e.g. Muscle Gain Diet" required>
+          </div>
+          <div class="form-row">
+            <div class="form-group col-4">
+              <label for="diet-calories">Target Calories (kcal)</label>
+              <input type="number" id="diet-calories" class="form-control" value="2200">
+            </div>
+            <div class="form-group col-4">
+              <label for="diet-goal">Goal</label>
+              <input type="text" id="diet-goal" class="form-control" placeholder="e.g. Hypertrophy">
+            </div>
+            <div class="form-group col-4">
+              <label for="diet-status">Status</label>
+              <select id="diet-status" class="form-select">
+                <option value="active">Active</option>
+                <option value="inactive">Inactive</option>
+              </select>
+            </div>
+          </div>
+          <div class="form-group">
+            <label for="diet-desc">Description</label>
+            <textarea id="diet-desc" class="form-control" rows="2"></textarea>
+          </div>
+
+          <div style="display:flex;justify-content:space-between;align-items:center;margin:16px 0 8px;">
+            <h4>Meals</h4>
+            <button type="button" class="btn btn-outline btn-sm" id="btn-add-meal-row"><i class="fa-solid fa-plus"></i> Add Meal</button>
+          </div>
+          <div id="diet-meals-rows"></div>
+        </div>
+        <div class="modal-footer">
+          <button type="button" class="btn btn-outline" data-close="modal-diet">Cancel</button>
+          <button type="submit" class="btn btn-primary">Save Diet Plan</button>
+        </div>
+      </form>
+    </div>
+  </div>
+
+  <!-- MODAL: ASSIGN DIET -->
+  <div class="modal-overlay" id="modal-assign-diet">
+    <div class="modal">
+      <div class="modal-header">
+        <h3>Assign Diet Plan</h3>
+        <button class="modal-close" data-close="modal-assign-diet">&times;</button>
+      </div>
+      <form id="form-assign-diet">
+        <div class="modal-body">
+          <input type="hidden" id="assign-diet-id">
+          <p style="margin-bottom:12px;">Assign <strong id="assign-diet-title">Plan</strong> to members:</p>
+          <div id="assign-diet-members" style="max-height:260px;overflow-y:auto;"></div>
+        </div>
+        <div class="modal-footer">
+          <button type="button" class="btn btn-outline" data-close="modal-assign-diet">Cancel</button>
+          <button type="submit" class="btn btn-primary">Save Assignments</button>
+        </div>
+      </form>
+    </div>
+  </div>
+
+  <!-- MODAL: CLASS -->
+  <div class="modal-overlay" id="modal-class">
+    <div class="modal modal-lg">
+      <div class="modal-header">
+        <h3 id="modal-class-title">New Class</h3>
+        <button class="modal-close" data-close="modal-class">&times;</button>
+      </div>
+      <form id="form-class">
+        <div class="modal-body">
+          <input type="hidden" id="class-id">
+          <div class="form-group">
+            <label for="class-name">Class Name <span class="text-rose">*</span></label>
+            <input type="text" id="class-name" class="form-control" required>
+          </div>
+          <div class="form-row">
+            <div class="form-group col-6">
+              <label for="class-day">Day of Week</label>
+              <select id="class-day" class="form-select">
+                <option>Monday</option><option>Tuesday</option><option>Wednesday</option>
+                <option>Thursday</option><option>Friday</option><option>Saturday</option><option>Sunday</option>
+              </select>
+            </div>
+            <div class="form-group col-6">
+              <label for="class-location">Location / Studio</label>
+              <input type="text" id="class-location" class="form-control" placeholder="Studio 1...">
+            </div>
+          </div>
+          <div class="form-row">
+            <div class="form-group col-6">
+              <label for="class-start">Start Time</label>
+              <input type="time" id="class-start" class="form-control" required>
+            </div>
+            <div class="form-group col-6">
+              <label for="class-end">End Time</label>
+              <input type="time" id="class-end" class="form-control" required>
+            </div>
+          </div>
+          <div class="form-row">
+            <div class="form-group col-6">
+              <label for="class-capacity">Capacity</label>
+              <input type="number" id="class-capacity" class="form-control" value="15" min="1">
+            </div>
+            <div class="form-group col-6">
+              <label for="class-status">Status</label>
+              <select id="class-status" class="form-select">
+                <option value="active">Active</option>
+                <option value="inactive">Cancelled</option>
+              </select>
+            </div>
+          </div>
+          <div class="form-group">
+            <label for="class-desc">Description</label>
+            <textarea id="class-desc" class="form-control" rows="2"></textarea>
+          </div>
+        </div>
+        <div class="modal-footer">
+          <button type="button" class="btn btn-outline" data-close="modal-class">Cancel</button>
+          <button type="submit" class="btn btn-primary">Save Class</button>
+        </div>
+      </form>
+    </div>
+  </div>
+
+  <!-- MODAL: ROSTER -->
+  <div class="modal-overlay" id="modal-roster">
+    <div class="modal modal-lg">
+      <div class="modal-header">
+        <h3 id="modal-roster-title">Class Roster</h3>
+        <button class="modal-close" data-close="modal-roster">&times;</button>
+      </div>
+      <div class="modal-body">
+        <div style="display:flex;gap:8px;margin-bottom:16px;">
+          <select id="roster-add-user" class="form-select" style="flex:1;"></select>
+          <button class="btn btn-primary btn-sm" id="btn-roster-add"><i class="fa-solid fa-user-plus"></i> Add Member</button>
+        </div>
+        <div class="table-responsive">
+          <table class="data-table">
+            <thead>
+              <tr><th>Member Name</th><th>Member Code</th><th class="text-right">Action</th></tr>
+            </thead>
+            <tbody id="roster-tbody"></tbody>
+          </table>
+        </div>
+      </div>
+      <div class="modal-footer">
+        <button type="button" class="btn btn-outline" data-close="modal-roster">Close</button>
+      </div>
+    </div>
+  </div>
+
+  <script src="../assets/js/core.js"></script>
+  <script src="js/main.js"></script>
+  <script src="js/dashboard.js"></script>
+  <script src="js/attendance.js"></script>
+  <script src="js/members.js"></script>
+  <script src="js/workouts.js"></script>
+  <script src="js/diets.js"></script>
+  <script src="js/classes.js"></script>
+</body>
+</html>

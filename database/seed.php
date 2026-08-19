@@ -27,6 +27,7 @@ $pdo = db();
 // ---- 2. Reset tables ----
 $pdo->exec('SET FOREIGN_KEY_CHECKS = 0');
 foreach ([
+    'owner_registrations', 'payments', 'payment_methods',
     'class_bookings', 'gym_classes', 'workout_exercises', 'workout_assignments', 'workout_plans',
     'diet_meals', 'diet_assignments', 'diet_plans', 'fitness_progress', 'attendance',
     'notifications', 'announcements', 'invoices',
@@ -59,6 +60,8 @@ $tables = [
       logo_url    VARCHAR(500) NOT NULL DEFAULT "",
       description TEXT,
       status      ENUM("active","suspended") NOT NULL DEFAULT "active",
+      verification_status ENUM("pending","approved","rejected") NOT NULL DEFAULT "approved",
+      trial_ends_at DATETIME NULL,
       created_at  TIMESTAMP DEFAULT CURRENT_TIMESTAMP
     ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4',
 
@@ -340,6 +343,58 @@ $tables = [
       CONSTRAINT fk_notif_user  FOREIGN KEY (user_id)  REFERENCES users(id)  ON DELETE CASCADE,
       CONSTRAINT fk_notif_admin FOREIGN KEY (admin_id) REFERENCES admins(id) ON DELETE CASCADE
     ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4',
+
+  'payment_methods' => '
+    CREATE TABLE payment_methods (
+      id             INT AUTO_INCREMENT PRIMARY KEY,
+      admin_id       INT NOT NULL,
+      provider       ENUM("esewa","khalti","fonepay","mobile_banking") NOT NULL,
+      account_name   VARCHAR(120) NULL,
+      account_number VARCHAR(120) NULL,
+      qr_image_url   VARCHAR(500) NOT NULL,
+      is_active      TINYINT(1) NOT NULL DEFAULT 1,
+      created_at     TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
+      updated_at     TIMESTAMP DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP,
+      UNIQUE KEY uq_pm_admin_prov (admin_id, provider),
+      CONSTRAINT fk_pm_admin FOREIGN KEY (admin_id) REFERENCES admins(id) ON DELETE CASCADE
+    ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4',
+
+  'payments' => '
+    CREATE TABLE payments (
+      id               INT AUTO_INCREMENT PRIMARY KEY,
+      invoice_id       INT NOT NULL,
+      admin_id         INT NOT NULL,
+      user_id          INT NOT NULL,
+      amount           DECIMAL(12,2) NOT NULL,
+      method           VARCHAR(50) NOT NULL,
+      transaction_id   VARCHAR(120) NULL,
+      proof_image      VARCHAR(500) NULL,
+      status           ENUM("pending","verified","rejected") NOT NULL DEFAULT "pending",
+      rejection_reason TEXT NULL,
+      verified_by      VARCHAR(100) NULL,
+      verified_at      DATETIME NULL,
+      created_at       TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
+      updated_at       TIMESTAMP DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP,
+      CONSTRAINT fk_pay_invoice FOREIGN KEY (invoice_id) REFERENCES invoices(id) ON DELETE CASCADE,
+      CONSTRAINT fk_pay_admin   FOREIGN KEY (admin_id)   REFERENCES admins(id)   ON DELETE CASCADE,
+      CONSTRAINT fk_pay_user    FOREIGN KEY (user_id)    REFERENCES users(id)    ON DELETE CASCADE
+    ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4',
+
+  'owner_registrations' => '
+    CREATE TABLE owner_registrations (
+      id               INT AUTO_INCREMENT PRIMARY KEY,
+      admin_id         INT NULL,
+      amount           DECIMAL(12,2) NOT NULL DEFAULT 500,
+      transaction_id   VARCHAR(120) NULL,
+      payment_screenshot VARCHAR(500) NULL,
+      status           ENUM("pending","approved","rejected") NOT NULL DEFAULT "pending",
+      admin_notes      TEXT NULL,
+      reviewed_by      INT NULL,
+      reviewed_at      DATETIME NULL,
+      created_at       TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
+      updated_at       TIMESTAMP DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP,
+      CONSTRAINT fk_oreg_admin FOREIGN KEY (admin_id) REFERENCES admins(id) ON DELETE SET NULL
+    ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4',
 ];
 foreach ($tables as $name => $sql) {
     $pdo->exec($sql);
@@ -353,7 +408,7 @@ $stmt->execute(['Super Administrator', 'rijanpokhrel@superadmin.com', password_h
 // ---- 5. Seed admins (gym owners) ----
 function seed_admin(PDO $pdo, string $name, string $email, string $plain, string $gym, string $phone, string $address, string $logo, string $desc): int
 {
-    $stmt = $pdo->prepare('INSERT INTO admins (name, email, password, gym_name, phone, address, logo_url, description) VALUES (?, ?, ?, ?, ?, ?, ?, ?)');
+    $stmt = $pdo->prepare('INSERT INTO admins (name, email, password, gym_name, phone, address, logo_url, description, verification_status) VALUES (?, ?, ?, ?, ?, ?, ?, ?, "approved")');
     $stmt->execute([$name, $email, password_hash($plain, PASSWORD_BCRYPT), $gym, $phone, $address, $logo, $desc]);
     return (int)$pdo->lastInsertId();
 }
@@ -541,18 +596,28 @@ $stmt->execute([$peakId, $guestId, 'INV-2026-0003', 'PT Session Pack (x4)', '4 x
 // ---- 17. Seed announcements + notifications ----
 $stmt = $pdo->prepare('INSERT INTO announcements (admin_id, title, body, priority, status) VALUES (?, ?, ?, ?, "active")');
 $stmt->execute([$peakId, 'New Cardio Zone Opening', 'Our new 12-station cardio zone opens next Monday. Free demo all week!', 'important']);
-$stmt->execute([$peakId, 'Scheduled Maintenance', 'Sauna and steam will be under maintenance on Sunday 6:00-12:00.', 'normal']);
+// ---- 18. Seed QR Payment Methods (Peak Fitness) ----
+$stmt = $pdo->prepare('INSERT INTO payment_methods (admin_id, provider, account_name, account_number, qr_image_url, is_active) VALUES (?, ?, ?, ?, ?, 1)');
+$stmt->execute([$peakId, 'esewa', 'Peak Fitness Gym Pvt Ltd', '9801234567', 'https://api.qrserver.com/v1/create-qr-code/?size=250x250&data=eSewa:PeakFitness:9801234567']);
+$stmt->execute([$peakId, 'khalti', 'Peak Fitness Official', '9801234567', 'https://api.qrserver.com/v1/create-qr-code/?size=250x250&data=Khalti:PeakFitness:9801234567']);
+$stmt->execute([$peakId, 'fonepay', 'Peak Fitness Pvt Ltd', 'FONEPAY-PEAK-01', 'https://api.qrserver.com/v1/create-qr-code/?size=250x250&data=FonePay:PeakFitness:01']);
 
-$stmt = $pdo->prepare('INSERT INTO notifications (user_id, admin_id, type, title, body, is_read) VALUES (?, ?, ?, ?, ?, ?)');
-$stmt->execute([$aaravId, $peakId, 'announcement', 'New Cardio Zone Opening', 'Our new 12-station cardio zone opens next Monday.', 0]);
-$stmt->execute([$aaravId, $peakId, 'invoice', 'Invoice INV-2026-0002 due', 'Your August membership invoice of NPR 2,500 is due on 2026-08-31.', 0]);
-$stmt->execute([$aaravId, $peakId, 'class', 'Class booked', 'You are booked for Morning HIIT on Monday at 06:30.', 1]);
-$stmt->execute([$guestId, $peakId, 'announcement', 'Scheduled Maintenance', 'Sauna and steam closed Sunday 6:00-12:00.', 0]);
+// ---- 19. Seed a pending member payment submission ----
+$stmt = $pdo->prepare('INSERT INTO payments (invoice_id, admin_id, user_id, amount, method, transaction_id, proof_image, status) VALUES (?, ?, ?, ?, ?, ?, ?, "pending")');
+$stmt->execute([2, $peakId, $aaravId, 2500, 'esewa', 'ESEWA-2026-98124', 'https://images.unsplash.com/photo-1554224155-8d04cb21cd6c?w=500']);
 
 echo "[ok] Demo data inserted.\n";
+
+// ---- 20. Seed a demo pending owner registration ----
+$stmt = $pdo->prepare('INSERT INTO admins (name, email, password, gym_name, phone, address, verification_status, trial_ends_at) VALUES (?, ?, ?, ?, ?, ?, "pending", DATE_ADD(NOW(), INTERVAL 14 DAY))');
+$stmt->execute(['Demo Owner', 'demo.owner@example.com', password_hash('Demo@123', PASSWORD_BCRYPT), 'Demo Gym', '+977 9899999999', 'Thamel, Kathmandu']);
+$demoOwnerId = (int)$pdo->lastInsertId();
+$pdo->prepare('INSERT INTO owner_registrations (admin_id, amount, transaction_id, status) VALUES (?, 500, "DEMO-TRANS-001", "pending")')->execute([$demoOwnerId]);
+
 echo "\nDone! Demo accounts:\n";
-echo "  Superadmin -> rijanpokhrel@superadmin.com / Rijan@123\n";
-echo "  Admin      -> admin@peakfitness.com / Admin@123\n";
-echo "  Admin      -> admin@ironcore.com / Admin@123\n";
-echo "  Trainer    -> alex@peakfitness.com / Trainer@123\n";
-echo "  User       -> aarav.sharma@example.com / user123\n";
+echo "  Superadmin  -> rijanpokhrel@superadmin.com / Rijan@123\n";
+echo "  Admin       -> admin@peakfitness.com / Admin@123\n";
+echo "  Admin       -> admin@ironcore.com / Admin@123\n";
+echo "  Trainer     -> alex@peakfitness.com / Trainer@123\n";
+echo "  User        -> aarav.sharma@example.com / user123\n";
+echo "  Demo Owner  -> demo.owner@example.com / Demo@123 (pending approval)\n";

@@ -96,39 +96,82 @@ a MySQL database on localhost (XAMPP).
 ## 2. Project Structure
 
 ```
-├── index.html                 Single-page frontend (3 portals)
-├── style.css                  Styles
-├── script.js                  Frontend logic (auth, portal routing, CRUD)
-├── config/init.php            DB credentials, session, CORS, auth helpers
-├── api/
-│   ├── auth/
-│   │   ├── login.php          Portal auto-detect login
-│   │   ├── register.php       User self-registration
-│   │   ├── me.php             Restore session
-│   │   └── logout.php
-│   ├── superadmin/
-│   │   ├── admins.php         Admin accounts CRUD
-│   │   ├── plans.php          Subscription plans CRUD
-│   │   ├── subscriptions.php  List + verify/reject payments
-│   │   ├── trainers.php       Trainer records CRUD (any gym)
-│   │   └── metrics.php        Global dashboard stats
-│   ├── admin/
-│   │   ├── dashboard.php      Admin metrics + subscription status
-│   │   ├── subscribe.php      Create payment request (QR)
-│   │   ├── subscriptions.php  Own history / current status
-│   │   ├── products.php       Own products CRUD (requires active sub)
-│   │   ├── users.php          Own gym users CRUD (requires active sub)
-│   │   └── trainers.php       Own gym trainers CRUD (requires active sub)
-│   ├── user/
-│   │   ├── dashboard.php      Member dashboard
-│   │   ├── gyms.php           List/select/follow gyms
-│   │   ├── products.php       Products of a selected gym
-│   │   └── trainers.php       Trainers of a selected gym
-│   └── payments.php           Static QR PNG + info generator
+├── index.html                 Root landing / entry router
+├── assets/
+│   ├── css/
+│   │   ├── base.css           Design tokens, layout, tables, cards, UI components
+│   │   └── auth.css           Authentication page styling
+│   └── js/
+│       └── core.js            Shared helper functions, API client, modals, toasts
+├── auth/                      Dedicated Authentication Portal
+│   ├── login.html / login.js
+│   ├── register.html / register.js
+│   ├── forgot-password.html / forgot-password.js
+│   ├── reset-password.html / reset-password.js
+│   └── verify-email.html / verify-email.js
+├── admin/                     Gym Owner (Admin) Portal
+│   ├── index.html             Admin dashboard view & modals
+│   └── js/                    Modular Feature Scripts
+│       ├── main.js            Core routing & gym profile
+│       ├── dashboard.js       Overview metrics & statistics
+│       ├── attendance.js      Check-in scanner & logs
+│       ├── progress.js        Member fitness tracking
+│       ├── workouts.js        Workout plan builder & assignments
+│       ├── diets.js           Diet plan builder & nutrition
+│       ├── classes.js         Group class schedules & rosters
+│       ├── invoices.js        Billing, statements & payments
+│       ├── announcements.js   Gym broadcasts
+│       ├── reports.js         Analytics & CSV exports
+│       ├── products.js        Store inventory & stock
+│       ├── equipment.js       Gym machinery & maintenance
+│       ├── users.js           Member accounts management
+│       └── trainers.js        Coach accounts & staff
+├── trainer/                   Trainer Portal
+│   ├── index.html             Trainer dashboard view
+│   └── js/                    Modular Feature Scripts
+│       ├── main.js            Core routing & state
+│       ├── dashboard.js       Trainer stats
+│       ├── attendance.js      Class/gym check-in
+│       ├── members.js         Assigned gym members
+│       ├── workouts.js        Workout management
+│       ├── diets.js           Diet management
+│       └── classes.js         Class schedule & rosters
+├── user/                      Member (User) Portal
+│   ├── index.html             Member dashboard view
+│   └── js/                    Modular Feature Scripts
+│       ├── main.js            Core routing & account
+│       ├── dashboard.js       Member overview & linked gym
+│       ├── notifications.js   Broadcasts & updates
+│       ├── products.js        Gym store catalogue
+│       ├── trainers.js        Coach directory
+│       ├── equipment.js       Gym equipment directory
+│       ├── attendance.js      Personal check-in & member code
+│       ├── progress.js        Personal logs & weight chart
+│       ├── workouts.js        Assigned workout routines
+│       ├── diets.js           Assigned diet plans
+│       ├── classes.js         Class booking & cancellation
+│       ├── invoices.js        Billing & invoice history
+│       └── gym-view.js        Read-only public gym browser
+├── superadmin/                Platform Superadmin Portal
+│   ├── index.html             Superadmin dashboard view
+│   └── js/                    Modular Feature Scripts
+│       ├── main.js            Core routing & platform state
+│       ├── dashboard.js       Platform metrics & summary
+│       └── admins.js          Gym admins CRUD & suspension
+├── config/
+│   ├── init.php               Database connection, session, CORS, auth helpers
+│   └── mailer.php             Lightweight SMTP email delivery
+├── api/                       Modular PHP Backend Endpoints
+│   ├── auth/                  Login, register, verify, reset, me, logout
+│   ├── admin/                 Admin APIs (attendance, billing, classes, workouts, etc.)
+│   ├── trainer/               Trainer APIs
+│   ├── user/                  Member APIs
+│   ├── superadmin/            Superadmin APIs
+│   └── public/                Public gym information & dashboards
 ├── database/
-│   ├── seed.php               One-click DB + tables + demo data
-│   └── schema.sql             Reference schema
-└── vendor/phpqrcode/          Bundled QR encoder (LGPL)
+│   ├── seed.php               Database initialization & demo data
+│   └── schema.sql             MySQL schema
+└── uploads/                   Uploaded gym logos & assets
 ```
 
 ---

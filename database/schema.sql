@@ -29,6 +29,7 @@ CREATE TABLE `superadmins` (
 
 -- ---------------------------------------------------------------------------
 -- Admins = independent gym owners. Created & managed by the superadmin.
+-- Owners who self-register get a 14-day free trial before requiring payment.
 -- ---------------------------------------------------------------------------
 CREATE TABLE `admins` (
   `id`          INT AUTO_INCREMENT PRIMARY KEY,
@@ -41,7 +42,27 @@ CREATE TABLE `admins` (
   `logo_url`    VARCHAR(500) NOT NULL DEFAULT '',
   `description` TEXT,
   `status`      ENUM('active','suspended') NOT NULL DEFAULT 'active',
+  `verification_status` ENUM('pending','approved','rejected') NOT NULL DEFAULT 'approved',
+  `trial_ends_at` DATETIME NULL,
   `created_at`  TIMESTAMP DEFAULT CURRENT_TIMESTAMP
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4;
+
+-- ---------------------------------------------------------------------------
+-- Owner registration requests (self-registration with payment proof).
+-- ---------------------------------------------------------------------------
+CREATE TABLE `owner_registrations` (
+  `id`               INT AUTO_INCREMENT PRIMARY KEY,
+  `admin_id`         INT NULL,
+  `amount`           DECIMAL(12,2) NOT NULL DEFAULT 500,
+  `transaction_id`   VARCHAR(120) NULL,
+  `payment_screenshot` VARCHAR(500) NULL,
+  `status`           ENUM('pending','approved','rejected') NOT NULL DEFAULT 'pending',
+  `admin_notes`      TEXT NULL,
+  `reviewed_by`      INT NULL,
+  `reviewed_at`      DATETIME NULL,
+  `created_at`       TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
+  `updated_at`       TIMESTAMP DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP,
+  CONSTRAINT `fk_oreg_admin` FOREIGN KEY (`admin_id`) REFERENCES `admins`(`id`) ON DELETE SET NULL
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4;
 
 -- ---------------------------------------------------------------------------
@@ -344,3 +365,41 @@ CREATE TABLE `notifications` (
   CONSTRAINT `fk_notif_user`  FOREIGN KEY (`user_id`)  REFERENCES `users`(`id`)  ON DELETE CASCADE,
   CONSTRAINT `fk_notif_admin` FOREIGN KEY (`admin_id`) REFERENCES `admins`(`id`) ON DELETE CASCADE
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4;
+
+-- ---------------------------------------------------------------------------
+-- Payment methods (QR Codes: eSewa, Khalti, Fonepay, Mobile Banking) & Member Proof Payments.
+-- ---------------------------------------------------------------------------
+CREATE TABLE `payment_methods` (
+  `id`             INT AUTO_INCREMENT PRIMARY KEY,
+  `admin_id`       INT NOT NULL,
+  `provider`       ENUM('esewa','khalti','fonepay','mobile_banking') NOT NULL,
+  `account_name`   VARCHAR(120) NULL,
+  `account_number` VARCHAR(120) NULL,
+  `qr_image_url`   VARCHAR(500) NOT NULL,
+  `is_active`      TINYINT(1) NOT NULL DEFAULT 1,
+  `created_at`     TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
+  `updated_at`     TIMESTAMP DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP,
+  UNIQUE KEY `uq_pm_admin_prov` (`admin_id`, `provider`),
+  CONSTRAINT `fk_pm_admin` FOREIGN KEY (`admin_id`) REFERENCES `admins`(`id`) ON DELETE CASCADE
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4;
+
+CREATE TABLE `payments` (
+  `id`               INT AUTO_INCREMENT PRIMARY KEY,
+  `invoice_id`       INT NOT NULL,
+  `admin_id`         INT NOT NULL,
+  `user_id`          INT NOT NULL,
+  `amount`           DECIMAL(12,2) NOT NULL,
+  `method`           VARCHAR(50) NOT NULL,
+  `transaction_id`   VARCHAR(120) NULL,
+  `proof_image`      VARCHAR(500) NULL,
+  `status`           ENUM('pending','verified','rejected') NOT NULL DEFAULT 'pending',
+  `rejection_reason` TEXT NULL,
+  `verified_by`      VARCHAR(100) NULL,
+  `verified_at`      DATETIME NULL,
+  `created_at`       TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
+  `updated_at`       TIMESTAMP DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP,
+  CONSTRAINT `fk_pay_invoice` FOREIGN KEY (`invoice_id`) REFERENCES `invoices`(`id`) ON DELETE CASCADE,
+  CONSTRAINT `fk_pay_admin`   FOREIGN KEY (`admin_id`)   REFERENCES `admins`(`id`)   ON DELETE CASCADE,
+  CONSTRAINT `fk_pay_user`    FOREIGN KEY (`user_id`)    REFERENCES `users`(`id`)    ON DELETE CASCADE
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4;
+

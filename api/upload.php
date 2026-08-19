@@ -15,10 +15,23 @@ if (($_SERVER['REQUEST_METHOD'] ?? '') !== 'POST') {
     fail('Method not allowed.', 405);
 }
 
-if (empty($_FILES['logo']) || ($_FILES['logo']['error'] ?? UPLOAD_ERR_NO_FILE) === UPLOAD_ERR_NO_FILE) {
+$file = null;
+foreach (['file', 'image', 'screenshot', 'logo', 'qr'] as $key) {
+    if (!empty($_FILES[$key]) && ($_FILES[$key]['error'] ?? UPLOAD_ERR_NO_FILE) !== UPLOAD_ERR_NO_FILE) {
+        $file = $_FILES[$key];
+        break;
+    }
+}
+if (!$file && !empty($_FILES)) {
+    $first = reset($_FILES);
+    if (($first['error'] ?? UPLOAD_ERR_NO_FILE) !== UPLOAD_ERR_NO_FILE) {
+        $file = $first;
+    }
+}
+
+if (!$file) {
     fail('Please choose an image file to upload.');
 }
-$file = $_FILES['logo'];
 if ($file['error'] !== UPLOAD_ERR_OK) {
     fail('The upload failed (error code ' . (int)$file['error'] . ').');
 }

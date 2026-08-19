@@ -1,0 +1,56 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Verify Email | FitPulse Gym Management System</title>
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&family=Plus+Jakarta+Sans:wght@500;600;700;800&display=swap" rel="stylesheet">
+  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.1/css/all.min.css">
+  <link rel="stylesheet" href="../assets/css/base.css">
+  <link rel="stylesheet" href="../assets/css/auth.css">
+</head>
+<body class="auth-page">
+  <div class="auth-screen-bg"></div>
+
+  <div class="auth-card-wrap">
+    <div class="auth-card">
+      <div class="auth-card-brand">
+        <div class="auth-logo"><i class="fa-solid fa-dumbbell"></i></div>
+        <h1>FitPulse</h1>
+        <p class="auth-tagline">Email Verification</p>
+      </div>
+
+      <div class="auth-card-body">
+        <div id="verify-loading" style="display:none; text-align:center; padding: 20px 0;">
+          <i class="fa-solid fa-circle-notch fa-spin" style="font-size:2rem; color:var(--orange-500); margin-bottom:12px;"></i>
+          <p>Verifying your email address...</p>
+        </div>
+
+        <div id="verify-form-wrap">
+          <h3 class="auth-step-title">Verify your email</h3>
+          <p class="auth-step-sub">Please verify your email address to activate your account. Enter your email below to receive a verification link.</p>
+
+          <form id="form-verify" novalidate>
+            <div class="form-group">
+              <label for="verify-email">Email Address <span class="text-rose">*</span></label>
+              <input type="email" id="verify-email" class="form-control" placeholder="you@example.com" required>
+            </div>
+            <button type="submit" class="btn btn-primary btn-block" id="btn-submit-verify">Send Verification Link</button>
+          </form>
+
+          <div style="margin-top: 16px;">
+            <a href="login.html" class="btn btn-ghost btn-block">
+              <i class="fa-solid fa-arrow-left"></i> Back to Sign In
+            </a>
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <script src="../assets/js/core.js"></script>
+  <script src="verify-email.js"></script>
+</body>
+</html>
