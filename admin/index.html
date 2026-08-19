@@ -621,7 +621,12 @@
             </div>
             <div class="form-group col-6">
               <label for="user-pass">Password</label>
-              <input type="password" id="user-pass" class="form-control" placeholder="Min. 6 characters">
+              <div class="password-field">
+                <input type="password" id="user-pass" class="form-control" placeholder="Min. 6 characters">
+                <button type="button" class="password-toggle" onclick="togglePassword('user-pass', this)" tabindex="-1">
+                  <i class="fa-solid fa-eye"></i>
+                </button>
+              </div>
             </div>
           </div>
           <div class="form-row">
@@ -670,7 +675,12 @@
             </div>
             <div class="form-group col-6">
               <label for="trainer-pass">Password <span class="text-rose">*</span></label>
-              <input type="password" id="trainer-pass" class="form-control" placeholder="Min. 6 characters">
+              <div class="password-field">
+                <input type="password" id="trainer-pass" class="form-control" placeholder="Min. 6 characters">
+                <button type="button" class="password-toggle" onclick="togglePassword('trainer-pass', this)" tabindex="-1">
+                  <i class="fa-solid fa-eye"></i>
+                </button>
+              </div>
             </div>
           </div>
           <div class="form-row">

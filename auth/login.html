@@ -40,7 +40,12 @@
           </div>
           <div class="form-group">
             <label for="login-password">Password <span class="text-rose">*</span></label>
-            <input type="password" id="login-password" class="form-control" placeholder="Enter your password" autocomplete="current-password" required>
+            <div class="password-field">
+              <input type="password" id="login-password" class="form-control" placeholder="Enter your password" autocomplete="current-password" required>
+              <button type="button" class="password-toggle" onclick="togglePassword('login-password', this)" tabindex="-1">
+                <i class="fa-solid fa-eye"></i>
+              </button>
+            </div>
           </div>
           <div class="auth-links-row">
             <a href="forgot-password.html">Forgot password?</a>

@@ -370,6 +370,22 @@
 
   document.addEventListener('DOMContentLoaded', initGlobalListeners);
 
+  /* ----------------------------- Password Toggle ------------------------- */
+  function togglePassword(inputId, btn) {
+    const input = document.getElementById(inputId);
+    if (!input) return;
+    const icon = btn.querySelector('i');
+    if (input.type === 'password') {
+      input.type = 'text';
+      icon.classList.remove('fa-eye');
+      icon.classList.add('fa-eye-slash');
+    } else {
+      input.type = 'password';
+      icon.classList.remove('fa-eye-slash');
+      icon.classList.add('fa-eye');
+    }
+  }
+
   /* Export to global scope */
   global.Core = {
     $, esc, money, fmtDate, todayISO, initials, logoImg,
@@ -377,7 +393,10 @@
     openModal, closeModal, closeActiveModal,
     statusBadge, pill, invoiceStatus, metricCard, emptyRow, emptyState, portalLabel,
     getPathPrefix, redirectToPortal, checkSession, requireAuth, setupUserProfileUI, logout,
-    drawBarChart, drawLineChart, downloadReportCsv
+    drawBarChart, drawLineChart, downloadReportCsv, togglePassword
   };
+
+  /* Also expose togglePassword as a global function for inline onclick handlers */
+  global.togglePassword = togglePassword;
 
 })(window);
