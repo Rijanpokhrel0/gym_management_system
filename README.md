@@ -214,16 +214,6 @@ Go to: `http://localhost/<your-folder-name>/index.html`
 
 ---
 
-## 4. Demo Accounts
-
-| Portal | Email | Password | Notes |
-|--------|-------|----------|-------|
-| **Superadmin** | `rijanpokhrel@superadmin.com` | `Rijan@123` | Fixed platform owner |
-| **Admin (active)** | `admin@peakfitness.com` | `Admin@123` | Subscription ACTIVE — products/users unlocked |
-| **Admin (pending)** | `admin@ironcore.com` | `Admin@123` | Pending payment — try the full QR verification flow |
-| **User** | `aarav.sharma@example.com` | `user123` | Member |
-
----
 
 ## 5. API Summary
 
